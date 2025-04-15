@@ -15,6 +15,7 @@ import time
 import traceback
 from dataclasses import dataclass
 from multiprocessing import Process, Queue
+import multiprocessing
 from pathlib import Path
 
 import humanize
@@ -22,6 +23,7 @@ from dataclasses_json import DataClassJsonMixin
 
 logger = logging.getLogger("ai-scientist")
 
+multiprocessing.log_to_stderr(logging.INFO)
 
 @dataclass
 class ExecutionResult(DataClassJsonMixin):

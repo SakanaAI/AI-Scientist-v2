@@ -2,7 +2,7 @@ from __future__ import annotations
 import time
 import uuid
 from dataclasses import dataclass, field
-from typing import Literal, Optional
+from typing import Literal, Optional, List, Dict
 import copy
 import os
 import json
@@ -17,7 +17,9 @@ from rich import print
 
 import logging
 from pathlib import Path
+from dotenv import load_dotenv
 
+load_dotenv()
 logger = logging.getLogger(__name__)
 
 node_selection_spec = FunctionSpec(
@@ -211,7 +213,7 @@ class Node(DataClassJsonMixin):
             return 0
         return self.parent.debug_depth + 1  # type: ignore
 
-    def to_dict(self) -> Dict:
+    def to_dict(self) -> dict:
         """Convert node to dictionary for serialization"""
         return {
             "code": self.code,
@@ -347,13 +349,13 @@ class InteractiveSession(DataClassJsonMixin):
         trace = []
         header_prefix = "## " if comment_headers else ""
         for n in self.nodes:
-            trace.append(f"\n{header_prefix}In [{n.step+1}]:\n")
+            trace.append(f"\n{header_prefix}In [{n.step + 1}]:\n")
             trace.append(n.code)
-            trace.append(f"\n{header_prefix}Out [{n.step+1}]:\n")
+            trace.append(f"\n{header_prefix}Out [{n.step + 1}]:\n")
             trace.append(n.term_out)
 
         if include_prompt and self.nodes:
-            trace.append(f"\n{header_prefix}In [{self.nodes[-1].step+2}]:\n")
+            trace.append(f"\n{header_prefix}In [{self.nodes[-1].step + 2}]:\n")
 
         return "\n".join(trace).strip()
 
@@ -363,6 +365,7 @@ class Journal:
     """A collection of nodes representing the solution tree."""
 
     nodes: list[Node] = field(default_factory=list)
+    model: str = field(default=os.getenv("LLM_MODEL", "gpt-4o"))
 
     def __getitem__(self, idx: int) -> Node:
         return self.nodes[idx]
@@ -452,13 +455,13 @@ class Journal:
         for node in nodes:
             if not node.is_seed_node:
                 candidate_info = (
-                    f"ID: {node.id}\n" f"Metric: {str(node.metric)}\n"
+                    f"ID: {node.id}\nMetric: {str(node.metric)}\n"
                     if node.metric
                     else (
-                        "N/A\n" f"Training Analysis: {node.analysis}\n"
+                        f"N/A\nTraining Analysis: {node.analysis}\n"
                         if hasattr(node, "analysis")
                         else (
-                            "N/A\n" f"VLM Feedback: {node.vlm_feedback_summary}\n"
+                            f"N/A\nVLM Feedback: {node.vlm_feedback_summary}\n"
                             if hasattr(node, "vlm_feedback_summary")
                             else "N/A\n"
                         )
@@ -471,7 +474,7 @@ class Journal:
                 system_message=prompt,
                 user_message=None,
                 func_spec=node_selection_spec,
-                model="gpt-4o",
+                model=self.model,
                 temperature=0.3,
             )
 
@@ -535,7 +538,7 @@ class Journal:
                 "2. Common failure patterns and pitfalls to avoid\n"
                 "3. Specific recommendations for future experiments based on both successes and failures"
             ),
-            model="gpt-4o",
+            model=self.model,
             temperature=0.3,
         )
 
@@ -599,7 +602,7 @@ class Journal:
         stage_summary = query(
             system_message=summary_prompt,
             user_message="Generate a comprehensive summary of the experimental findings in this stage",
-            model="gpt-4",
+            model=self.model,
             temperature=0.3,
         )
 

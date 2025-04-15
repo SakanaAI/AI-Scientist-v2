@@ -7,8 +7,10 @@ from ai_scientist.utils.token_tracker import track_token_usage
 import anthropic
 import backoff
 import openai
+from dotenv import load_dotenv
 
-MAX_NUM_TOKENS = 4096
+load_dotenv()
+MAX_NUM_TOKENS = int(os.environ.get("MAX_NUM_TOKENS", 4096))
 
 AVAILABLE_LLMS = [
     "claude-3-5-sonnet-20240620",
@@ -134,7 +136,7 @@ def get_batch_responses_from_llm(
         print()
         print("*" * 20 + " LLM START " + "*" * 20)
         for j, msg in enumerate(new_msg_history[0]):
-            print(f'{j}, {msg["role"]}: {msg["content"]}')
+            print(f"{j}, {msg['role']}: {msg['content']}")
         print(content)
         print("*" * 21 + " LLM END " + "*" * 21)
         print()
@@ -156,6 +158,16 @@ def make_llm_call(client, model, temperature, system_message, prompt):
             n=1,
             stop=None,
             seed=0,
+        )
+    elif "gemini" in model:
+        return client.chat.completions.create(
+            model=model,
+            messages=[
+                {"role": "system", "content": system_message},
+                *prompt,
+            ],
+            temperature=temperature,
+            max_tokens=MAX_NUM_TOKENS,
         )
     elif "o1" in model or "o3" in model:
         return client.chat.completions.create(
@@ -226,18 +238,7 @@ def get_response_from_llm(
                 ],
             }
         ]
-    elif "gpt" in model:
-        new_msg_history = msg_history + [{"role": "user", "content": msg}]
-        response = make_llm_call(
-            client,
-            model,
-            temperature,
-            system_message=system_message,
-            prompt=new_msg_history,
-        )
-        content = response.choices[0].message.content
-        new_msg_history = new_msg_history + [{"role": "assistant", "content": content}]
-    elif "o1" in model or "o3" in model:
+    elif any(x in model for x in ["gpt", "gemini", "o1", "o3"]):
         new_msg_history = msg_history + [{"role": "user", "content": msg}]
         response = make_llm_call(
             client,
@@ -285,7 +286,7 @@ def get_response_from_llm(
         print()
         print("*" * 20 + " LLM START " + "*" * 20)
         for j, msg in enumerate(new_msg_history):
-            print(f'{j}, {msg["role"]}: {msg["content"]}')
+            print(f"{j}, {msg['role']}: {msg['content']}")
         print(content)
         print("*" * 21 + " LLM END " + "*" * 21)
         print()
@@ -339,6 +340,13 @@ def create_client(model) -> tuple[Any, str]:
     elif "o1" in model or "o3" in model:
         print(f"Using OpenAI API with model {model}.")
         return openai.OpenAI(), model
+    elif "gemini" in model:
+        print(f"Using Gemini API with model {model}.")
+        return openai.OpenAI(
+            max_retries=0,
+            api_key=os.getenv("GEMINI_API_KEY"),
+            base_url="https://generativelanguage.googleapis.com/v1beta/openai/",
+        ), model
     elif model == "deepseek-coder-v2-0724":
         print(f"Using OpenAI API with {model}.")
         return (

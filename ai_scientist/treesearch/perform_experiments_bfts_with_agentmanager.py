@@ -94,6 +94,8 @@ def perform_experiments_bfts(config_path: str):
     def create_exec_callback(status_obj):
         def exec_callback(*args, **kwargs):
             status_obj.update("[magenta]Executing code...")
+            from .interpreter import Interpreter  # Import the Interpreter class or module
+            interpreter = Interpreter(cfg.workspace_dir)  # Initialize the interpreter
             res = interpreter.run(*args, **kwargs)
             status_obj.update("[green]Generating code...")
             return res
@@ -235,7 +237,7 @@ def perform_experiments_bfts(config_path: str):
         with open(ablation_summary_path, "w") as ablation_file:
             json.dump(ablation_summary, ablation_file, indent=2)
 
-        print(f"Summary reports written to files:")
+        print("Summary reports written to files:")
         print(f"- Draft summary: {draft_summary_path}")
         print(f"- Baseline summary: {baseline_summary_path}")
         print(f"- Research summary: {research_summary_path}")
