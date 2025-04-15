@@ -70,7 +70,7 @@ def make_llm_call(client, model, temperature, system_message, prompt):
 
 @track_token_usage
 def make_vlm_call(client, model, temperature, system_message, prompt):
-    if "gpt" in model:
+    if "gpt" in model or "gemini" in model:
         return client.chat.completions.create(
             model=model,
             messages=[
