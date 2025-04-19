@@ -213,7 +213,7 @@ class Node(DataClassJsonMixin):
             return 0
         return self.parent.debug_depth + 1  # type: ignore
 
-    def to_dict(self) -> dict:
+    def to_dict(self) -> Dict:
         """Convert node to dictionary for serialization"""
         return {
             "code": self.code,

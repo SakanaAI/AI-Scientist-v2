@@ -500,9 +500,9 @@ This JSON will be automatically parsed, so ensure the format is precise."""
                 x_str = x.strip().strip('"').strip("'")
                 if x_str:
                     selected_indices.append(int(x_str))
-            assert all([0 <= i < len(papers) for i in selected_indices]), (
-                "Invalid paper index"
-            )
+            assert all(
+                [0 <= i < len(papers) for i in selected_indices]
+            ), "Invalid paper index"
             bibtexs = [papers[i]["citationStyles"]["bibtex"] for i in selected_indices]
 
             cleaned_bibtexs = []
@@ -1026,10 +1026,10 @@ def perform_writeup(
 
             # Save PDF with reflection trial number
             reflection_pdf = osp.join(
-                base_folder, f"{osp.basename(base_folder)}_reflection{i + 1}.pdf"
+                base_folder, f"{osp.basename(base_folder)}_reflection{i+1}.pdf"
             )
             # Compile current version before reflection
-            print(f"[green]Compiling PDF for reflection {i + 1}...[/green]")
+            print(f"[green]Compiling PDF for reflection {i+1}...[/green]")
             compile_latex(latex_folder, reflection_pdf)
 
             review_img_cap_ref = perform_imgs_cap_ref_review(
@@ -1114,10 +1114,10 @@ Ensure proper citation usage:
 
                     compile_latex(latex_folder, reflection_pdf)
                 else:
-                    print(f"No changes in reflection step {i + 1}.")
+                    print(f"No changes in reflection step {i+1}.")
                     break
             else:
-                print(f"No valid LaTeX code block found in reflection step {i + 1}.")
+                print(f"No valid LaTeX code block found in reflection step {i+1}.")
                 break
             # Get new reflection_page_info
             reflection_page_info = get_reflection_page_info(reflection_pdf, page_limit)
@@ -1181,10 +1181,10 @@ If you believe you are done with reflection, simply say: "I am done"."""
 
                     compile_latex(latex_folder, reflection_pdf)
                 else:
-                    print(f"No changes in reflection step {i + 1}.")
+                    print(f"No changes in reflection step {i+1}.")
                     break
             else:
-                print(f"No valid LaTeX code block found in reflection step {i + 1}.")
+                print(f"No valid LaTeX code block found in reflection step {i+1}.")
                 break
 
         # Final reflection on page limit
@@ -1210,7 +1210,7 @@ USE MINIMAL EDITS TO OPTIMIZE THE PAGE LIMIT USAGE."""
         # Compile current version before reflection
         print("[green]Compiling PDF for reflection final page limit...[/green]")
 
-        print(f"reflection step {i + 1}")
+        print(f"reflection step {i+1}")
 
         reflection_code_match = re.search(
             r"```latex(.*?)```", reflection_response, re.DOTALL
