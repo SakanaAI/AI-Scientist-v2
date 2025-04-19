@@ -1,6 +1,7 @@
 import os
 import requests
 import time
+import warnings
 from typing import Dict, List, Optional, Union
 
 import backoff
@@ -36,8 +37,9 @@ class SemanticScholarSearchTool(BaseTool):
         self.max_results = max_results
         self.S2_API_KEY = os.getenv("S2_API_KEY")
         if not self.S2_API_KEY:
-            raise ValueError(
-                "Semantic Scholar API key not found. Please set the S2_API_KEY environment variable."
+            warnings.warn(
+                "No Semantic Scholar API key found. Requests will be subject to stricter rate limits. "
+                "Set the S2_API_KEY environment variable for higher limits."
             )
 
     def use_tool(self, query: str) -> Optional[str]:
@@ -55,9 +57,14 @@ class SemanticScholarSearchTool(BaseTool):
     def search_for_papers(self, query: str) -> Optional[List[Dict]]:
         if not query:
             return None
+        
+        headers = {}
+        if self.S2_API_KEY:
+            headers["X-API-KEY"] = self.S2_API_KEY
+        
         rsp = requests.get(
             "https://api.semanticscholar.org/graph/v1/paper/search",
-            headers={"X-API-KEY": self.S2_API_KEY},
+            headers=headers,
             params={
                 "query": query,
                 "limit": self.max_results,
@@ -96,15 +103,20 @@ Abstract: {paper.get("abstract", "No abstract available.")}"""
 )
 def search_for_papers(query, result_limit=10) -> Union[None, List[Dict]]:
     S2_API_KEY = os.getenv("S2_API_KEY")
+    headers = {}
     if not S2_API_KEY:
-        raise ValueError(
-            "Semantic Scholar API key not found. Please set the S2_API_KEY environment variable."
+        warnings.warn(
+            "No Semantic Scholar API key found. Requests will be subject to stricter rate limits."
         )
+    else:
+        headers["X-API-KEY"] = S2_API_KEY
+    
     if not query:
         return None
+    
     rsp = requests.get(
         "https://api.semanticscholar.org/graph/v1/paper/search",
-        headers={"X-API-KEY": S2_API_KEY},
+        headers=headers,
         params={
             "query": query,
             "limit": result_limit,

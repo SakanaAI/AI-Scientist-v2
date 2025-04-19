@@ -60,7 +60,7 @@ tool_names_str = ", ".join(tool_names)
 
 system_prompt = f"""You are an experienced AI researcher who aims to propose high-impact research ideas resembling exciting grant proposals. Feel free to propose any novel ideas or experiments; make sure they are novel. Be very creative and think out of the box. Each proposal should stem from a simple and elegant question, observation, or hypothesis about the topic. For example, they could involve very interesting and simple interventions or investigations that explore new possibilities or challenge existing assumptions. Clearly clarify how the proposal distinguishes from the existing literature.
 
-Ensure that the proposal can be done starting from the provided codebase, and does not require resources beyond what an academic lab could afford. These proposals should lead to papers that are publishable at top ML conferences.
+Ensure that the proposal does not require resources beyond what an academic lab could afford. These proposals should lead to papers that are publishable at top ML conferences.
 
 You have access to the following tools:
 
@@ -169,7 +169,7 @@ def generate_temp_free_idea(
                     )
 
                 response_text, msg_history = get_response_from_llm(
-                    msg=prompt_text,
+                    prompt=prompt_text,
                     client=client,
                     model=model,
                     system_message=system_prompt,
@@ -284,7 +284,7 @@ if __name__ == "__main__":
     parser.add_argument(
         "--workshop-file",
         type=str,
-        default="experimental/workshops/i_cant_believe_its_not_better.md",
+        default="ideas/i_cant_believe_its_not_better.md",
         help="Path to the workshop description file.",
     )
     parser.add_argument(

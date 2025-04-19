@@ -11,6 +11,7 @@ def idea_to_markdown(data: dict, output_path: str, load_code: str) -> None:
     Args:
         data: Dictionary containing the data to convert
         output_path: Path where the markdown file will be saved
+        load_code: Path to a code file to include in the markdown
     """
     with open(output_path, "w", encoding="utf-8") as f:
         for key, value in data.items():
@@ -32,6 +33,8 @@ def idea_to_markdown(data: dict, output_path: str, load_code: str) -> None:
 
         # Add the code to the markdown file
         if load_code:
+            # Assert that the code file exists before trying to open it
+            assert os.path.exists(load_code), f"Code path at {load_code} must exist if using the 'load_code' flag. This is an optional code prompt that you may choose to include; if not, please do not set 'load_code'."
             f.write(f"## Code To Potentially Use\n\n")
             f.write(f"Use the following code as context for your experiments:\n\n")
             with open(load_code, "r") as code_file:
