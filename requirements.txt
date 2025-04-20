@@ -27,3 +27,4 @@ jsonschema
 omegaconf
 botocore
 boto3
+arxiv
