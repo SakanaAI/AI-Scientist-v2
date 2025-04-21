@@ -63,6 +63,7 @@ pip install -r requirements.txt
 #### OpenAI Models
 
 By default, the system uses the `OPENAI_API_KEY` environment variable for OpenAI models.
+Additionally, if you are using a custom OpenAI-compatible API endpoint (e.g., a local LLM server), you can specify its URL using the `BASE_URL` environment variable.
 
 #### Claude Models via AWS Bedrock
 
@@ -81,6 +82,10 @@ Our code can optionally use a Semantic Scholar API Key (`S2_API_KEY`) for higher
 Ensure you provide the necessary API keys as environment variables for the models you intend to use. For example:
 ```bash
 export OPENAI_API_KEY="YOUR_OPENAI_KEY_HERE"
+# Optional: For custom OpenAI-compatible endpoints
+# export BASE_URL="YOUR_CUSTOM_API_BASE_URL"
+
+# For Semantic Scholar API (Optional)
 export S2_API_KEY="YOUR_S2_KEY_HERE"
 # Set AWS credentials if using Bedrock
 # export AWS_ACCESS_KEY_ID="YOUR_AWS_ACCESS_KEY_ID"

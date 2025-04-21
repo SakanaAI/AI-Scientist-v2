@@ -8,9 +8,11 @@ from .journal import Node, Journal
 
 parent_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", ".."))
 sys.path.insert(0, parent_dir)
+import os
 from ai_scientist.llm import get_response_from_llm, extract_json_between_markers
 
-client = openai.OpenAI()
+base_url = os.getenv('BASE_URL')
+client = openai.OpenAI(base_url=base_url if base_url else None)
 model = "gpt-4o-2024-08-06"
 
 report_summarizer_sys_msg = """You are an expert machine learning researcher.
