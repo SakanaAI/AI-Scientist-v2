@@ -78,7 +78,7 @@ If you choose to finalize your idea, provide the IDEA JSON in the arguments:
 
 IDEA JSON:
 ```json
-{{
+"idea": {{
     "Name": "...",
     "Title": "...",
     "Short Hypothesis": "...",
