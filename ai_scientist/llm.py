@@ -13,9 +13,6 @@ from dotenv import load_dotenv
 # Load environment variables from .env file
 load_dotenv()
 
-# Verify the API key is loaded
-assert os.getenv("OPENAI_API_KEY"), "OPENAI_API_KEY is not set!"
-
 MAX_NUM_TOKENS = 4096
 
 AVAILABLE_LLMS = [
