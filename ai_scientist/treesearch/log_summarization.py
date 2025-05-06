@@ -1,17 +1,19 @@
 import json
 import os
 import sys
-
-import openai
-
+from concurrent.futures import ThreadPoolExecutor
+from tqdm import tqdm
 from .journal import Node, Journal
+from dotenv import load_dotenv
 
+load_dotenv()
 parent_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", ".."))
 sys.path.insert(0, parent_dir)
 from ai_scientist.llm import get_response_from_llm, extract_json_between_markers
+from ai_scientist.llm import create_client
 
-client = openai.OpenAI()
-model = "gpt-4o-2024-08-06"
+model = os.getenv("LLM_MODEL", "gpt-4o-2024-08-06")
+client, model = create_client(model)
 
 report_summarizer_sys_msg = """You are an expert machine learning researcher.
 You are given multiple experiment logs, each representing a node in a stage of exploring scientific ideas and implementations.
@@ -295,7 +297,6 @@ def annotate_history(journal):
 
 
 def overall_summarize(journals):
-    from concurrent.futures import ThreadPoolExecutor
 
     def process_stage(idx, stage_tuple):
         stage_name, journal = stage_tuple
@@ -339,8 +340,6 @@ def overall_summarize(journals):
             summary_json = get_stage_summary(journal, stage_name, model, client)
             return summary_json
 
-    from tqdm import tqdm
-
     with ThreadPoolExecutor() as executor:
         results = list(
             tqdm(
@@ -349,9 +348,14 @@ def overall_summarize(journals):
                 total=len(list(journals)),
             )
         )
-        draft_summary, baseline_summary, research_summary, ablation_summary = results
+        print(f"WARNING: {len(results)} stages found")
+        # Safely unpack results, which may have 1 to 4 items
+        draft_summary = results[0] if len(results) > 0 else dict()
+        baseline_summary = results[1] if len(results) > 1 else dict()
+        research_summary = results[2] if len(results) > 2 else dict()
+        ablation_summary = results[3] if len(results) > 3 else dict()
 
-    return draft_summary, baseline_summary, research_summary, ablation_summary
+        return draft_summary, baseline_summary, research_summary, ablation_summary
 
 
 if __name__ == "__main__":

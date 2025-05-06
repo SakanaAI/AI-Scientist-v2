@@ -34,10 +34,7 @@ def opt_messages_to_list(
     system_message: str | None, user_message: str | None
 ) -> list[dict[str, str]]:
     messages = []
-    if system_message:
-        messages.append({"role": "system", "content": system_message})
-    if user_message:
-        messages.append({"role": "user", "content": user_message})
+    messages.append({"role": "user", "content": (system_message or "") + "\n" + (user_message or "")})
     return messages
 
 

@@ -6,8 +6,11 @@ import backoff
 import openai
 from PIL import Image
 from ai_scientist.utils.token_tracker import track_token_usage
+import os
+from dotenv import load_dotenv
 
-MAX_NUM_TOKENS = 4096
+load_dotenv()
+MAX_NUM_TOKENS = int(os.getenv("MAX_NUM_TOKENS", 4096))
 
 AVAILABLE_VLMS = [
     "gpt-4o-2024-05-13",
@@ -67,7 +70,7 @@ def make_llm_call(client, model, temperature, system_message, prompt):
 
 @track_token_usage
 def make_vlm_call(client, model, temperature, system_message, prompt):
-    if "gpt" in model:
+    if "gpt" in model or "gemini" in model:
         return client.chat.completions.create(
             model=model,
             messages=[
@@ -107,7 +110,7 @@ def get_response_from_vlm(
     if msg_history is None:
         msg_history = []
 
-    if model in AVAILABLE_VLMS:
+    if model in AVAILABLE_VLMS or "gemini" in model:
         # Convert single image path to list for consistent handling
         if isinstance(image_paths, str):
             image_paths = [image_paths]
@@ -147,7 +150,7 @@ def get_response_from_vlm(
         print()
         print("*" * 20 + " VLM START " + "*" * 20)
         for j, msg in enumerate(new_msg_history):
-            print(f'{j}, {msg["role"]}: {msg["content"]}')
+            print(f"{j}, {msg['role']}: {msg['content']}")
         print(content)
         print("*" * 21 + " VLM END " + "*" * 21)
         print()
@@ -166,6 +169,13 @@ def create_client(model: str) -> tuple[Any, str]:
     ]:
         print(f"Using OpenAI API with model {model}.")
         return openai.OpenAI(), model
+    elif "gemini" in model:
+        print(f"Using Gemini API with model {model}.")
+        return openai.OpenAI(
+            max_retries=0,
+            api_key=os.getenv("GEMINI_API_KEY"),
+            base_url="https://generativelanguage.googleapis.com/v1beta/openai/",
+        ), model
     else:
         raise ValueError(f"Model {model} not supported.")
 
@@ -242,7 +252,7 @@ def get_batch_responses_from_vlm(
         "gpt-4o-2024-11-20",
         "gpt-4o-mini-2024-07-18",
         "o3-mini",
-    ]:
+    ] or "gemini" in model:
         # Convert single image path to list
         if isinstance(image_paths, str):
             image_paths = [image_paths]
@@ -290,7 +300,7 @@ def get_batch_responses_from_vlm(
         print()
         print("*" * 20 + " VLM START " + "*" * 20)
         for j, msg in enumerate(new_msg_histories[0]):
-            print(f'{j}, {msg["role"]}: {msg["content"]}')
+            print(f"{j}, {msg['role']}: {msg['content']}")
         print(contents[0])
         print("*" * 21 + " VLM END " + "*" * 21)
         print()

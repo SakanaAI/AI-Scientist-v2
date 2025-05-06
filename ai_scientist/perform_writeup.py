@@ -15,9 +15,7 @@ from ai_scientist.llm import (
     create_client,
     AVAILABLE_LLMS,
 )
-
 from ai_scientist.tools.semantic_scholar import search_for_papers
-
 from ai_scientist.perform_vlm_review import generate_vlm_img_review
 from ai_scientist.vlm import create_client as create_vlm_client
 
@@ -456,8 +454,8 @@ def perform_writeup(
     base_folder,
     no_writing=False,
     num_cite_rounds=20,
-    small_model="gpt-4o-2024-05-13",
-    big_model="o1-2024-12-17",
+    small_model=os.getenv("LLM_SMALL_MODEL", "gpt-4o-2024-05-13"),
+    big_model=os.getenv("LLM_MODEL", "o1-2024-12-17"),
     n_writeup_reflections=3,
     page_limit=8,
 ):
@@ -525,6 +523,11 @@ def perform_writeup(
             for fplot in os.listdir(figures_dir):
                 if fplot.lower().endswith(".png"):
                     plot_names.append(fplot)
+        # copy plots to ./latex folder
+        for fplot in plot_names:
+            src_path = osp.join(figures_dir, fplot)
+            dest_path = osp.join(latex_folder, fplot)
+            shutil.copy(src_path, dest_path)
 
         # Load aggregator script to include in the prompt
         aggregator_path = osp.join(base_folder, "auto_plot_aggregator.py")
@@ -589,7 +592,7 @@ def perform_writeup(
 
         # Generate VLM-based descriptions but do not overwrite plot_names
         try:
-            vlm_client, vlm_model = create_vlm_client("gpt-4o-2024-05-13")
+            vlm_client, vlm_model = create_vlm_client(os.getenv("LLM_SMALL_MODEL", "gpt-4o-2024-05-13"))
             desc_map = {}
             for pf in plot_names:
                 ppath = osp.join(figures_dir, pf)

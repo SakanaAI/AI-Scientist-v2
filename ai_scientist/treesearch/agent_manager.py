@@ -880,6 +880,7 @@ Your research idea:\n\n
             # Save stage transition analysis to notes directory
             base_dir = Path(self.workspace_dir).parent.parent
             run_name = Path(self.workspace_dir).name
+            stage_number = previous_stages[-1].stage_number
             notes_dir = (
                 base_dir
                 / "logs"

@@ -58,11 +58,14 @@ conda install conda-forge::chktex
 pip install -r requirements.txt
 ```
 
+You may also need to install pdflatex like here https://gist.github.com/rain1024/98dd5e2c6c8c28f9ea9d 
+
 ### Supported Models and API Keys
 
 #### OpenAI Models
 
-By default, the system uses the `OPENAI_API_KEY` environment variable for OpenAI models.
+By default, the system uses the `OPENAI_API_KEY` environment variable. You can see other environment variables in `.env.example`.
+
 
 #### Gemini Models
 
@@ -152,6 +155,20 @@ python launch_scientist_bfts.py \
 
 Once the initial experimental stage is complete, you will find a timestamped log folder inside the `experiments/` directory. Navigate to `experiments/"timestamp_ideaname"/logs/0-run/` within that folder to find the tree visualization file `unified_tree_viz.html`.
 
+### Running with Gemini
+Set `GEMINI_API_KEY` environment variable to your Gemini API key, and set `LLM_MODEL` to a gemini model like `gemini-2.0-flash-exp`. You can use the following command to run the experiment with the Gemini model:
+
+```bash
+python launch_scientist_bfts.py \
+ --load_ideas "ai_scientist/ideas/automated_concept_sae_eval.json" \
+ --add_dataset_ref \
+ --model_writeup "gemini-2.0-flash-exp" \
+ --model_citation "gemini-2.0-flash-exp" \
+ --model_review "gemini-2.0-flash-exp" \
+ --model_agg_plots "gemini-2.0-flash-exp" \
+ --num_cite_rounds 20 \
+--config_path "bfts_config_gemini.yaml" 
+```
 ## Citing The AI Scientist-v2
 
 If you use **The AI Scientist-v2** in your research, please cite our work as follows:

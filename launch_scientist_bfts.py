@@ -26,6 +26,9 @@ from ai_scientist.perform_icbinb_writeup import (
 from ai_scientist.perform_llm_review import perform_review, load_paper
 from ai_scientist.perform_vlm_review import perform_imgs_cap_ref_review
 from ai_scientist.utils.token_tracker import token_tracker
+from dotenv import load_dotenv
+
+load_dotenv()
 
 
 def print_time():
@@ -122,6 +125,12 @@ def parse_arguments():
         action="store_true",
         help="If set, skip the review process",
     )
+    parser.add_argument(
+        "--config_path",
+        type=str,
+        default="bfts_config.yaml",
+        help="Path to the bfts_config.yaml file",
+    )
     return parser.parse_args()
 
 
@@ -134,6 +143,7 @@ def get_available_gpus(gpu_ids=None):
 def find_pdf_path_for_review(idea_dir):
     pdf_files = [f for f in os.listdir(idea_dir) if f.endswith(".pdf")]
     reflection_pdfs = [f for f in pdf_files if "reflection" in f]
+    pdf_path = None
     if reflection_pdfs:
         # First check if there's a final version
         final_pdfs = [f for f in reflection_pdfs if "final" in f.lower()]
@@ -186,6 +196,9 @@ if __name__ == "__main__":
         ideas = json.load(f)
         print(f"Loaded {len(ideas)} pregenerated ideas from {args.load_ideas}")
 
+    if isinstance(ideas, dict):
+        # If the JSON file contains a single idea, convert it to a list
+        ideas = [ideas]
     idea = ideas[args.idea_idx]
 
     date = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
@@ -240,7 +253,7 @@ if __name__ == "__main__":
     with open(idea_path_json, "w") as f:
         json.dump(ideas[args.idea_idx], f, indent=4)
 
-    config_path = "bfts_config.yaml"
+    config_path = args.config_path
     idea_config_path = edit_bfts_config_file(
         config_path,
         idea_dir,
@@ -270,7 +283,7 @@ if __name__ == "__main__":
             small_model=args.model_citation,
         )
         for attempt in range(args.writeup_retries):
-            print(f"Writeup attempt {attempt+1} of {args.writeup_retries}")
+            print(f"Writeup attempt {attempt + 1} of {args.writeup_retries}")
             if args.writeup_type == "normal":
                 writeup_success = perform_writeup(
                     base_folder=idea_dir,
@@ -296,7 +309,7 @@ if __name__ == "__main__":
     if not args.skip_review and not args.skip_writeup:
         # Perform paper review if the paper exists
         pdf_path = find_pdf_path_for_review(idea_dir)
-        if os.path.exists(pdf_path):
+        if pdf_path and os.path.exists(pdf_path):
             print("Paper found at: ", pdf_path)
             paper_content = load_paper(pdf_path)
             client, client_model = create_client(args.model_review)

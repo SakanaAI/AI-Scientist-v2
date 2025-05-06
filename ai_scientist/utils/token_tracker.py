@@ -1,6 +1,5 @@
 from functools import wraps
 from typing import Dict, Optional, List
-import tiktoken
 from collections import defaultdict
 import asyncio
 from datetime import datetime
@@ -196,16 +195,22 @@ def track_token_usage(func):
         logging.info("kwargs: ", kwargs)
 
         if hasattr(result, "usage"):
+            reasoning_tokens = (
+                result.usage.completion_tokens_details.reasoning_tokens
+                if result.usage.completion_tokens_details
+                else 0
+            )
+            cached_tokens = (
+                result.usage.prompt_tokens_details.cached_tokens
+                if hasattr(result.usage, "prompt_tokens_details") and result.usage.prompt_tokens_details is not None
+                else 0
+            )
             token_tracker.add_tokens(
                 model,
                 result.usage.prompt_tokens,
                 result.usage.completion_tokens,
-                result.usage.completion_tokens_details.reasoning_tokens,
-                (
-                    result.usage.prompt_tokens_details.cached_tokens
-                    if hasattr(result.usage, "prompt_tokens_details")
-                    else 0
-                ),
+                reasoning_tokens,
+                cached_tokens,
             )
             # Add interaction details
             token_tracker.add_interaction(

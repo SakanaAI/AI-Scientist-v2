@@ -7,9 +7,9 @@ import shutil
 import subprocess
 import traceback
 import unicodedata
-import uuid
 import tempfile
-
+from dotenv import load_dotenv
+load_dotenv()
 from ai_scientist.llm import (
     get_response_from_llm,
     extract_json_between_markers,
@@ -17,7 +17,6 @@ from ai_scientist.llm import (
     AVAILABLE_LLMS,
 )
 
-from ai_scientist.utils.token_tracker import track_token_usage
 
 from ai_scientist.tools.semantic_scholar import search_for_papers
 
@@ -733,6 +732,8 @@ def filter_experiment_summaries(exp_summaries, step_name):
         elif stage_name == "ABLATION_SUMMARY" and step_name == "plot_aggregation":
             filtered_summaries[stage_name] = {}
             for ablation_summary in exp_summaries[stage_name]:
+                if ablation_summary is None:
+                    continue
                 filtered_summaries[stage_name][ablation_summary["ablation_name"]] = {}
                 for node_key in ablation_summary.keys():
                     if node_key in node_keys_to_keep:
@@ -742,7 +743,7 @@ def filter_experiment_summaries(exp_summaries, step_name):
     return filtered_summaries
 
 
-def gather_citations(base_folder, num_cite_rounds=20, small_model="gpt-4o-2024-05-13"):
+def gather_citations(base_folder, num_cite_rounds=20, small_model=os.getenv("LLM_SMALL_MODEL", "gpt-4o-2024-05-13")):
     """
     Gather citations for a paper, with ability to resume from previous progress.
 
@@ -859,8 +860,8 @@ def perform_writeup(
     citations_text=None,
     no_writing=False,
     num_cite_rounds=20,
-    small_model="gpt-4o-2024-05-13",
-    big_model="o1-2024-12-17",
+    small_model=os.getenv("LLM_SMALL_MODEL", "gpt-4o-2024-05-13"),
+    big_model=os.getenv("LLM_MODEL", "o1-2024-12-17"),
     n_writeup_reflections=3,
     page_limit=4,
 ):
@@ -950,7 +951,7 @@ def perform_writeup(
 
         # Generate VLM-based descriptions
         try:
-            vlm_client, vlm_model = create_vlm_client("gpt-4o-2024-05-13")
+            vlm_client, vlm_model = create_vlm_client(os.getenv("LLM_MODEL", "gpt-4o-2024-05-13"))
             desc_map = {}
             for pf in plot_names:
                 ppath = osp.join(figures_dir, pf)
@@ -1207,7 +1208,7 @@ USE MINIMAL EDITS TO OPTIMIZE THE PAGE LIMIT USAGE."""
             base_folder, f"{osp.basename(base_folder)}_reflection_final_page_limit.pdf"
         )
         # Compile current version before reflection
-        print(f"[green]Compiling PDF for reflection final page limit...[/green]")
+        print("[green]Compiling PDF for reflection final page limit...[/green]")
 
         print(f"reflection step {i+1}")
 
@@ -1232,7 +1233,7 @@ USE MINIMAL EDITS TO OPTIMIZE THE PAGE LIMIT USAGE."""
 
                 compile_latex(latex_folder, reflection_pdf)
             else:
-                print(f"No changes in reflection page step.")
+                print("No changes in reflection page step.")
 
         return osp.exists(reflection_pdf)
 
