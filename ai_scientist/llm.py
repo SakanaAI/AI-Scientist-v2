@@ -8,6 +8,11 @@ import anthropic
 import backoff
 import openai
 
+from dotenv import load_dotenv
+
+# Load environment variables from .env file
+load_dotenv()
+
 MAX_NUM_TOKENS = 4096
 
 AVAILABLE_LLMS = [
