@@ -65,6 +65,10 @@ pip install -r requirements.txt
 By default, the system uses the `OPENAI_API_KEY` environment variable for OpenAI models.
 Additionally, if you are using a custom OpenAI-compatible API endpoint (e.g., a local LLM server), you can specify its URL using the `BASE_URL` environment variable.
 
+#### Gemini Models
+
+By default, the system uses the `GEMINI_API_KEY` environment variable for Gemini models through OpenAI API.
+
 #### Claude Models via AWS Bedrock
 
 To use Claude models provided by Amazon Bedrock, install the necessary additional packages:
