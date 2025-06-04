@@ -165,7 +165,9 @@ def create_client(model: str) -> tuple[Any, str]:
         "o3-mini",
     ]:
         print(f"Using OpenAI API with model {model}.")
-        return openai.OpenAI(), model
+        import os
+        base_url = os.getenv('BASE_URL')
+        return openai.OpenAI(base_url=base_url if base_url else None), model
     else:
         raise ValueError(f"Model {model} not supported.")
 

@@ -7,6 +7,7 @@ from ai_scientist.utils.token_tracker import track_token_usage
 import anthropic
 import backoff
 import openai
+import os
 
 MAX_NUM_TOKENS = 4096
 
@@ -426,12 +427,10 @@ def create_client(model) -> tuple[Any, str]:
         client_model = model.split("/")[-1]
         print(f"Using Vertex AI with model {client_model}.")
         return anthropic.AnthropicVertex(), client_model
-    elif "gpt" in model:
+    elif "gpt" in model or "o1" in model or "o3" in model:
         print(f"Using OpenAI API with model {model}.")
-        return openai.OpenAI(), model
-    elif "o1" in model or "o3" in model:
-        print(f"Using OpenAI API with model {model}.")
-        return openai.OpenAI(), model
+        base_url = os.getenv('BASE_URL')
+        return openai.OpenAI(base_url=base_url if base_url else None), model
     elif model == "deepseek-coder-v2-0724":
         print(f"Using OpenAI API with {model}.")
         return (
