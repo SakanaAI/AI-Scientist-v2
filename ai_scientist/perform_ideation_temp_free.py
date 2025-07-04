@@ -4,7 +4,7 @@ import os.path as osp
 import re
 import traceback
 from typing import Any, Dict, List
-
+import os 
 import sys
 
 sys.path.append(osp.join(osp.dirname(__file__), ".."))
@@ -15,14 +15,12 @@ from ai_scientist.llm import (
 )
 
 from ai_scientist.tools.semantic_scholar import SemanticScholarSearchTool
+from ai_scientist.tools.openalex import OpenAlexSearchTool
 from ai_scientist.tools.base_tool import BaseTool
-
-# Create tool instances
-semantic_scholar_tool = SemanticScholarSearchTool()
 
 # Define tools at the top of the file
 tools = [
-    semantic_scholar_tool,
+    SemanticScholarSearchTool() if os.getenv("S2_API_KEY", False) else OpenAlexSearchTool(),
     {
         "name": "FinalizeIdea",
         "description": """Finalize your idea by providing the idea details.
