@@ -1,8 +1,18 @@
 import os
+import time
 import warnings
 from typing import Dict, List, Optional
 
+import backoff
+
 from ai_scientist.tools.base_tool import BaseTool
+
+
+def on_backoff(details: Dict) -> None:
+    print(
+        f"Backing off {details['wait']:0.1f} seconds after {details['tries']} tries "
+        f"calling function {details['target'].__name__} at {time.strftime('%X')}"
+    )
 
 
 class OpenAlexSearchTool(BaseTool):
@@ -45,6 +55,12 @@ class OpenAlexSearchTool(BaseTool):
         else:
             return "No papers found."
 
+    @backoff.on_exception(
+        backoff.expo,
+        (Exception,),
+        on_backoff=on_backoff,
+        max_tries=3,
+    )
     def search_for_papers(self, query: str) -> Optional[List[Dict]]:
         if not query or self.pyalex is None:
             return None
