@@ -66,7 +66,11 @@ class OpenAlexSearchTool(BaseTool):
             return None
         try:
             from pyalex import Works
-            search_results = Works().search(query).filter(is_paratext=False).get()
+            # Request specific fields including abstract_inverted_index
+            search_results = Works().search(query).filter(is_paratext=False).select([
+                "id", "title", "authorships", "publication_year", "cited_by_count",
+                "locations", "abstract_inverted_index"
+            ]).get()
             
             if not search_results:
                 return None
@@ -93,10 +97,22 @@ class OpenAlexSearchTool(BaseTool):
                     if venue != "":
                         break
             title = work.get("title", "Unknown Title")
-            abstract = work.get("abstract") or ""
+            
+            # Extract abstract from different possible fields
+            abstract = ""
+            if work.get("abstract"):
+                abstract = work.get("abstract")
+            elif work.get("abstract_inverted_index"):
+                # Reconstruct abstract from inverted index
+                abstract = self._reconstruct_abstract_from_inverted_index(work.get("abstract_inverted_index"))
+            
+            if not abstract:
+                abstract = "No abstract available."
+            
             if len(abstract) > max_abstract_length:
                 print(f"[WARNING] {title=}: {len(abstract)=} is too long! Use first {max_abstract_length} chars.")
                 abstract = abstract[:max_abstract_length]
+            
             authors_list = [author["author"].get("display_name", "Unknown") for author in work.get("authorships", [])]
             authors = " and ".join(authors_list) if len(authors_list) < 20 else f"{authors_list[0]} et al."
             paper = dict(
@@ -118,6 +134,27 @@ class OpenAlexSearchTool(BaseTool):
                 abstract="No abstract available.",
                 citationCount=0,
             )
+
+    def _reconstruct_abstract_from_inverted_index(self, inverted_index: dict) -> str:
+        """Reconstruct abstract text from OpenAlex inverted index format."""
+        try:
+            if not inverted_index:
+                return ""
+            
+            # Create a list to store words with their positions
+            word_positions = []
+            for word, positions in inverted_index.items():
+                for pos in positions:
+                    word_positions.append((pos, word))
+            
+            # Sort by position and join words
+            word_positions.sort(key=lambda x: x[0])
+            abstract = " ".join([word for _, word in word_positions])
+            
+            return abstract
+        except Exception as e:
+            print(f"[ERROR] Failed to reconstruct abstract from inverted index: {e}")
+            return ""
 
     def format_papers(self, papers: List[Dict]) -> str:
         paper_strings = []
