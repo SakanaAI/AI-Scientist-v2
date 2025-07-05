@@ -66,19 +66,18 @@ class OpenAlexSearchTool(BaseTool):
             return None
         try:
             from pyalex import Works
-            # Используем более простой подход с get() для получения результатов
             search_results = Works().search(query).filter(is_paratext=False).get()
             
             if not search_results:
                 return None
                 
-            # Сортируем результаты по количеству цитирований
             search_results.sort(key=lambda x: x.get("cited_by_count", 0), reverse=True)
             
-            # Берем только нужное количество результатов
             papers = []
             for work in search_results[:self.max_results]:
-                papers.append(self.extract_info_from_work(work))
+                paper = self.extract_info_from_work(work)
+                print(paper)
+                papers.append(paper)
                 
             return papers if papers else None
         except Exception as e:
