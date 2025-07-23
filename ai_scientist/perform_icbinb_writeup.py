@@ -19,7 +19,7 @@ from ai_scientist.llm import (
 
 from ai_scientist.utils.token_tracker import track_token_usage
 
-from ai_scientist.tools.semantic_scholar import search_for_papers
+from ai_scientist.tools.openalex import search_for_papers
 
 from ai_scientist.perform_vlm_review import (
     generate_vlm_img_review,

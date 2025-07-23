@@ -14,15 +14,15 @@ from ai_scientist.llm import (
     get_response_from_llm,
 )
 
-from ai_scientist.tools.semantic_scholar import SemanticScholarSearchTool
+from ai_scientist.tools.openalex import OpenAlexSearchTool
 from ai_scientist.tools.base_tool import BaseTool
 
 # Create tool instances
-semantic_scholar_tool = SemanticScholarSearchTool()
+openalex_tool = OpenAlexSearchTool()
 
 # Define tools at the top of the file
 tools = [
-    semantic_scholar_tool,
+    openalex_tool,
     {
         "name": "FinalizeIdea",
         "description": """Finalize your idea by providing the idea details.
