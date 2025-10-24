@@ -1,0 +1,107 @@
+[tool.poetry]
+name = "ai-scientist"
+version = "0.1.0"
+description = "AI Scientist - Automated Scientific Research"
+authors = ["AI Scientist Team"]
+readme = "README.md"
+packages = [{include = "ai_scientist"}]
+
+[tool.poetry.dependencies]
+python = "^3.11"
+# LLM APIs
+anthropic = "*"
+backoff = "*"
+openai = "*"
+# Viz
+matplotlib = "*"
+pypdf = "*"
+pymupdf4llm = "*"
+seaborn = "*"
+# Common Requirements
+numpy = "*"
+transformers = "*"
+datasets = "*"
+tiktoken = "*"
+wandb = "*"
+tqdm = "*"
+rich = "*"
+humanize = "*"
+dataclasses-json = "*"
+funcy = "*"
+black = "*"
+genson = "*"
+shutup = "*"
+python-igraph = "*"
+coolname = "*"
+jsonschema = "*"
+omegaconf = "*"
+botocore = "*"
+boto3 = "*"
+
+[tool.poetry.group.dev.dependencies]
+pytest = "^8.0.0"
+pytest-cov = "^6.0.0"
+pytest-mock = "^3.14.0"
+
+[tool.poetry.scripts]
+test = "pytest:main"
+tests = "pytest:main"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py", "*_test.py"]
+python_classes = ["Test*"]
+python_functions = ["test_*"]
+addopts = [
+    "-v",
+    "--strict-markers",
+    "--strict-config",
+    "--cov=ai_scientist",
+    "--cov-report=html",
+    "--cov-report=xml",
+    "--cov-report=term-missing",
+]
+markers = [
+    "unit: Unit tests that test individual components in isolation",
+    "integration: Integration tests that test multiple components together",
+    "slow: Tests that take a long time to run",
+]
+
+[tool.coverage.run]
+source = ["ai_scientist"]
+omit = [
+    "*/tests/*",
+    "*/test_*.py",
+    "*/__pycache__/*",
+    "*/venv/*",
+    "*/env/*",
+    "*/.venv/*",
+    "*/setup.py",
+]
+
+[tool.coverage.report]
+exclude_lines = [
+    "pragma: no cover",
+    "def __repr__",
+    "raise AssertionError",
+    "raise NotImplementedError",
+    "if __name__ == .__main__.:",
+    "if TYPE_CHECKING:",
+    "@abstractmethod",
+]
+precision = 2
+show_missing = true
+skip_covered = false
+# Target 80% coverage once tests are written
+# Uncomment the line below to enforce coverage threshold:
+# fail_under = 80
+
+[tool.coverage.html]
+directory = "htmlcov"
+
+[tool.coverage.xml]
+output = "coverage.xml"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"

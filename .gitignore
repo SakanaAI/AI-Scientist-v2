@@ -176,6 +176,9 @@ templates/*/*.png
 results/
 # logs/
 
+# Claude Code
+.claude/*
+
 # data folders under review_iclr_bench/
 review_iclr_bench/iclr_papers/
 review_iclr_bench/iclr_parsed_w_img/
