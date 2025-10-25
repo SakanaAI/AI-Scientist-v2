@@ -82,12 +82,17 @@ Next, configure valid [AWS Credentials](https://docs.aws.amazon.com/cli/v1/userg
 
 Our code can optionally use a Semantic Scholar API Key (`S2_API_KEY`) for higher throughput during literature search [if you have one](https://www.semanticscholar.org/product/api). This is used during both the ideation and paper writing stages. The system should work without it, though you might encounter rate limits or reduced novelty checking during ideation. If you experience issues with Semantic Scholar, you can skip the citation phase during paper generation.
 
+#### OpenAlex API (Literature Search)
+
+As an alternative to Semantic Scholar, you can use OpenAlex for literature search. OpenAlex provides free access to academic papers and does not require an API key. However, setting the `OPENALEX_MAIL_ADDRESS` environment variable is recommended for better access to the OpenAlex API. Use the `--engine openalex` argument when running the ideation script to use OpenAlex instead of Semantic Scholar.
+
 #### Setting API Keys
 
 Ensure you provide the necessary API keys as environment variables for the models you intend to use. For example:
 ```bash
 export OPENAI_API_KEY="YOUR_OPENAI_KEY_HERE"
 export S2_API_KEY="YOUR_S2_KEY_HERE"
+export OPENALEX_MAIL_ADDRESS="your@email.com"  # Optional, for better OpenAlex access
 # Set AWS credentials if using Bedrock
 # export AWS_ACCESS_KEY_ID="YOUR_AWS_ACCESS_KEY_ID"
 # export AWS_SECRET_ACCESS_KEY="YOUR_AWS_SECRET_KEY"
@@ -109,7 +114,19 @@ Before running the full AI Scientist-v2 experiment pipeline, you first use the `
      --max-num-generations 20 \
      --num-reflections 5
     ```
+    
+    To use OpenAlex instead of Semantic Scholar for literature search:
+    ```bash
+    python ai_scientist/perform_ideation_temp_free.py \
+     --workshop-file "ai_scientist/ideas/my_research_topic.md" \
+     --model gpt-4o-2024-05-13 \
+     --max-num-generations 20 \
+     --num-reflections 5 \
+     --engine openalex
+    ```
+    
     *   `--workshop-file`: Path to your topic description Markdown file.
+    *   `--engine`: Choose between `semantic_scholar` (default) or `openalex` for literature search.
     *   `--model`: The LLM to use for generating ideas (ensure you have the corresponding API key set).
     *   `--max-num-generations`: How many distinct research ideas to attempt generating.
     *   `--num-reflections`: How many refinement steps the LLM should perform for each idea.
