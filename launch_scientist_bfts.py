@@ -18,10 +18,10 @@ from ai_scientist.treesearch.bfts_utils import (
     edit_bfts_config_file,
 )
 from ai_scientist.perform_plotting import aggregate_plots
-from ai_scientist.perform_writeup import perform_writeup
+from ai_scientist.perform_writeup import perform_writeup, gather_citations
 from ai_scientist.perform_icbinb_writeup import (
     perform_writeup as perform_icbinb_writeup,
-    gather_citations,
+    gather_citations as gather_icbinb_citations,
 )
 from ai_scientist.perform_llm_review import perform_review, load_paper
 from ai_scientist.perform_vlm_review import perform_imgs_cap_ref_review
@@ -87,6 +87,12 @@ def parse_arguments():
         type=str,
         default="o3-mini-2025-01-31",
         help="Model to use for plot aggregation",
+    )
+    parser.add_argument(
+        "--model_agg_plots_ref",
+        type=int,
+        default=5,
+        help="Number of reflections to use for plot aggregation",
     )
     parser.add_argument(
         "--model_writeup",
@@ -262,7 +268,7 @@ if __name__ == "__main__":
             dirs_exist_ok=True,
         )
 
-    aggregate_plots(base_folder=idea_dir, model=args.model_agg_plots)
+    aggregate_plots(base_folder=idea_dir, model=args.model_agg_plots, n_reflections=args.model_agg_plots_ref)
 
     shutil.rmtree(osp.join(idea_dir, "experiment_results"))
 
@@ -270,14 +276,14 @@ if __name__ == "__main__":
 
     if not args.skip_writeup:
         writeup_success = False
-        citations_text = gather_citations(
-            idea_dir,
-            num_cite_rounds=args.num_cite_rounds,
-            small_model=args.model_citation,
-        )
         for attempt in range(args.writeup_retries):
             print(f"Writeup attempt {attempt+1} of {args.writeup_retries}")
             if args.writeup_type == "normal":
+                citations_text = gather_citations(
+                    idea_dir,
+                    num_cite_rounds=args.num_cite_rounds,
+                    small_model=args.model_citation,
+                )
                 writeup_success = perform_writeup(
                     base_folder=idea_dir,
                     small_model=args.model_writeup_small,
@@ -286,6 +292,11 @@ if __name__ == "__main__":
                     citations_text=citations_text,
                 )
             else:
+                citations_text = gather_icbinb_citations(
+                    idea_dir,
+                    num_cite_rounds=args.num_cite_rounds,
+                    small_model=args.model_citation,
+                )
                 writeup_success = perform_icbinb_writeup(
                     base_folder=idea_dir,
                     small_model=args.model_writeup_small,
