@@ -194,3 +194,9 @@ final_papers/
 # HF
 cache/
 huggingface/
+
+
+# dev
+outputs
+scripts
+screenlog.0

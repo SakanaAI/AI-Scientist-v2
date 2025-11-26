@@ -1,3 +1,16 @@
+# requirements.txt
+
+# Modified based on requirements.txt from AI-Scientist-v2
+# Original work © 2024 SakanaAI Contributors
+# Licensed under the Apache License, Version 2.0
+# Modifications by Sho Watanabe (2025):
+# - Adapted for Guardian Security Agent architecture
+# - Added async request handling and enhanced caching
+# - Removed speculative reasoning API hooks
+
+# You may obtain a copy of the License at:
+#     http://www.apache.org/licenses/LICENSE-2.0
+
 # LLM APIs
 anthropic
 backoff
@@ -27,3 +40,4 @@ jsonschema
 omegaconf
 botocore
 boto3
+pydantic

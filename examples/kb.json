@@ -1,0 +1,116 @@
+[
+  {
+    "id": "doc-l3-401",
+    "title": "【最高機密】次期フラッグシップEV『Project Phoenix』全体計画書",
+    "url": "https://secure.example-motors/exec/plan/phoenix-master",
+    "level": "L3",
+    "has_confidentiality": true,
+    "owner_name": "CEO室 / 経営企画本部",
+    "owner_email": "ceo-office@example-motors.com",
+    "summary": "【厳秘：印刷・複製禁止】2027年第4四半期市場投入を目指す、新型EV『AURA(アウラ)』の開発・生産・販売の全体計画。総予算1.2兆円。目標スペック：自社開発の全固体電池『Cell-Nova』を搭載し、航続距離1,000kmを実現。レベル3自動運転システム『Co-Pilot 3.0』を標準装備する。生産は九州工場に新設する専用ライン『PX-Line』にて行い、初年度15万台の生産を目指す。本計画遂行のため、ソフトウェア人材を2年間で150名増員。最大の懸念事項は『Cell-Nova』の量産安定性と、競合の動向。"
+  },
+
+
+  {
+    "id": "doc-l2-511",
+    "title": "自動運転システム『Co-Pilot 3.0』開発マイルストーン",
+    "url": "https://intra.example-motors/rd/dev/copilot3",
+    "level": "L2",
+    "has_confidentiality": true,
+    "owner_name": "先進技術開発本部 ADAS開発グループ",
+    "owner_email": "rd-adas-dev@example-motors.com",
+    "summary": "【部内秘】『Project Phoenix』搭載予定のCo-Pilot 3.0の開発計画。2026年Q1までに実車でのβテストを開始。センサーフュージョン精度の目標値は99.98%。最大の課題は、悪天候時の認識率低下であり、対策としてLiDARの追加搭載を検討中。予算超過リスク5%。"
+  },
+  {
+    "id": "doc-l2-512",
+    "title": "『Project Phoenix』向けソフトウェア人材採用・育成計画",
+    "url": "https://intra.example-motors/hr/recruit/phoenix-sw",
+    "level": "L2",
+    "has_confidentiality": true,
+    "owner_name": "人事部 人材戦略グループ",
+    "owner_email": "hr-strategy@example-motors.com",
+    "summary": "【関係者限り】2026年度末までに、AI/機械学習および組込システム系のシニアエンジニアを150名採用する。うち80名は外部採用、70名は社内リスキリングにより育成。外部採用向けに、現行の給与テーブルを15%上回る特別報酬パッケージを導入。リファラル採用強化キャンペーンも実施。"
+  },
+  {
+    "id": "doc-l2-513",
+    "title": "九州工場：『AURA』専用生産ライン(PX-Line)設置計画",
+    "url": "https://intra.example-motors/mfg/plan/kyushu-pxline",
+    "level": "L2",
+    "has_confidentiality": true,
+    "owner_name": "生産技術本部",
+    "owner_email": "mfg-eng@example-motors.com",
+    "summary": "【部内秘】九州工場第3エリアに、AURA専用のPX-Lineを新設する。総工費850億円。2026年Q1着工、2027年Q2稼働開始目標。新型ギガプレス機を2台導入し、車体の部品点数を40%削減。全固体電池の搭載工程には、特殊環境(ドライルーム)が必要となるため、専門業者と設計を進行中。"
+  },
+  {
+    "id": "doc-l2-514",
+    "title": "新型EV『AURA』プレローンチ・マーケティング戦略",
+    "url": "https://intra.example-motors/mktg/strategy/aura-prelaunch",
+    "level": "L2",
+    "has_confidentiality": true,
+    "owner_name": "マーケティング本部",
+    "owner_email": "marketing-strat@example-motors.com",
+    "summary": "【関係者限り】『AURA』のティザーキャンペーンは2027年5月より開始。ターゲット層は、環境意識の高い高所得都市生活者。主要メッセージは『サステナブル・ラグジュアリーと知能の融合』。ジュネーブモーターショーでのワールドプレミアを計画。初月での先行予約目標台数は5,000台。"
+  },
+
+  
+  {
+    "id": "doc-l1-621",
+    "title": "キャリア採用：ソフトウェアエンジニア向け特別選考プログラムのご案内",
+    "url": "https://intra.example-motors/careers/sw-engineer",
+    "level": "L1",
+    "has_confidentiality": false,
+    "owner_name": "人事部 採用グループ",
+    "owner_email": "hr-recruiting@example-motors.com",
+    "summary": "当社の次世代モビリティ開発を加速するため、AI、クラウド、自動運転技術分野のソフトウェアエンジニアを対象とした特別採用プログラムを開始します。業界最高水準の待遇で、未来を創る仲間を募集します。詳細は採用ページをご覧ください。"
+  },
+  {
+    "id": "doc-l1-622",
+    "title": "社内リスキリング制度『テック・アップシフト』募集開始",
+    "url": "https://intra.example-motors/hr/reskilling",
+    "level": "L1",
+    "has_confidentiality": false,
+    "owner_name": "人事部 人材開発グループ",
+    "owner_email": "hr-development@example-motors.com",
+    "summary": "全社員を対象に、ソフトウェア開発スキルを習得するための新しいリスキリング制度を開始します。選抜者は通常業務を離れ、6ヶ月間の集中研修に参加できます。会社の未来を担う技術を、自らの手で学びませんか。"
+  },
+  {
+    "id": "doc-l1-623",
+    "title": "九州工場の近代化工事とそれに伴う一部エリアの通行制限について",
+    "url": "https://intra.example-motors/info/kyushu-construction",
+    "level": "L1",
+    "has_confidentiality": false,
+    "owner_name": "総務部 施設管理",
+    "owner_email": "general-affairs@example-motors.com",
+    "summary": "九州工場では、生産能力向上と環境負荷低減を目的とした大規模な近代化工事を来年1月より開始します。これに伴い、第3エリアの一部で通行制限が発生しますので、ご協力をお願いいたします。工事期間は約1年半を予定しています。"
+  },
+  {
+    "id": "doc-l1-624",
+    "title": "開発部門向け：新コード管理プラットフォームへの移行案内",
+    "url": "https://intra.example-motors/it/dev/platform-migration",
+    "level": "L1",
+    "has_confidentiality": false,
+    "owner_name": "ITインフラ部",
+    "owner_email": "it-infra@example-motors.com",
+    "summary": "ソフトウェア開発の効率とセキュリティを向上させるため、現在のコード管理システムから新しいプラットフォームへ移行します。移行スケジュールと操作マニュアルは後日共有しますので、開発部門の皆様はご準備をお願いします。"
+  },
+  {
+    "id": "doc-l1-625",
+    "title": "サステナビリティレポート2025を公開しました",
+    "url": "https://www.example-motors.com/sustainability/2025",
+    "level": "L1",
+    "has_confidentiality": false,
+    "owner_name": "広報部 IR/SR担当",
+    "owner_email": "pr-ir@example-motors.com",
+    "summary": "当社の環境・社会への取り組みをまとめたレポートです。巻末のCEOメッセージにて『2027年までに、自社開発の次世代バッテリー技術を活用した革新的なモデルを市場に投入することを目指す』というビジョンを表明しています。"
+  },
+  {
+    "id": "doc-l1-626",
+    "title": "全社向け：電動化技術に関する最新動向セミナー開催",
+    "url": "https://intra.example-motors/events/seminar-ev-tech",
+    "level": "L1",
+    "has_confidentiality": false,
+    "owner_name": "技術戦略室",
+    "owner_email": "tech-strategy@example-motors.com",
+    "summary": "全社員の知識向上を目的として、世界の電動化技術の最新トレンドに関するセミナーを開催します。バッテリー技術や自動運転の未来について、外部の専門家をお招きし解説いただきます。奮ってご参加ください。"
+  }
+]

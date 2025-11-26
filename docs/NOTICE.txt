@@ -1,0 +1,5 @@
+Image: logo_v1.png
+Based on original artwork © SakanaAI Contributors (Apache License 2.0)
+Modified by Sho Watanabe (2025)
+Changes: Adjusted background, pose, and lighting for gatekeeper theme.
+Generated with Gemini 2.5 pro
