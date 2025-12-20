@@ -4,7 +4,7 @@ import os.path as osp
 import re
 import traceback
 from typing import Any, Dict, List
-
+import os 
 import sys
 
 sys.path.append(osp.join(osp.dirname(__file__), ".."))
@@ -15,50 +15,61 @@ from ai_scientist.llm import (
 )
 
 from ai_scientist.tools.semantic_scholar import SemanticScholarSearchTool
+from ai_scientist.tools.openalex import OpenAlexSearchTool
 from ai_scientist.tools.base_tool import BaseTool
 
-# Create tool instances
-semantic_scholar_tool = SemanticScholarSearchTool()
-
 # Define tools at the top of the file
-tools = [
-    semantic_scholar_tool,
-    {
-        "name": "FinalizeIdea",
-        "description": """Finalize your idea by providing the idea details.
+def get_search_tool(engine: str = "semantic_scholar"):
+    """Get the appropriate search tool based on the engine."""
+    if engine == "openalex":
+        return OpenAlexSearchTool()
+    
+    return SemanticScholarSearchTool()
 
-The IDEA JSON should include the following fields:
-- "Name": A short descriptor of the idea. Lowercase, no spaces, underscores allowed.
-- "Title": A catchy and informative title for the proposal.
-- "Short Hypothesis": A concise statement of the main hypothesis or research question. Clarify the need for this specific direction, ensure this is the best setting to investigate this idea, and there are not obvious other simpler ways to answer the question.
-- "Related Work": A brief discussion of the most relevant related work and how the proposal clearly distinguishes from it, and is not a trivial extension.
-- "Abstract": An abstract that summarizes the proposal in conference format (approximately 250 words).
-- "Experiments": A list of experiments that would be conducted to validate the proposal. Ensure these are simple and feasible. Be specific in exactly how you would test the hypothesis, and detail precise algorithmic changes. Include the evaluation metrics you would use.
-- "Risk Factors and Limitations": A list of potential risks and limitations of the proposal.""",
-    },
-]
+def get_tools(engine: str = "semantic_scholar"):
+    """Get the tools list with the appropriate search tool."""
+    search_tool = get_search_tool(engine)
+    return [
+        search_tool,
+        {
+            "name": "FinalizeIdea",
+            "description": """Finalize your idea by providing the idea details.
+            The IDEA JSON should include the following fields:
+            - "Name": A short descriptor of the idea. Lowercase, no spaces, underscores allowed.
+            - "Title": A catchy and informative title for the proposal.
+            - "Short Hypothesis": A concise statement of the main hypothesis or research question. Clarify the need for this specific direction, ensure this is the best setting to investigate this idea, and there are not obvious other simpler ways to answer the question.
+            - "Related Work": A brief discussion of the most relevant related work and how the proposal clearly distinguishes from it, and is not a trivial extension.
+            - "Abstract": An abstract that summarizes the proposal in conference format (approximately 250 words).
+            - "Experiments": A list of experiments that would be conducted to validate the proposal. Ensure these are simple and feasible. Be specific in exactly how you would test the hypothesis, and detail precise algorithmic changes. Include the evaluation metrics you would use.
+            - "Risk Factors and Limitations": A list of potential risks and limitations of the proposal.""",
+        },
+    ]
 
 # Create a tools dictionary for easy lookup
-tools_dict = {tool.name: tool for tool in tools if isinstance(tool, BaseTool)}
-
-# Create a string with the tool descriptions
-tool_descriptions = "\n\n".join(
-    (
-        f"- **{tool.name}**: {tool.description}"
-        if isinstance(tool, BaseTool)
-        else f"- **{tool['name']}**: {tool['description']}"
+def create_tools_dict_and_descriptions(tools):
+    tools_dict = {tool.name: tool for tool in tools if isinstance(tool, BaseTool)}
+    
+    # Create a string with the tool descriptions
+    tool_descriptions = "\n\n".join(
+        (
+            f"- **{tool.name}**: {tool.description}"
+            if isinstance(tool, BaseTool)
+            else f"- **{tool['name']}**: {tool['description']}"
+        )
+        for tool in tools
     )
-    for tool in tools
-)
+    
+    # Extract tool names for the prompt
+    tool_names = [
+        f'"{tool.name}"' if isinstance(tool, BaseTool) else f'"{tool["name"]}"'
+        for tool in tools
+    ]
+    tool_names_str = ", ".join(tool_names)
+    
+    return tools_dict, tool_descriptions, tool_names_str
 
-# Extract tool names for the prompt
-tool_names = [
-    f'"{tool.name}"' if isinstance(tool, BaseTool) else f'"{tool["name"]}"'
-    for tool in tools
-]
-tool_names_str = ", ".join(tool_names)
-
-system_prompt = f"""You are an experienced AI researcher who aims to propose high-impact research ideas resembling exciting grant proposals. Feel free to propose any novel ideas or experiments; make sure they are novel. Be very creative and think out of the box. Each proposal should stem from a simple and elegant question, observation, or hypothesis about the topic. For example, they could involve very interesting and simple interventions or investigations that explore new possibilities or challenge existing assumptions. Clearly clarify how the proposal distinguishes from the existing literature.
+def create_system_prompt(tool_descriptions: str, tool_names_str: str) -> str:
+    return f"""You are an experienced AI researcher who aims to propose high-impact research ideas resembling exciting grant proposals. Feel free to propose any novel ideas or experiments; make sure they are novel. Be very creative and think out of the box. Each proposal should stem from a simple and elegant question, observation, or hypothesis about the topic. For example, they could involve very interesting and simple interventions or investigations that explore new possibilities or challenge existing assumptions. Clearly clarify how the proposal distinguishes from the existing literature.
 
 Ensure that the proposal does not require resources beyond what an academic lab could afford. These proposals should lead to papers that are publishable at top ML conferences.
 
@@ -72,7 +83,7 @@ ACTION:
 <The action to take, exactly one of {tool_names_str}>
 
 ARGUMENTS:
-<If ACTION is "SearchSemanticScholar", provide the search query as {{"query": "your search query"}}. If ACTION is "FinalizeIdea", provide the idea details as {{"idea": {{ ... }}}} with the IDEA JSON specified below.>
+<If ACTION is a search tool, provide the search query as {{"query": "your search query"}}. If ACTION is "FinalizeIdea", provide the idea details as {{"idea": {{ ... }}}} with the IDEA JSON specified below.>
 
 If you choose to finalize your idea, provide the IDEA JSON in the arguments:
 
@@ -133,8 +144,18 @@ def generate_temp_free_idea(
     max_num_generations: int = 20,
     num_reflections: int = 5,
     reload_ideas: bool = True,
+    engine: str = "semantic_scholar",
 ) -> List[Dict]:
     idea_str_archive = []
+    
+    # Get tools based on engine
+    tools = get_tools(engine)
+    tools_dict, tool_descriptions, tool_names_str = create_tools_dict_and_descriptions(tools)
+    system_prompt = create_system_prompt(tool_descriptions, tool_names_str)
+    
+    print(f"Using search engine: {engine}")
+    print(f"Available tools: {tool_names_str}")
+    
     # load ideas from file
     if reload_ideas and osp.exists(idea_fname):
         with open(idea_fname, "r") as f:
@@ -295,6 +316,13 @@ if __name__ == "__main__":
         default=5,
         help="Number of reflection rounds per proposal.",
     )
+    parser.add_argument(
+        "--engine",
+        type=str,
+        default="semantic_scholar",
+        choices=["semantic_scholar", "openalex"],
+        help="Search engine to use for literature search. Choose 'semantic_scholar' or 'openalex'.",
+    )
     args = parser.parse_args()
 
     # Create the LLM client
@@ -315,5 +343,6 @@ if __name__ == "__main__":
         workshop_description=workshop_description,
         max_num_generations=args.max_num_generations,
         num_reflections=args.num_reflections,
+        engine=args.engine,
     )
     print(f"{args.workshop_file} generated {len(ideas)} ideas.")
