@@ -7,15 +7,27 @@ Supports:
 """
 
 import logging
+import multiprocessing
 import os
 import queue
 import signal
+import subprocess
 import sys
 import time
 import traceback
 from dataclasses import dataclass
 from multiprocessing import Process, Queue
 from pathlib import Path
+
+# Detect if we should use subprocess mode (macOS has fork issues)
+USE_SUBPROCESS_MODE = sys.platform == "darwin"
+
+if not USE_SUBPROCESS_MODE:
+    # Only set multiprocessing start method on non-macOS platforms
+    try:
+        multiprocessing.set_start_method('fork', force=True)
+    except RuntimeError:
+        pass  # Already set
 
 import humanize
 from dataclasses_json import DataClassJsonMixin
@@ -222,6 +234,10 @@ class Interpreter:
             ExecutionResult: Object containing the output and metadata of the code execution.
 
         """
+        # Use subprocess mode on macOS to avoid fork() issues
+        if USE_SUBPROCESS_MODE:
+            logger.debug("Using subprocess mode (macOS)")
+            return self.run_subprocess(code)
 
         logger.debug(f"REPL is executing code (reset_session={reset_session})")
 
@@ -264,7 +280,8 @@ class Interpreter:
             except queue.Empty:
                 # we haven't heard back from the child -> check if it's still alive (assuming overtime interrupt wasn't sent yet)
                 if not child_in_overtime and not self.process.is_alive():
-                    msg = "REPL child process died unexpectedly"
+                    exit_code = self.process.exitcode
+                    msg = f"REPL child process died unexpectedly with exit code: {exit_code}"
                     logger.critical(msg)
                     while not self.result_outq.empty():
                         logger.error(
@@ -311,3 +328,72 @@ class Interpreter:
                 f"Execution time: {humanize.naturaldelta(exec_time)} seconds (time limit is {humanize.naturaldelta(self.timeout)})."
             )
         return ExecutionResult(output, exec_time, e_cls_name, exc_info, exc_stack)
+
+    def run_subprocess(self, code: str) -> ExecutionResult:
+        """
+        Execute Python code using subprocess.Popen instead of multiprocessing.Process.
+        This is more compatible with macOS which has issues with fork().
+
+        Parameters:
+            code (str): Python code to execute.
+
+        Returns:
+            ExecutionResult: Object containing the output and metadata of the code execution.
+        """
+        logger.debug("Running code via subprocess (macOS mode)")
+
+        # Write the code to a file
+        code_file = self.working_dir / self.agent_file_name
+        with open(code_file, "w") as f:
+            f.write(code)
+
+        # Prepare environment
+        env = os.environ.copy()
+        env.update(self.env_vars)
+
+        start_time = time.time()
+        exc_type = None
+        exc_info = None
+        exc_stack = None
+        output = []
+
+        try:
+            # Run the code using subprocess.Popen
+            proc = subprocess.Popen(
+                [sys.executable, str(code_file)],
+                stdout=subprocess.PIPE,
+                stderr=subprocess.STDOUT,
+                cwd=str(self.working_dir),
+                env=env,
+                text=True,
+            )
+
+            try:
+                # Wait for completion with timeout
+                stdout, _ = proc.communicate(timeout=self.timeout)
+                output = stdout.split('\n') if stdout else []
+
+                if proc.returncode != 0:
+                    exc_type = "RuntimeError"
+                    exc_info = {"args": [f"Process exited with code {proc.returncode}"]}
+
+            except subprocess.TimeoutExpired:
+                proc.kill()
+                proc.wait()
+                exc_type = "TimeoutError"
+                exc_info = {"args": [f"Execution exceeded time limit of {self.timeout}s"]}
+                output = [f"TimeoutError: Execution exceeded the time limit of {humanize.naturaldelta(self.timeout)}"]
+
+        except Exception as e:
+            exc_type = type(e).__name__
+            exc_info = {"args": [str(e)]}
+            output = [str(e)]
+
+        exec_time = time.time() - start_time
+
+        if exc_type != "TimeoutError":
+            output.append(
+                f"Execution time: {humanize.naturaldelta(exec_time)} seconds (time limit is {humanize.naturaldelta(self.timeout)})."
+            )
+
+        return ExecutionResult(output, exec_time, exc_type, exc_info, exc_stack)

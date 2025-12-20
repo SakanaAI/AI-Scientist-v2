@@ -47,6 +47,8 @@ AVAILABLE_LLMS = [
     "vertex_ai/claude-3-5-sonnet@20241022",
     "vertex_ai/claude-3-sonnet@20240229",
     "vertex_ai/claude-3-haiku@20240307",
+    # Anthropic Claude models via Azure AI Foundry
+    "azure_foundry/claude-opus-4-5",
     # Google Gemini models
     "gemini-2.0-flash",
     "gemini-2.5-flash-preview-04-17",
@@ -489,6 +491,21 @@ def create_client(model) -> tuple[Any, str]:
         client_model = model.split("/")[-1]
         print(f"Using Vertex AI with model {client_model}.")
         return anthropic.AnthropicVertex(), client_model
+    elif model.startswith("azure_foundry/") and "claude" in model:
+        client_model = model.split("/", 1)[-1]
+        azure_endpoint = os.environ.get("AZURE_FOUNDRY_ENDPOINT")
+        azure_api_key = os.environ.get("AZURE_FOUNDRY_API_KEY")
+
+        if not azure_endpoint:
+            raise ValueError("AZURE_FOUNDRY_ENDPOINT environment variable not set")
+        if not azure_api_key:
+            raise ValueError("AZURE_FOUNDRY_API_KEY environment variable not set")
+
+        print(f"Using Azure AI Foundry with model {client_model}.")
+        return anthropic.Anthropic(
+            base_url=azure_endpoint,
+            api_key=azure_api_key,
+        ), client_model
     elif model.startswith("ollama/"):
         print(f"Using Ollama with model {model}.")
         return openai.OpenAI(

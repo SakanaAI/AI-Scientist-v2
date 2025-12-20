@@ -14,9 +14,25 @@ ANTHROPIC_TIMEOUT_EXCEPTIONS = (
     anthropic.APIStatusError,
 )
 
-def get_ai_client(model : str, max_retries=2) -> anthropic.AnthropicBedrock:
-    client = anthropic.AnthropicBedrock(max_retries=max_retries)
-    return client
+def get_ai_client(model: str, max_retries=2) -> anthropic.Anthropic:
+    """Get appropriate Anthropic client based on model prefix."""
+    if model.startswith("azure_foundry/"):
+        azure_endpoint = os.environ.get("AZURE_FOUNDRY_ENDPOINT")
+        azure_api_key = os.environ.get("AZURE_FOUNDRY_API_KEY")
+
+        if not azure_endpoint:
+            raise ValueError("AZURE_FOUNDRY_ENDPOINT environment variable not set")
+        if not azure_api_key:
+            raise ValueError("AZURE_FOUNDRY_API_KEY environment variable not set")
+
+        return anthropic.Anthropic(
+            base_url=azure_endpoint,
+            api_key=azure_api_key,
+            max_retries=max_retries,
+        )
+    else:
+        # Default to Bedrock for backward compatibility
+        return anthropic.AnthropicBedrock(max_retries=max_retries)
 
 def query(
     system_message: str | None,
@@ -24,7 +40,12 @@ def query(
     func_spec: FunctionSpec | None = None,
     **model_kwargs,
 ) -> tuple[OutputType, float, int, int, dict]:
-    client = get_ai_client(model_kwargs.get("model"), max_retries=0)
+    model = model_kwargs.get("model")
+    client = get_ai_client(model, max_retries=0)
+
+    # Strip provider prefix from model name for API call
+    if model and model.startswith("azure_foundry/"):
+        model_kwargs["model"] = model.split("/", 1)[-1]
 
     filtered_kwargs: dict = select_values(notnone, model_kwargs)  # type: ignore
     if "max_tokens" not in filtered_kwargs:

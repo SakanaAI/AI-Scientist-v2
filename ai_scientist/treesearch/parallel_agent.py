@@ -1,8 +1,9 @@
-from concurrent.futures import ProcessPoolExecutor
+from concurrent.futures import ProcessPoolExecutor, ThreadPoolExecutor
 from typing import List, Optional, Set, Any, Callable, cast, Dict, Tuple
 import random
 import subprocess
 import os
+import sys
 from queue import Queue
 import logging
 import humanize
@@ -1180,7 +1181,16 @@ class ParallelAgent:
             logger.info(f"Limiting workers to {self.num_workers} to match GPU count")
 
         self.timeout = self.cfg.exec.timeout
-        self.executor = ProcessPoolExecutor(max_workers=self.num_workers)
+        # Use ThreadPoolExecutor on macOS to avoid multiprocessing issues
+        print(f"DEBUG: sys.platform = {sys.platform}")
+        if sys.platform == "darwin":
+            print("DEBUG: Using ThreadPoolExecutor on macOS")
+            logger.info("Using ThreadPoolExecutor on macOS to avoid multiprocessing issues")
+            self.executor = ThreadPoolExecutor(max_workers=self.num_workers)
+        else:
+            print("DEBUG: Using ProcessPoolExecutor")
+            self.executor = ProcessPoolExecutor(max_workers=self.num_workers)
+        print(f"DEBUG: Executor type = {type(self.executor).__name__}")
         self._is_shutdown = False
         # Define the metric once at initialization
         self.evaluation_metrics = self._define_global_metrics()
@@ -1430,9 +1440,16 @@ class ParallelAgent:
         import multiprocessing
 
         print("Starting _process_node_wrapper")
+        import threading
 
-        # Create process-specific workspace
-        process_id = multiprocessing.current_process().name
+        # Create process-specific workspace - use thread ID on macOS (ThreadPoolExecutor)
+        # or process name on Linux (ProcessPoolExecutor)
+        if sys.platform == "darwin":
+            process_id = f"Thread-{threading.current_thread().ident}"
+            print(f"DEBUG: Running in thread: {process_id}")
+        else:
+            process_id = multiprocessing.current_process().name
+            print(f"DEBUG: Running in process: {process_id}")
         workspace = os.path.join(cfg.workspace_dir, f"process_{process_id}")
         os.makedirs(workspace, exist_ok=True)
         print(f"Process {process_id} using workspace: {workspace}")
@@ -1523,6 +1540,11 @@ class ParallelAgent:
 
             # Execute and parse results
             print("Running code")
+            # Debug: Save code before execution to diagnose crashes
+            debug_code_path = os.path.join(working_dir, "debug_generated_code.py")
+            with open(debug_code_path, "w") as f:
+                f.write(child_node.code)
+            print(f"Debug: Saved generated code to {debug_code_path}")
             exec_result = process_interpreter.run(child_node.code, True)
             process_interpreter.cleanup_session()
 
@@ -2346,8 +2368,9 @@ class ParallelAgent:
                 # Shutdown executor first
                 self.executor.shutdown(wait=False, cancel_futures=True)
 
-                # Force terminate all worker processes
-                if self.executor._processes:
+                # Force terminate all worker processes (only for ProcessPoolExecutor)
+                # ThreadPoolExecutor uses _threads which don't need explicit termination
+                if hasattr(self.executor, '_processes') and self.executor._processes:
                     ## Get copy of processes
                     processes = list(self.executor._processes.values())
 

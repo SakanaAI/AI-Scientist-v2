@@ -1,3 +1,14 @@
+import multiprocessing
+import sys
+
+# Set multiprocessing start method to fork on macOS BEFORE importing anything else
+# This helps avoid SIGBUS errors with PyTorch in subprocesses
+if sys.platform == "darwin":
+    try:
+        multiprocessing.set_start_method('fork', force=True)
+    except RuntimeError:
+        pass  # Already set
+
 import os.path as osp
 import json
 import argparse
@@ -5,7 +16,6 @@ import shutil
 import torch
 import os
 import re
-import sys
 from datetime import datetime
 from ai_scientist.llm import create_client
 
