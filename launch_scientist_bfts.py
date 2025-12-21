@@ -134,7 +134,13 @@ def parse_arguments():
 def get_available_gpus(gpu_ids=None):
     if gpu_ids is not None:
         return [int(gpu_id) for gpu_id in gpu_ids.split(",")]
-    return list(range(torch.cuda.device_count()))
+
+    if torch.cuda.is_available():
+        return list(range(torch.cuda.device_count()))
+    elif hasattr(torch.backends, "mps") and torch.backends.mps.is_available():
+        return [0]
+    else:
+        return []
 
 
 def find_pdf_path_for_review(idea_dir):

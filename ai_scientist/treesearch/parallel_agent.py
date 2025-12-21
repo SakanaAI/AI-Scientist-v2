@@ -298,9 +298,14 @@ class MinimalAgent:
     def _prompt_impl_guideline(self):
         impl_guideline = [
             "CRITICAL GPU REQUIREMENTS - Your code MUST include ALL of these:",
-            "  - At the start of your code, add these lines to handle GPU/CPU:",
+            "  - At the start of your code, add these lines to handle GPU/CPU/MPS:",
             "    ```python",
-            "    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')",
+            "    if torch.cuda.is_available():",
+            "        device = torch.device('cuda')",
+            "    elif hasattr(torch.backends, 'mps') and torch.backends.mps.is_available():",
+            "        device = torch.device('mps')",
+            "    else:",
+            "        device = torch.device('cpu')",
             "    print(f'Using device: {device}')",
             "    ```",
             "  - ALWAYS move models to device using the `.to(device)` method",
@@ -1118,9 +1123,9 @@ class GPUManager:
 
 
 def get_gpu_count() -> int:
-    """Get number of available NVIDIA GPUs without using torch"""
+    """Get number of available GPUs (NVIDIA CUDA without torch or Apple Silicon MPS with torch)"""
     try:
-        # First try using nvidia-smi
+        # First try using nvidia-smi for NVIDIA GPUs
         nvidia_smi = subprocess.run(
             ["nvidia-smi", "--query-gpu=gpu_name", "--format=csv,noheader"],
             capture_output=True,
@@ -1135,8 +1140,19 @@ def get_gpu_count() -> int:
         if cuda_visible_devices:
             # Filter out empty strings and -1 values
             devices = [d for d in cuda_visible_devices.split(",") if d and d != "-1"]
-            return len(devices)
-        return 0
+            if len(devices) > 0:
+                return len(devices)
+
+        # Check for Apple Silicon MPS with torch
+        try:
+            import torch
+            if hasattr(torch.backends, "mps") and torch.backends.mps.is_available():
+                return 1  # MPS presents as a single device
+        except ImportError:
+            return 0
+        except Exception as exc:
+            logger.debug("Error while checking for Apple Silicon MPS support: %s", exc)
+            return 0
 
 
 class ParallelAgent:
@@ -1283,7 +1299,7 @@ class ParallelAgent:
 
             # Add seed to node code
             node_data["code"] = (
-                f"# Set random seed\nimport random\nimport numpy as np\nimport torch\n\nseed = {seed}\nrandom.seed(seed)\nnp.random.seed(seed)\ntorch.manual_seed(seed)\nif torch.cuda.is_available():\n    torch.cuda.manual_seed(seed)\n\n"
+                f"# Set random seed\nimport random\nimport numpy as np\nimport torch\n\nseed = {seed}\nrandom.seed(seed)\nnp.random.seed(seed)\ntorch.manual_seed(seed)\nif torch.cuda.is_available():\n    torch.cuda.manual_seed(seed)\nelif hasattr(torch.backends, 'mps') and torch.backends.mps.is_available():\n    torch.mps.manual_seed(seed)\n\n"
                 + node_code
             )
 

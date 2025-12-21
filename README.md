@@ -40,6 +40,8 @@ This system autonomously generates hypotheses, runs experiments, analyzes data, 
 
 This code is designed to run on Linux with NVIDIA GPUs using CUDA and PyTorch.
 
+To run on macOS with Apple Silicon, see [MACOS_SETUP.md](MACOS_SETUP.md) for installation instructions.
+
 ### Installation
 
 ```bash

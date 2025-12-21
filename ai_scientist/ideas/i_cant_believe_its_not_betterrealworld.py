@@ -48,7 +48,13 @@ from PIL import Image
 import requests
 
 # Set device to GPU if available
-device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+device = torch.device(
+    "cuda"
+    if torch.cuda.is_available()
+    else "mps"
+    if hasattr(torch.backends, "mps") and torch.backends.mps.is_available()
+    else "cpu"
+)
 pipe = pipeline(
     task="image-feature-extraction",
     model="google/vit-base-patch16-384",
@@ -193,7 +199,7 @@ model = model.to(device)
 
 start_time = time.time()
 # Use torch.compile with safer settings
-if torch.cuda.is_available():
+if torch.cuda.is_available() or (hasattr(torch.backends, "mps") and torch.backends.mps.is_available()):
     try:
         model = torch.compile(model)
     except Exception as e:
