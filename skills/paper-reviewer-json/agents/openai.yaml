@@ -1,0 +1,4 @@
+interface:
+  display_name: "Paper Reviewer JSON"
+  short_description: "Generate structured peer reviews from paper text"
+  default_prompt: "Extract paper text (PDF/LaTeX/Markdown) and produce a NeurIPS-style structured review JSON with scores, strengths, weaknesses, questions, and an accept/reject decision."

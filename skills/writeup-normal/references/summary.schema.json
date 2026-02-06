@@ -1,0 +1,47 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "ExperimentSummary",
+  "type": "object",
+  "required": [
+    "Experiment_description",
+    "Significance",
+    "Description",
+    "List_of_included_plots",
+    "Key_numerical_results"
+  ],
+  "properties": {
+    "Experiment_description": {
+      "type": "string"
+    },
+    "Significance": {
+      "type": "string"
+    },
+    "Description": {
+      "type": "string"
+    },
+    "List_of_included_plots": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "Key_numerical_results": {
+      "oneOf": [
+        {
+          "type": "array",
+          "items": {
+            "type": [
+              "string",
+              "object",
+              "number"
+            ]
+          }
+        },
+        {
+          "type": "object"
+        }
+      ]
+    }
+  },
+  "additionalProperties": true
+}

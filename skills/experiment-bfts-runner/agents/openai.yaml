@@ -1,0 +1,4 @@
+interface:
+  display_name: "Experiment BFTS Runner"
+  short_description: "Run standalone BFTS experiments from bfts_config.yaml"
+  default_prompt: "Execute a prepared BFTS run using the provided bfts_config.yaml. Keep outputs within the run directory."

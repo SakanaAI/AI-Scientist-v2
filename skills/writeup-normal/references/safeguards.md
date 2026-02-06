@@ -1,0 +1,3 @@
+- Do not fabricate results; use provided summaries and plots only.
+- Keep citations consistent with input artifacts.
+- Offline by default; require --online for any LLM calls.

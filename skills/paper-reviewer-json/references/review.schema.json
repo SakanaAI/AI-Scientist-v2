@@ -1,0 +1,42 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "PaperReview",
+  "type": "object",
+  "required": [
+    "summary",
+    "strengths",
+    "weaknesses",
+    "questions",
+    "score"
+  ],
+  "properties": {
+    "summary": {
+      "type": "string"
+    },
+    "strengths": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "weaknesses": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "questions": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "score": {
+      "type": "number"
+    },
+    "confidence": {
+      "type": "number"
+    }
+  },
+  "additionalProperties": true
+}

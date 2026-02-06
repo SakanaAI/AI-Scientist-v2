@@ -1,0 +1,3 @@
+- Do not claim novelty based solely on sparse results.
+- Record query strings and the query date in your notes.
+- Do not upload private data; only send keyword queries.

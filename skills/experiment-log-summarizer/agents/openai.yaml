@@ -1,0 +1,4 @@
+interface:
+  display_name: "Experiment Log Summarizer"
+  short_description: "Summarize run folders into grounded reports"
+  default_prompt: "Scan a run directory (read-only) and produce a Markdown + JSON summary with source paths, key numbers, and figure inventory."

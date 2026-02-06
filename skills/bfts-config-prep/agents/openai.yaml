@@ -1,0 +1,4 @@
+interface:
+  display_name: "BFTS Config Prep"
+  short_description: "Prepare run dirs + BFTS config"
+  default_prompt: "Create a timestamped run directory with idea.json/idea.md and a configured bfts_config.yaml."

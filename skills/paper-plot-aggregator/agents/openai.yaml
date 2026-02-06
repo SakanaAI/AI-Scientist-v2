@@ -1,0 +1,4 @@
+interface:
+  display_name: "Paper Plot Aggregator"
+  short_description: "Inventory results and generate plotting scripts"
+  default_prompt: "Inventory experiment outputs (e.g., .npy) and generate a safe, runnable plot aggregator skeleton plus guidelines for paper-ready figures."

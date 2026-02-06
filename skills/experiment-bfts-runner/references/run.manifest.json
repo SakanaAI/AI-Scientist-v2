@@ -1,0 +1,48 @@
+{
+  "title": "RunManifest",
+  "type": "object",
+  "required": [
+    "run_dir",
+    "idea_md",
+    "idea_json",
+    "bfts_config",
+    "logs_dir",
+    "workspaces_dir"
+  ],
+  "properties": {
+    "run_dir": {
+      "type": "string"
+    },
+    "idea_md": {
+      "type": "string"
+    },
+    "idea_json": {
+      "type": "string"
+    },
+    "bfts_config": {
+      "type": "string"
+    },
+    "logs_dir": {
+      "type": "string"
+    },
+    "workspaces_dir": {
+      "type": "string"
+    },
+    "outputs": {
+      "type": "object",
+      "properties": {
+        "experiment_results": {
+          "type": "string"
+        },
+        "summary_json": {
+          "type": "string"
+        },
+        "summary_md": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": true
+    }
+  },
+  "additionalProperties": true
+}

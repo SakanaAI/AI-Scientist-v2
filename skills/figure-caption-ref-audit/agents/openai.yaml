@@ -1,0 +1,4 @@
+interface:
+  display_name: "Figure/Caption/Figref Audit"
+  short_description: "Extract figures and audit caption/text alignment"
+  default_prompt: "Extract figure screenshots, captions, and figrefs from a PDF into an audit bundle, then identify caption mismatches, missing figrefs, redundancy, and which figures to move to appendix."

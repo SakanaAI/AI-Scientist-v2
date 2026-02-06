@@ -1,0 +1,4 @@
+interface:
+  display_name: "Token Cost Tracker"
+  short_description: "Summarize token and cost usage from JSON logs"
+  default_prompt: "Aggregate token usage and cost by model from provided JSON or JSONL records."

@@ -1,0 +1,4 @@
+interface:
+  display_name: "Normal Writeup"
+  short_description: "Generate a full-length LaTeX paper skeleton from idea/summary artifacts"
+  default_prompt: "Create a normal-length paper skeleton using idea JSON, summary JSON, and plot manifest. Keep sections concise and grounded in inputs."

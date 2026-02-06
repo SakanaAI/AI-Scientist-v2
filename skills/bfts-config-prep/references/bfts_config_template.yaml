@@ -1,0 +1,87 @@
+# path to the task data directory
+data_dir: "data"
+preprocess_data: False
+
+goal: null
+eval: null
+
+log_dir: logs
+workspace_dir: workspaces
+
+# whether to copy the data to the workspace directory (otherwise it will be symlinked)
+# copying is recommended to prevent the agent from accidentally modifying the original data
+copy_data: True
+
+exp_name: run # a random experiment name will be generated if not provided
+
+# settings for code execution
+exec:
+  timeout: 3600
+  agent_file_name: runfile.py
+  format_tb_ipython: False
+
+generate_report: True
+# LLM settings for final report from journal
+report:
+  model: gpt-4o-2024-11-20
+  temp: 1.0
+
+experiment:
+  num_syn_datasets: 1
+
+debug:
+  stage4: False
+
+# agent hyperparams
+agent:
+  type: parallel
+  num_workers: 4
+  stages:
+    stage1_max_iters: 20
+    stage2_max_iters: 12
+    stage3_max_iters: 12
+    stage4_max_iters: 18
+  # how many improvement iterations to run
+  steps: 5 # if stage-specific max_iters are not provided, the agent will use this value for all stages
+  # whether to instruct the agent to use CV (set to 1 to disable)
+  k_fold_validation: 1
+  multi_seed_eval:
+    num_seeds: 3 # should be the same as num_workers if num_workers < 3. Otherwise, set it to be 3.
+  # whether to instruct the agent to generate a prediction function
+  expose_prediction: False
+  # whether to provide the agent with a preview of the data
+  data_preview: False
+
+  # LLM settings for coding
+  code:
+    model: anthropic.claude-3-5-sonnet-20241022-v2:0
+    temp: 1.0
+    max_tokens: 12000
+
+  # LLM settings for evaluating program output / tracebacks
+  feedback:
+    model: gpt-4o-2024-11-20
+    # gpt-4o
+    temp: 0.5
+    max_tokens: 8192
+
+  vlm_feedback:
+    model: gpt-4o-2024-11-20
+    temp: 0.5
+    max_tokens: null
+
+  search:
+    max_debug_depth: 3
+    debug_prob: 0.5
+    num_drafts: 3
+
+  # Options for summarizing findings and selecting the best node
+  # If not specified, the default behavior will be used.
+
+  # summary:
+  #   model: gpt-4o
+  #   temp: 0.3
+
+  # select_node:
+  #   model: gpt-4o
+  #   temp: 0.3

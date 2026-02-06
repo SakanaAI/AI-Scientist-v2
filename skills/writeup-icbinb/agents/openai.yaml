@@ -1,0 +1,4 @@
+interface:
+  display_name: "ICBINB Writeup"
+  short_description: "Generate ICBINB-style LaTeX from idea/summary artifacts"
+  default_prompt: "Create a compact ICBINB paper skeleton using the provided idea JSON, summary JSON, and plot manifest. Keep it concise and cite sources from inputs only."

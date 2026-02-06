@@ -1,0 +1,4 @@
+interface:
+  display_name: "Research Ideation + Novelty Check"
+  short_description: "Generate ideas and sanity-check novelty"
+  default_prompt: "Draft proposal-style research ideas from a topic brief, validate idea JSON, and propose Semantic Scholar queries with cautious novelty wording."

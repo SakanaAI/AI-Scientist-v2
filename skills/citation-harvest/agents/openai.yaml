@@ -1,0 +1,4 @@
+interface:
+  display_name: "Citation Harvest"
+  short_description: "Query Semantic Scholar and output deduplicated BibTeX"
+  default_prompt: "Gather citations using provided queries, deduplicate, and produce citations.json and citations.bib."
