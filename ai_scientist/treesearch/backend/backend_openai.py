@@ -1,6 +1,8 @@
 import json
 import logging
+import os
 import time
+import threading
 
 from .utils import FunctionSpec, OutputType, opt_messages_to_list, backoff_create
 from funcy import notnone, once, select_values
@@ -9,16 +11,36 @@ from rich import print
 
 logger = logging.getLogger("ai-scientist")
 
+# Global rate limiter for Copilot API
+_rate_lock = threading.Lock()
+_last_request_time = 0.0
+_COPILOT_MIN_INTERVAL = 3.0  # minimum seconds between requests
+
 
 OPENAI_TIMEOUT_EXCEPTIONS = (
     openai.RateLimitError,
     openai.APIConnectionError,
     openai.APITimeoutError,
     openai.InternalServerError,
+    openai.PermissionDeniedError,  # Some APIs return 403 on quota exhaustion
 )
 
+def _is_copilot_mode() -> bool:
+    """Check if we're using GitHub Copilot API."""
+    return bool(os.environ.get("COPILOT_OAUTH_TOKEN"))
+
+
 def get_ai_client(model: str, max_retries=2) -> openai.OpenAI:
-    if model.startswith("ollama/"):
+    if _is_copilot_mode():
+        from ai_scientist.copilot_auth import get_copilot_jwt, copilot_default_headers, COPILOT_API
+        jwt = get_copilot_jwt()
+        client = openai.OpenAI(
+            api_key=jwt,
+            base_url=COPILOT_API,
+            default_headers=copilot_default_headers(),
+            max_retries=max_retries,
+        )
+    elif model.startswith("ollama/"):
         client = openai.OpenAI(
             base_url="http://localhost:11434/v1", 
             max_retries=max_retries
@@ -39,15 +61,38 @@ def query(
 
     messages = opt_messages_to_list(system_message, user_message)
 
+    # Claude via OpenAI-compatible proxy requires at least one user message.
+    # The proxy extracts system role into Anthropic's system parameter,
+    # leaving no messages if only system was provided.
+    if messages and not any(m.get("role") == "user" for m in messages):
+        messages.append({"role": "user", "content": "Please proceed with the task described above."})
+
+    # Claude requires max_tokens to be set explicitly
+    model_name = filtered_kwargs.get("model", "")
+    if "claude" in model_name and "max_tokens" not in filtered_kwargs:
+        filtered_kwargs["max_tokens"] = 8192
+
     if func_spec is not None:
         filtered_kwargs["tools"] = [func_spec.as_openai_tool_dict]
         # force the model to use the function
         filtered_kwargs["tool_choice"] = func_spec.openai_tool_choice_dict
 
     if filtered_kwargs.get("model", "").startswith("ollama/"):
-       filtered_kwargs["model"] = filtered_kwargs["model"].replace("ollama/", "")
+       filtered_kwargs["model"] = filtered_kwargs["model"].replace("ollama/", "", 1)
 
     t0 = time.time()
+
+    # Copilot API rate limiting: space out requests
+    if _is_copilot_mode():
+        global _last_request_time
+        with _rate_lock:
+            elapsed = time.time() - _last_request_time
+            if elapsed < _COPILOT_MIN_INTERVAL:
+                wait = _COPILOT_MIN_INTERVAL - elapsed
+                logger.debug(f"Rate limit sleep {wait:.1f}s")
+                time.sleep(wait)
+            _last_request_time = time.time()
+
     completion = backoff_create(
         client.chat.completions.create,
         OPENAI_TIMEOUT_EXCEPTIONS,
@@ -56,9 +101,23 @@ def query(
     )
     req_time = time.time() - t0
 
+    # Copilot Claude may split content and tool_calls into separate choices.
+    # Find the right choice depending on whether we expect a function call.
     choice = completion.choices[0]
+    if func_spec is not None and not getattr(choice.message, 'tool_calls', None):
+        # Look for a choice that has tool_calls
+        for c in completion.choices:
+            if getattr(c.message, 'tool_calls', None):
+                choice = c
+                break
 
     if func_spec is None:
+        # For plain text, prefer the choice with content
+        if not choice.message.content:
+            for c in completion.choices:
+                if c.message.content:
+                    choice = c
+                    break
         output = choice.message.content
     else:
         assert (

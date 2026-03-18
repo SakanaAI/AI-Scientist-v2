@@ -478,6 +478,15 @@ def extract_json_between_markers(llm_output: str) -> dict | None:
 
 
 def create_client(model) -> tuple[Any, str]:
+    if os.environ.get("COPILOT_OAUTH_TOKEN"):
+        from ai_scientist.copilot_auth import get_copilot_jwt, copilot_default_headers
+        jwt = get_copilot_jwt()
+        print(f"Using GitHub Copilot API with model {model}.")
+        return openai.OpenAI(
+            api_key=jwt,
+            base_url="https://api.individual.githubcopilot.com",
+            default_headers=copilot_default_headers(),
+        ), model
     if model.startswith("claude-"):
         print(f"Using Anthropic API with model {model}.")
         return anthropic.Anthropic(), model

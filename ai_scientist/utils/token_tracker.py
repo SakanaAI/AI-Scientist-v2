@@ -67,10 +67,10 @@ class TokenTracker:
         reasoning_tokens: int,
         cached_tokens: int,
     ):
-        self.token_counts[model]["prompt"] += prompt_tokens
-        self.token_counts[model]["completion"] += completion_tokens
-        self.token_counts[model]["reasoning"] += reasoning_tokens
-        self.token_counts[model]["cached"] += cached_tokens
+        self.token_counts[model]["prompt"] += prompt_tokens or 0
+        self.token_counts[model]["completion"] += completion_tokens or 0
+        self.token_counts[model]["reasoning"] += reasoning_tokens or 0
+        self.token_counts[model]["cached"] += cached_tokens or 0
 
     def add_interaction(
         self,

@@ -1,0 +1,75 @@
+﻿# AI-Scientist-v2 config for GitHub Copilot API (GPT-4.1)
+# Model: gpt-4.1 via GitHub Models
+
+data_dir: "data"
+preprocess_data: False
+
+goal: null
+eval: null
+
+log_dir: ../experiments/logs
+workspace_dir: ../experiments/workspaces
+
+copy_data: True
+
+exp_name: copilot_gpt41_run
+
+exec:
+  timeout: 3600
+  agent_file_name: runfile.py
+  format_tb_ipython: False
+
+generate_report: True
+
+report:
+  model: gpt-4.1
+  temp: 1.0
+
+experiment:
+  num_syn_datasets: 1
+
+debug:
+  stage4: False
+
+agent:
+  type: parallel
+  num_workers: 1
+  stages:
+    stage1_max_iters: 10
+    stage2_max_iters: 8
+    stage3_max_iters: 8
+    stage4_max_iters: 10
+  steps: 3
+  k_fold_validation: 1
+  multi_seed_eval:
+    num_seeds: 2
+  expose_prediction: False
+  data_preview: False
+
+  code:
+    model: gpt-4.1
+    temp: 1.0
+    max_tokens: 16384
+
+  feedback:
+    model: gpt-4.1
+    temp: 0.5
+    max_tokens: 16384
+
+  vlm_feedback:
+    model: gpt-4.1
+    temp: 0.5
+    max_tokens: null
+
+  search:
+    max_debug_depth: 3
+    debug_prob: 0.5
+    num_drafts: 2
+
+  summary:
+    model: gpt-4.1
+    temp: 0.3
+
+  select_node:
+    model: gpt-4.1
+    temp: 0.3

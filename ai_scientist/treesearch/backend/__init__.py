@@ -1,20 +1,21 @@
+import os
 from . import backend_anthropic, backend_openai
 from .utils import FunctionSpec, OutputType, PromptType, compile_prompt_to_md
 
-def get_ai_client(model: str, **model_kwargs):
-    """
-    Get the appropriate AI client based on the model string.
+def _use_openai_backend(model: str) -> bool:
+    """Use OpenAI backend for OpenAI models and third-party proxies."""
+    # Copilot API uses OpenAI-compatible endpoint
+    if os.environ.get("COPILOT_OAUTH_TOKEN"):
+        return True
+    if "claude-" in model and not os.environ.get("ANTHROPIC_BASE_URL"):
+        return False
+    return True
 
-    Args:
-        model (str): string identifier for the model to use (e.g. "gpt-4-turbo")
-        **model_kwargs: Additional keyword arguments for model configuration.
-    Returns:
-        An instance of the appropriate AI client.
-    """
-    if "claude-" in model:
-        return backend_anthropic.get_ai_client(model=model, **model_kwargs)
-    else:
+def get_ai_client(model: str, **model_kwargs):
+    if _use_openai_backend(model):
         return backend_openai.get_ai_client(model=model, **model_kwargs)
+    else:
+        return backend_anthropic.get_ai_client(model=model, **model_kwargs)
 
 def query(
     system_message: PromptType | None,
@@ -66,7 +67,7 @@ def query(
     else:
         model_kwargs["max_tokens"] = max_tokens
 
-    query_func = backend_anthropic.query if "claude-" in model else backend_openai.query
+    query_func = backend_openai.query if _use_openai_backend(model) else backend_anthropic.query
     output, req_time, in_tok_count, out_tok_count, info = query_func(
         system_message=compile_prompt_to_md(system_message) if system_message else None,
         user_message=compile_prompt_to_md(user_message) if user_message else None,
