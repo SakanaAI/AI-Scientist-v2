@@ -16,7 +16,7 @@ from ai_scientist.llm import (
     AVAILABLE_LLMS,
 )
 
-from ai_scientist.tools.semantic_scholar import search_for_papers
+from ai_scientist.tools.literature_search import search_for_papers
 
 from ai_scientist.perform_vlm_review import generate_vlm_img_review
 from ai_scientist.vlm import create_client as create_vlm_client
@@ -36,8 +36,29 @@ def remove_accents_and_clean(s):
     return ascii_str
 
 
-def compile_latex(cwd, pdf_file, timeout=30):
+def find_run_log_dir(base_folder):
+    logs_dir = osp.join(base_folder, "logs")
+    run_log_dir = osp.join(logs_dir, "0-run")
+    if osp.isdir(run_log_dir):
+        return run_log_dir
+    if not osp.isdir(logs_dir):
+        return logs_dir
+
+    run_dirs = [
+        osp.join(logs_dir, name)
+        for name in os.listdir(logs_dir)
+        if osp.isdir(osp.join(logs_dir, name))
+    ]
+    return max(run_dirs, key=osp.getmtime) if run_dirs else logs_dir
+
+
+def compile_latex(cwd, pdf_file, timeout=300):
     print("GENERATING LATEX")
+
+    missing_bins = [binary for binary in ["pdflatex", "bibtex"] if shutil.which(binary) is None]
+    if missing_bins:
+        print(f"LaTeX toolchain not available: {', '.join(missing_bins)}. Skipping PDF compilation.")
+        return
 
     commands = [
         ["pdflatex", "-interaction=nonstopmode", "template.tex"],
@@ -54,6 +75,8 @@ def compile_latex(cwd, pdf_file, timeout=30):
                 stdout=subprocess.PIPE,
                 stderr=subprocess.PIPE,
                 text=True,
+                encoding="utf-8",
+                errors="replace",
                 timeout=timeout,
             )
             print("Standard Output:\n", result.stdout)
@@ -68,6 +91,12 @@ def compile_latex(cwd, pdf_file, timeout=30):
                 f"EXCEPTION in compile_latex: Error running command {' '.join(command)}"
             )
             print(traceback.format_exc())
+        except FileNotFoundError:
+            print(
+                f"EXCEPTION in compile_latex: Command not found {' '.join(command)}"
+            )
+            print(traceback.format_exc())
+            return
 
     print("FINISHED GENERATING LATEX")
 
@@ -485,14 +514,15 @@ def perform_writeup(
                     idea_text = f_idea.read()
 
         # Load summaries
+        run_log_dir = find_run_log_dir(base_folder)
         summary_files = [
-            ("logs/0-run/baseline_summary.json", "BASELINE_SUMMARY"),
-            ("logs/0-run/research_summary.json", "RESEARCH_SUMMARY"),
-            ("logs/0-run/ablation_summary.json", "ABLATION_SUMMARY"),
+            ("baseline_summary.json", "BASELINE_SUMMARY"),
+            ("research_summary.json", "RESEARCH_SUMMARY"),
+            ("ablation_summary.json", "ABLATION_SUMMARY"),
         ]
         loaded_summaries = {}
         for fname, key in summary_files:
-            path = osp.join(base_folder, fname)
+            path = osp.join(run_log_dir, fname)
             if osp.exists(path):
                 try:
                     with open(path, "r") as f:
@@ -668,6 +698,11 @@ def perform_writeup(
             compile_latex(latex_folder, base_pdf_file + f"_{compile_attempt}.pdf")
             compile_attempt += 1
             print(f"Compiled {base_pdf_file}_{compile_attempt}.pdf")
+
+            current_pdf = base_pdf_file + f"_{compile_attempt - 1}.pdf"
+            if not osp.exists(current_pdf):
+                print(f"Reflection PDF not generated: {current_pdf}. Aborting writeup reflection.")
+                return False
 
             # Detect where "Impact Statement" appears
             impact_loc = detect_pages_before_impact(latex_folder)
