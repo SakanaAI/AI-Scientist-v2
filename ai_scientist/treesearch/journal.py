@@ -6,6 +6,15 @@ from typing import Literal, Optional, Any
 import copy
 import os
 import json
+from pathlib import Path
+
+
+def _safe_relpath(p: str | Path) -> str:
+    """Return a relative path string, falling back to absolute if relative_to fails."""
+    try:
+        return str(Path(p).resolve().relative_to(os.getcwd()))
+    except ValueError:
+        return os.path.relpath(str(Path(p).resolve()), os.getcwd())
 
 from dataclasses_json import DataClassJsonMixin
 from .interpreter import ExecutionResult
@@ -237,7 +246,7 @@ class Node(DataClassJsonMixin):
             "exc_stack": self.exc_stack,
             "analysis": self.analysis,
             "exp_results_dir": (
-                str(Path(self.exp_results_dir).resolve().relative_to(os.getcwd()))
+                _safe_relpath(self.exp_results_dir)
                 if self.exp_results_dir
                 else None
             ),
@@ -259,10 +268,7 @@ class Node(DataClassJsonMixin):
             "plots_generated": self.plots_generated,
             "plots": self.plots,
             "plot_paths": (
-                [
-                    str(Path(p).resolve().relative_to(os.getcwd()))
-                    for p in self.plot_paths
-                ]
+                [_safe_relpath(p) for p in self.plot_paths]
                 if self.plot_paths
                 else []
             ),
@@ -270,11 +276,7 @@ class Node(DataClassJsonMixin):
                 {
                     **analysis,
                     "plot_path": (
-                        str(
-                            Path(analysis["plot_path"])
-                            .resolve()
-                            .relative_to(os.getcwd())
-                        )
+                        _safe_relpath(analysis["plot_path"])
                         if analysis.get("plot_path")
                         else None
                     ),
