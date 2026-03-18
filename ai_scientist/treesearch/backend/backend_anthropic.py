@@ -14,8 +14,13 @@ ANTHROPIC_TIMEOUT_EXCEPTIONS = (
     anthropic.APIStatusError,
 )
 
-def get_ai_client(model : str, max_retries=2) -> anthropic.AnthropicBedrock:
-    client = anthropic.AnthropicBedrock(max_retries=max_retries)
+def get_ai_client(model: str, max_retries=2):
+    base_url = os.environ.get("ANTHROPIC_BASE_URL", None)
+    api_key = os.environ.get("ANTHROPIC_API_KEY", None)
+    if base_url and api_key:
+        client = anthropic.Anthropic(api_key=api_key, base_url=base_url, max_retries=max_retries)
+    else:
+        client = anthropic.AnthropicBedrock(max_retries=max_retries)
     return client
 
 def query(

@@ -11,6 +11,8 @@ from ai_scientist.utils.token_tracker import track_token_usage
 MAX_NUM_TOKENS = 4096
 
 AVAILABLE_VLMS = [
+    "gpt-4o",
+    "gpt-4o-mini",
     "gpt-4o-2024-05-13",
     "gpt-4o-2024-08-06",
     "gpt-4o-2024-11-20",
@@ -144,6 +146,9 @@ def get_response_from_vlm(
     if msg_history is None:
         msg_history = []
 
+    if model.startswith("gpt-4.1"):
+        model = "gpt-4o"
+
     if model in AVAILABLE_VLMS:
         # Convert single image path to list for consistent handling
         if isinstance(image_paths, str):
@@ -194,7 +199,13 @@ def get_response_from_vlm(
 
 def create_client(model: str) -> tuple[Any, str]:
     """Create client for vision-language model."""
+    if model.startswith("gpt-4.1"):
+        fallback_model = "gpt-4o"
+        print(f"Model {model} not supported for VLM. Falling back to {fallback_model}.")
+        model = fallback_model
     if model in [
+        "gpt-4o",
+        "gpt-4o-mini",
         "gpt-4o-2024-05-13",
         "gpt-4o-2024-08-06",
         "gpt-4o-2024-11-20",
@@ -202,6 +213,13 @@ def create_client(model: str) -> tuple[Any, str]:
         "o3-mini",
     ]:
         print(f"Using OpenAI API with model {model}.")
+        if os.environ.get("COPILOT_OAUTH_TOKEN"):
+            from ai_scientist.copilot_auth import get_copilot_jwt, copilot_default_headers
+            return openai.OpenAI(
+                api_key=get_copilot_jwt(),
+                base_url="https://api.individual.githubcopilot.com",
+                default_headers=copilot_default_headers(),
+            ), model
         return openai.OpenAI(), model
     elif model.startswith("ollama/"):
         print(f"Using Ollama API with model {model}.")
