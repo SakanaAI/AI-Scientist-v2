@@ -53,15 +53,16 @@ class SemanticScholarSearchTool(BaseTool):
         backoff.expo,
         (requests.exceptions.HTTPError, requests.exceptions.ConnectionError),
         on_backoff=on_backoff,
+        max_tries=8,
     )
     def search_for_papers(self, query: str) -> Optional[List[Dict]]:
         if not query:
             return None
-        
+
         headers = {}
         if self.S2_API_KEY:
             headers["X-API-KEY"] = self.S2_API_KEY
-        
+
         rsp = requests.get(
             "https://api.semanticscholar.org/graph/v1/paper/search",
             headers=headers,
@@ -71,8 +72,6 @@ class SemanticScholarSearchTool(BaseTool):
                 "fields": "title,authors,venue,year,abstract,citationCount",
             },
         )
-        print(f"Response Status Code: {rsp.status_code}")
-        print(f"Response Content: {rsp.text[:500]}")
         rsp.raise_for_status()
         results = rsp.json()
         total = results.get("total", 0)
@@ -99,7 +98,7 @@ Abstract: {paper.get("abstract", "No abstract available.")}"""
 
 
 @backoff.on_exception(
-    backoff.expo, requests.exceptions.HTTPError, on_backoff=on_backoff
+    backoff.expo, requests.exceptions.HTTPError, on_backoff=on_backoff, max_tries=8
 )
 def search_for_papers(query, result_limit=10) -> Union[None, List[Dict]]:
     S2_API_KEY = os.getenv("S2_API_KEY")
