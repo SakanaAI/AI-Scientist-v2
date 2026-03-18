@@ -38,6 +38,55 @@ def _safe_pickle_test(obj, name="object"):
         return False
 
 
+import re as _re
+
+def _sanitize_imports(code: str) -> str:
+    """Auto-fix known deprecated imports in LLM-generated code before execution.
+
+    Fixes:
+      - `from transformers import ..., AdamW, ...` → moves AdamW to torch.optim
+      - `from transformers import AdamW` → `from torch.optim import AdamW`
+    """
+    original = code
+
+    # Pattern 1: standalone `from transformers import AdamW`
+    code = _re.sub(
+        r'^(\s*)from\s+transformers\s+import\s+AdamW\s*$',
+        r'\1from torch.optim import AdamW',
+        code, flags=_re.MULTILINE,
+    )
+
+    # Pattern 2: AdamW among other transformers imports
+    # e.g. `from transformers import X, AdamW, Y` → remove AdamW + add torch import
+    def _fix_mixed_import(m):
+        indent = m.group(1)
+        imports_str = m.group(2)
+        items = [s.strip() for s in imports_str.split(',') if s.strip()]
+        has_adamw = any(it == 'AdamW' for it in items)
+        if not has_adamw:
+            return m.group(0)
+        remaining = [it for it in items if it != 'AdamW']
+        lines = []
+        if remaining:
+            lines.append(f"{indent}from transformers import {', '.join(remaining)}")
+        lines.append(f"{indent}from torch.optim import AdamW")
+        return '\n'.join(lines)
+
+    code = _re.sub(
+        r'^(\s*)from\s+transformers\s+import\s+\(([^)]+)\)',
+        _fix_mixed_import, code, flags=_re.MULTILINE,
+    )
+    code = _re.sub(
+        r'^(\s*)from\s+transformers\s+import\s+(.+)$',
+        _fix_mixed_import, code, flags=_re.MULTILINE,
+    )
+
+    if code != original:
+        logger.info("_sanitize_imports: auto-fixed deprecated transformers imports")
+
+    return code
+
+
 def _parse_keyword_prefix_response(
     response: str, keyword_prefix1: str, keyword_prefix2: str
 ) -> Tuple[Optional[str], Optional[str]]:
@@ -308,6 +357,11 @@ class MinimalAgent:
             "  - ALWAYS move model related tensors to device using the `.to(device)` method",
             "  - For optimizers, create them AFTER moving model to device",
             "  - When using DataLoader, move batch tensors to device in training loop: `batch = {k: v.to(device) for k, v in batch.items() if isinstance(v, torch.Tensor)}`",
+            "CRITICAL LIBRARY IMPORT GUIDELINES:",
+            "  - Optimizer: MUST use `from torch.optim import AdamW` (NOT `from transformers import AdamW` — removed in transformers >= 4.30)",
+            "  - For ALL optimizers, use PyTorch native: `torch.optim.Adam`, `torch.optim.SGD`, `torch.optim.AdamW`",
+            "  - Models/Tokenizers: use `from transformers import AutoModel, AutoTokenizer, AutoModelForSequenceClassification` etc.",
+            "  - NEVER import AdamW, get_linear_schedule_with_warmup from top-level `transformers` — these were removed or moved",
             "CRITICAL MODEL INPUT GUIDELINES:",
             "  - Always pay extra attention to the input to the model being properly normalized",
             "  - This is extremely important because the input to the model's forward pass directly affects the output, and the loss function is computed based on the output",
@@ -669,9 +723,9 @@ class MinimalAgent:
             code = extract_code(completion_text)
             nl_text = extract_text_up_to_code(completion_text)
 
-            if code and nl_text:
+            if code:
                 # merge all code blocks into a single string
-                return nl_text, code
+                return nl_text or "Implementation complete.", code
 
             print("Plan + code extraction failed, retrying...")
             prompt["Parsing Feedback"] = (
@@ -1235,9 +1289,9 @@ class ParallelAgent:
             code = extract_code(completion_text)
             nl_text = extract_text_up_to_code(completion_text)
 
-            if code and nl_text:
+            if code:
                 # merge all code blocks into a single string
-                return nl_text, code
+                return nl_text or "Implementation complete.", code
             print("Plan + code extraction failed, retrying...")
             prompt["Parsing Feedback"] = (
                 "The code extraction failed. Make sure to use the format ```python ... ``` for the code blocks."
@@ -1522,6 +1576,8 @@ class ParallelAgent:
                         child_node.parent = parent_node
 
             # Execute and parse results
+            # --- Auto-fix known deprecated imports before execution ---
+            child_node.code = _sanitize_imports(child_node.code)
             print("Running code")
             exec_result = process_interpreter.run(child_node.code, True)
             process_interpreter.cleanup_session()
@@ -1793,7 +1849,10 @@ class ParallelAgent:
             import traceback
 
             traceback.print_exc()
-            raise
+            # Re-raise as a plain RuntimeError so it can be pickled back to the
+            # parent process. openai.APIStatusError and similar exceptions are
+            # not picklable, which causes BrokenProcessPool.
+            raise RuntimeError(f"{type(e).__name__}: {e}") from None
 
     def _generate_hyperparam_tuning_idea(self) -> Optional[HyperparamTuningIdea]:
         """Generate the next hyperparam tuning idea based on what's been done.
@@ -2178,7 +2237,17 @@ class ParallelAgent:
                 import traceback
 
                 traceback.print_exc()
-                raise
+                # Don't re-raise: let the experiment continue with the next step.
+                # The journal will record fewer nodes but stage completion checks
+                # will handle this (retry or reach max iterations).
+                # If the pool is broken, recreate it for future steps.
+                if "BrokenProcessPool" in type(e).__name__ or "BrokenProcessPool" in str(e):
+                    logger.warning("Process pool broken, recreating executor...")
+                    try:
+                        self.executor.shutdown(wait=False)
+                    except Exception:
+                        pass
+                    self.executor = ProcessPoolExecutor(max_workers=self.num_workers)
             finally:
                 # Release GPU for this process if it was using one
                 process_id = f"worker_{i}"
