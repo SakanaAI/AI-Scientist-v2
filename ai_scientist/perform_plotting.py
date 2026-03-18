@@ -21,11 +21,11 @@ MAX_FIGURES = 12
 AGGREGATOR_SYSTEM_MSG = f"""You are an ambitious AI researcher who is preparing final plots for a scientific paper submission.
 You have multiple experiment summaries (baseline, research, ablation), each possibly containing references to different plots or numerical insights.
 There is also a top-level 'research_idea.md' file that outlines the overarching research direction.
-Your job is to produce ONE Python script that fully aggregates and visualizes the final results for a comprehensive research paper.
+Your job is to produce ONE compact Python script that aggregates and visualizes the final results for a research paper.
 
 Key points:
 1) Combine or replicate relevant existing plotting code, referencing how data was originally generated (from code references) to ensure correctness.
-2) Create a complete set of final scientific plots, stored in 'figures/' only (since only those are used in the final paper).
+2) Create a small final set of high-value scientific plots, stored in 'figures/' only (since only those are used in the final paper).
 3) Make sure to use existing .npy data for analysis; do NOT hallucinate data. If single numeric results are needed, these may be copied from the JSON summaries.
 4) Only create plots where the data is best presented as a figure and not as a table. E.g. don't use bar plots if the data is hard to visually compare.
 5) The final aggregator script must be in triple backticks and stand alone so it can be dropped into a codebase and run.
@@ -34,16 +34,17 @@ Key points:
 Implement best practices:
 - Do not produce extraneous or irrelevant plots.
 - Maintain clarity, minimal but sufficient code.
-- Demonstrate thoroughness for a final research paper submission.
+- Demonstrate thoroughness with a short script that is likely to execute correctly.
 - Do NOT reference non-existent files or images.
 - Use the .npy files to get data for the plots and key numbers from the JSON summaries.
 - Demarcate each individual plot, and put them in separate try-catch blocks so that the failure of one plot does not affect the others.
-- Make sure to only create plots that are unique and needed for the final paper and appendix. A good number could be around {MAX_FIGURES} plots in total.
-- Aim to aggregate multiple figures into one plot if suitable, i.e. if they are all related to the same topic. You can place up to 3 plots in one row.
+- Make sure to only create plots that are unique and needed for the final paper and appendix. Generate 4 to 6 figure files, never more than 8.
+- Aim to aggregate multiple related results into one figure. You can place up to 3 subplots in one row.
 - Provide well-labeled plots (axes, legends, titles) that highlight main findings. Use informative names everywhere, including in the legend for referencing them in the final paper. Make sure the legend is always visible.
 - Make the plots look professional (if applicable, no top and right spines, dpi of 300, adequate ylim, etc.).
 - Do not use labels with underscores, e.g. "loss_vs_epoch" should be "loss vs epoch".
-- For image examples, select a few categories/classes to showcase the diversity of results instead of showing a single category/class. Some can be included in the main paper, while the rest can go in the appendix.
+- Prefer robust numeric plots over brittle prediction tables if the data shape is unclear.
+- Keep the script compact, ideally under 160 lines, and avoid long comments.
 
 Your output should be the entire Python aggregator script in triple backticks.
 """
@@ -63,19 +64,20 @@ Our goal is to produce final, publishable figures.
 IMPORTANT:
 - The aggregator script must load existing .npy experiment data from the "exp_results_npy_files" fields (ONLY using full and exact file paths in the summary JSONs) for thorough plotting.
 - It should call os.makedirs("figures", exist_ok=True) before saving any plots.
-- Aim for a balance of empirical results, ablations, and diverse, informative visuals in 'figures/' that comprehensively showcase the finalized research outcomes.
+- Focus on the smallest set of strong figures that still covers the main result plus key ablations.
 - If you need .npy paths from the summary, only copy those paths directly (rather than copying and parsing the entire summary).
 
 Your generated Python script must:
 1) Load or refer to relevant data and .npy files from these summaries. Use the full and exact file paths in the summary JSONs.
-2) Synthesize or directly create final, scientifically meaningful plots for a final research paper (comprehensive and complete), referencing the original code if needed to see how the data was generated.
+2) Synthesize or directly create final, scientifically meaningful plots for a final research paper, referencing the original code if needed to see how the data was generated.
 3) Carefully combine or replicate relevant existing plotting code to produce these final aggregated plots in 'figures/' only, since only those are used in the final paper.
 4) Do not hallucinate data. Data must either be loaded from .npy files or copied from the JSON summaries.
 5) The aggregator script must be fully self-contained, and place the final plots in 'figures/'.
-6) This aggregator script should produce a comprehensive and final set of scientific plots for the final paper, reflecting all major findings from the experiment data.
+6) This aggregator script should produce a concise final set of scientific plots, reflecting the main findings from the experiment data.
 7) Make sure that every plot is unique and not duplicated from the original plots. Delete any duplicate plots if necessary.
 8) Each figure can have up to 3 subplots using fig, ax = plt.subplots(1, 3).
 9) Use a font size larger than the default for plot labels and titles to ensure they are readable in the final PDF paper.
+10) Keep the script compact and executable. Prefer 4 to 6 figure files and avoid long example tables if the data shape is uncertain.
 
 
 Below are the summaries in JSON:
@@ -89,11 +91,33 @@ Respond with a Python script in triple backticks.
 def extract_code_snippet(text: str) -> str:
     """
     Look for a Python code block in triple backticks in the LLM response.
-    Return only that code. If no code block is found, return the entire text.
+    Return only that code. If no code block is found, return an empty string so
+    we do not accidentally write natural language into a Python file.
     """
     pattern = r"```(?:python)?(.*?)```"
     matches = re.findall(pattern, text, flags=re.DOTALL)
-    return matches[0].strip() if matches else text.strip()
+    if matches:
+        return matches[0].strip()
+
+    start = text.find("```")
+    if start != -1:
+        snippet = text[start + 3 :]
+        if snippet.startswith("python"):
+            snippet = snippet[len("python") :]
+        return snippet.lstrip()
+
+    return ""
+
+
+def validate_python_snippet(code: str) -> str | None:
+    """Return a syntax error message if the snippet is not valid Python."""
+    try:
+        compile(code, "<auto_plot_aggregator>", "exec")
+    except SyntaxError as error:
+        return f"SyntaxError: {error.msg} (line {error.lineno})"
+    except Exception as error:
+        return f"ValidationError: {error}"
+    return None
 
 
 def run_aggregator_script(
@@ -101,7 +125,14 @@ def run_aggregator_script(
 ):
     if not aggregator_code.strip():
         print("No aggregator code was provided. Skipping aggregator script run.")
-        return ""
+        return "No Python code block was provided by the model."
+
+    validation_error = validate_python_snippet(aggregator_code)
+    if validation_error:
+        print("Aggregator script validation failed before execution.")
+        print(validation_error)
+        return validation_error
+
     with open(aggregator_script_path, "w") as f:
         f.write(aggregator_code)
 
@@ -214,7 +245,9 @@ Please criticize the current script for any flaws including but not limited to:
 - Do the labels have underscores? If so, replace them with spaces.
 - Make sure that every plot is unique and not duplicated from the original plots.
 
-If you believe you are done, simply say: "I am done". Otherwise, please provide an updated aggregator script in triple backticks."""
+If you believe you are done, simply say: "I am done".
+Otherwise, respond with exactly one updated Python script in triple backticks and no other prose.
+Keep the revised script compact and executable, ideally under 160 lines, and prefer fewer stronger figures over many brittle ones."""
 
         print("[green]Reflection prompt:[/green] ", reflection_prompt)
         try:
@@ -238,6 +271,14 @@ If you believe you are done, simply say: "I am done". Otherwise, please provide 
             break
 
         aggregator_new_code = extract_code_snippet(reflection_response)
+
+        if not aggregator_new_code.strip() and "I am done" not in reflection_response:
+            aggregator_out = (
+                "The previous response did not contain a Python code block. "
+                "Return only a Python script in triple backticks or exactly 'I am done'."
+            )
+            print(aggregator_out)
+            continue
 
         # If new code is provided and differs, run again
         if (

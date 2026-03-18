@@ -42,8 +42,13 @@ def remove_accents_and_clean(s):
     return ascii_str
 
 
-def compile_latex(cwd, pdf_file, timeout=30):
+def compile_latex(cwd, pdf_file, timeout=300):
     print("GENERATING LATEX")
+
+    missing_bins = [binary for binary in ["pdflatex", "bibtex"] if shutil.which(binary) is None]
+    if missing_bins:
+        print(f"LaTeX toolchain not available: {', '.join(missing_bins)}. Skipping PDF compilation.")
+        return
 
     commands = [
         ["pdflatex", "-interaction=nonstopmode", "template.tex"],
@@ -60,6 +65,8 @@ def compile_latex(cwd, pdf_file, timeout=30):
                 stdout=subprocess.PIPE,
                 stderr=subprocess.PIPE,
                 text=True,
+                encoding="utf-8",
+                errors="replace",
                 timeout=timeout,
             )
             print("Standard Output:\n", result.stdout)
@@ -74,6 +81,12 @@ def compile_latex(cwd, pdf_file, timeout=30):
                 f"EXCEPTION in compile_latex: Error running command {' '.join(command)}"
             )
             print(traceback.format_exc())
+        except FileNotFoundError:
+            print(
+                f"EXCEPTION in compile_latex: Command not found {' '.join(command)}"
+            )
+            print(traceback.format_exc())
+            return
 
     print("FINISHED GENERATING LATEX")
 
@@ -635,6 +648,10 @@ Produce the final version of the LaTeX manuscript now, ensuring the paper is coh
 Return the entire file in full, with no unfilled placeholders!
 This must be an acceptable complete LaTeX writeup, suitable for a 4-page single-column workshop paper.
 Make sure to use the citations from the references.bib file.
+The manuscript must stay strictly on the provided research idea and summaries.
+Do not switch to another topic, dataset family, or architecture family.
+If a fact is not present in the idea, summaries, plots, or provided citations, omit it.
+Never introduce unrelated topics such as padding, CNN border artifacts, ImageNet, or CIFAR unless they explicitly appear in the provided materials.
 
 Please provide the updated LaTeX code for 'template.tex', wrapped in triple backticks
 with "latex" syntax highlighting, like so:
@@ -662,18 +679,88 @@ def load_idea_text(base_folder):
     return idea_text
 
 
+def load_idea_metadata(base_folder):
+    idea_json_path = osp.join(base_folder, "idea.json")
+    if not osp.exists(idea_json_path):
+        return {}
+    try:
+        with open(idea_json_path, "r") as f:
+            return json.load(f)
+    except Exception:
+        return {}
+
+
+def get_topic_anchor_terms(base_folder):
+    idea_meta = load_idea_metadata(base_folder)
+    source_text = " ".join(
+        str(idea_meta.get(key, ""))
+        for key in ["Name", "Title", "Short Hypothesis"]
+    )
+    stop_words = {
+        "about",
+        "across",
+        "between",
+        "during",
+        "enhancing",
+        "general",
+        "improving",
+        "introducing",
+        "method",
+        "models",
+        "neural",
+        "networks",
+        "novel",
+        "paper",
+        "results",
+        "study",
+        "their",
+        "these",
+        "through",
+        "using",
+        "with",
+    }
+    tokens = re.findall(r"[A-Za-z][A-Za-z0-9_-]{5,}", source_text.lower())
+    anchors = []
+    for token in tokens:
+        if token in stop_words or token in anchors:
+            continue
+        anchors.append(token)
+    return anchors[:8]
+
+
+def latex_matches_idea(base_folder, latex_text):
+    anchor_terms = get_topic_anchor_terms(base_folder)
+    if not anchor_terms:
+        return True
+
+    normalized_text = latex_text.lower()
+    matched_terms = [term for term in anchor_terms if term in normalized_text]
+    return len(matched_terms) >= min(2, len(anchor_terms))
+
+
 def load_exp_summaries(base_folder):
     """
     Load the experiment summaries from the base folder.
     """
+    logs_dir = osp.join(base_folder, "logs")
+    run_log_dir = osp.join(logs_dir, "0-run")
+    if not osp.isdir(run_log_dir) and osp.isdir(logs_dir):
+        run_dirs = [
+            osp.join(logs_dir, name)
+            for name in os.listdir(logs_dir)
+            if osp.isdir(osp.join(logs_dir, name))
+        ]
+        if run_dirs:
+            run_log_dir = max(run_dirs, key=osp.getmtime)
+
     summary_files = [
-        ("logs/0-run/baseline_summary.json", "BASELINE_SUMMARY"),
-        ("logs/0-run/research_summary.json", "RESEARCH_SUMMARY"),
-        ("logs/0-run/ablation_summary.json", "ABLATION_SUMMARY"),
+        ("baseline_summary.json", "BASELINE_SUMMARY"),
+        ("research_summary.json", "RESEARCH_SUMMARY"),
+        ("ablation_summary.json", "ABLATION_SUMMARY"),
     ]
     loaded_summaries = {}
     for fname, key in summary_files:
-        path = osp.join(base_folder, fname)
+        path = osp.join(run_log_dir, fname)
         if osp.exists(path):
             try:
                 with open(path, "r") as f:
@@ -710,8 +797,8 @@ def filter_experiment_summaries(exp_summaries, step_name):
             "overall_plan",
             "analysis",
             "plot_plan",
-            "plot_code",
             "plot_analyses",
+            "metric",
             "vlm_feedback_summary",
             "exp_results_npy_files",
         }
@@ -994,18 +1081,38 @@ def perform_writeup(
             plot_descriptions=plot_descriptions_str,
         )
 
-        response, msg_history = get_response_from_llm(
-            prompt=combined_prompt,
-            client=big_client,
-            model=big_client_model,
-            system_message=big_model_system_message,
-            print_debug=False,
-        )
+        topic_anchor_terms = get_topic_anchor_terms(base_folder)
+        updated_latex_code = None
+        for attempt in range(2):
+            prompt_to_use = combined_prompt
+            if attempt > 0 and topic_anchor_terms:
+                prompt_to_use += (
+                    "\n\nCRITICAL CORRECTION: Your previous draft drifted away from the actual paper topic. "
+                    f"The revised manuscript must clearly stay grounded in these topic anchors: {topic_anchor_terms}. "
+                    "Rewrite the full LaTeX from scratch and stay on-topic."
+                )
 
-        latex_code_match = re.search(r"```latex(.*?)```", response, re.DOTALL)
-        if not latex_code_match:
+            response, msg_history = get_response_from_llm(
+                prompt=prompt_to_use,
+                client=big_client,
+                model=big_client_model,
+                system_message=big_model_system_message,
+                print_debug=False,
+            )
+
+            latex_code_match = re.search(r"```latex(.*?)```", response, re.DOTALL)
+            if not latex_code_match:
+                continue
+
+            candidate_latex = latex_code_match.group(1).strip()
+            if latex_matches_idea(base_folder, candidate_latex):
+                updated_latex_code = candidate_latex
+                break
+
+        if updated_latex_code is None:
+            print("Writeup generation drifted away from the requested topic. Aborting writeup.")
             return False
-        updated_latex_code = latex_code_match.group(1).strip()
+
         with open(writeup_file, "w") as f:
             f.write(updated_latex_code)
 
@@ -1031,6 +1138,10 @@ def perform_writeup(
             print(f"[green]Compiling PDF for reflection {i+1}...[/green]")
             compile_latex(latex_folder, reflection_pdf)
 
+            if not osp.exists(reflection_pdf):
+                print(f"Reflection PDF not generated: {reflection_pdf}. Aborting writeup reflection.")
+                return False
+
             review_img_cap_ref = perform_imgs_cap_ref_review(
                 vlm_client, vlm_model, reflection_pdf
             )
@@ -1053,6 +1164,7 @@ Now let's reflect and identify any issues (including but not limited to):
 1) Are there any LaTeX syntax errors or style violations we can fix? Refer to the chktex output below.
 2) Is the writing clear, and scientifically rigorous for a workshop focusing on real-world pitfalls?
 3) Have we included all relevant details from the summaries without hallucinating?
+3b) Does the manuscript remain on the correct topic from the original idea and avoid drifting into unrelated domains?
 4) Are there short sections (one or two sentences) that could be combined into a single paragraph?
 5) Can we use more information and details (hyperparameters, unused figures, etc.) in the supplementary material? Only add information that is not already covered in the main paper.
 6) The following figures are available in the folder but not used in the LaTeX: {sorted(unused_figs)}
@@ -1077,6 +1189,7 @@ Please provide a revised complete LaTeX in triple backticks, or repeat the same 
 Return the entire file in full, with no unfilled placeholders!
 This must be an acceptable complete LaTeX writeup.
 Do not hallucinate any details!
+Keep the manuscript grounded in these topic anchors from the original idea: {topic_anchor_terms}
 Ensure proper citation usage:
 - Always include references within \begin{{filecontents}}{{references.bib}} ... \end{{filecontents}}, even if they haven't changed from the previous round.
 - Use citations from the provided references.bib content.

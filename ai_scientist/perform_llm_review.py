@@ -289,7 +289,7 @@ def load_paper(pdf_path, num_pages=None, min_size=100):
 
 
 def load_review(json_path):
-    with open(json_path, "r") as json_file:
+    with open(json_path, "r", encoding="utf-8") as json_file:
         loaded = json.load(json_file)
     return loaded["review"]
 
@@ -319,7 +319,7 @@ Note that while each review is formatted differently according to each reviewer'
     ):
         txt_path = paper_path.replace(".pdf", ".txt")
         if os.path.exists(txt_path):
-            with open(txt_path, "r") as f:
+            with open(txt_path, "r", encoding="utf-8", errors="replace") as f:
                 paper_text = f.read()
         else:
             paper_text = load_paper(paper_path)
