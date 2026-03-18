@@ -39,6 +39,26 @@ def save_token_tracker(idea_dir):
         json.dump(token_tracker.get_interactions(), f)
 
 
+def find_run_log_dir(base_folder):
+    logs_dir = osp.join(base_folder, "logs")
+    if not osp.isdir(logs_dir):
+        return None
+
+    preferred_dir = osp.join(logs_dir, "0-run")
+    if osp.isdir(preferred_dir):
+        return preferred_dir
+
+    run_dirs = [
+        osp.join(logs_dir, name)
+        for name in os.listdir(logs_dir)
+        if osp.isdir(osp.join(logs_dir, name))
+    ]
+    if not run_dirs:
+        return None
+
+    return max(run_dirs, key=osp.getmtime)
+
+
 def parse_arguments():
     parser = argparse.ArgumentParser(description="Run AI scientist experiments")
     parser.add_argument(
@@ -128,6 +148,12 @@ def parse_arguments():
         action="store_true",
         help="If set, skip the review process",
     )
+    parser.add_argument(
+        "--resume",
+        type=str,
+        default=None,
+        help="Path to a previous experiment directory to resume from its checkpoint",
+    )
     return parser.parse_args()
 
 
@@ -138,6 +164,7 @@ def get_available_gpus(gpu_ids=None):
 
 
 def find_pdf_path_for_review(idea_dir):
+    pdf_path = None
     pdf_files = [f for f in os.listdir(idea_dir) if f.endswith(".pdf")]
     reflection_pdfs = [f for f in pdf_files if "reflection" in f]
     if reflection_pdfs:
@@ -253,9 +280,16 @@ if __name__ == "__main__":
         idea_path_json,
     )
 
-    perform_experiments_bfts(idea_config_path)
-    experiment_results_dir = osp.join(idea_dir, "logs/0-run/experiment_results")
-    if os.path.exists(experiment_results_dir):
+    perform_experiments_bfts(idea_config_path, resume_dir=args.resume)
+    run_log_dir = find_run_log_dir(idea_dir)
+    experiment_results_dir = (
+        osp.join(run_log_dir, "experiment_results") if run_log_dir else None
+    )
+    if (not experiment_results_dir or not os.path.exists(experiment_results_dir)) and args.resume:
+        resume_run_log_dir = find_run_log_dir(args.resume)
+        if resume_run_log_dir:
+            experiment_results_dir = osp.join(resume_run_log_dir, "experiment_results")
+    if experiment_results_dir and os.path.exists(experiment_results_dir):
         shutil.copytree(
             experiment_results_dir,
             osp.join(idea_dir, "experiment_results"),
@@ -264,7 +298,9 @@ if __name__ == "__main__":
 
     aggregate_plots(base_folder=idea_dir, model=args.model_agg_plots)
 
-    shutil.rmtree(osp.join(idea_dir, "experiment_results"))
+    exp_results_copy = osp.join(idea_dir, "experiment_results")
+    if osp.exists(exp_results_copy):
+        shutil.rmtree(exp_results_copy)
 
     save_token_tracker(idea_dir)
 
@@ -304,7 +340,7 @@ if __name__ == "__main__":
     if not args.skip_review and not args.skip_writeup:
         # Perform paper review if the paper exists
         pdf_path = find_pdf_path_for_review(idea_dir)
-        if os.path.exists(pdf_path):
+        if pdf_path and os.path.exists(pdf_path):
             print("Paper found at: ", pdf_path)
             paper_content = load_paper(pdf_path)
             client, client_model = create_client(args.model_review)
@@ -317,11 +353,17 @@ if __name__ == "__main__":
             with open(osp.join(idea_dir, "review_img_cap_ref.json"), "w") as f:
                 json.dump(review_img_cap_ref, f, indent=4)
             print("Paper review completed.")
+        else:
+            print("No reviewable PDF found. Skipping paper review.")
 
     print("Start cleaning up processes")
     # Kill all mp and torch processes associated with this experiment
-    import psutil
     import signal
+    try:
+        import psutil
+    except ModuleNotFoundError:
+        print("psutil not installed. Skipping process cleanup.")
+        sys.exit(0)
 
     # Get the current process and all its children
     current_process = psutil.Process()

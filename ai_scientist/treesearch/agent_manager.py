@@ -268,8 +268,88 @@ Your research idea:\n\n
             "current_stage": self.current_stage,
         }
         print("Saving checkpoint to ", save_path)
+        save_path.parent.mkdir(parents=True, exist_ok=True)
         with open(save_path, "wb") as f:
             pickle.dump(checkpoint, f)
+
+    @classmethod
+    def from_checkpoint(cls, checkpoint_path: Path, cfg_override=None):
+        """Resume from a saved checkpoint.
+        
+        Args:
+            checkpoint_path: Path to checkpoint.pkl file
+            cfg_override: Optional config to override the saved one
+        Returns:
+            A restored AgentManager instance ready to continue from the next stage.
+        """
+        checkpoint_path = Path(checkpoint_path)
+        if not checkpoint_path.exists():
+            raise FileNotFoundError(f"Checkpoint not found: {checkpoint_path}")
+
+        with open(checkpoint_path, "rb") as f:
+            ckpt = pickle.load(f)
+
+        # Create a bare instance without calling __init__
+        obj = object.__new__(cls)
+        obj.journals = ckpt["journals"]
+        obj.stage_history = ckpt["stage_history"]
+        obj.task_desc = ckpt["task_desc"]
+        obj.cfg = cfg_override if cfg_override is not None else ckpt["cfg"]
+        obj.workspace_dir = ckpt["workspace_dir"]
+        obj.current_stage = ckpt["current_stage"]
+        obj.completed_stages = []
+        obj.stages = []
+        obj.current_stage_number = 0
+        obj.main_stage_dict = {
+            1: "initial_implementation",
+            2: "baseline_tuning",
+            3: "creative_research",
+            4: "ablation_studies",
+        }
+        obj.main_stage_goals = {
+            1: """\n                - Focus on getting basic working implementation\n                - Use a simple dataset\n                - Aim for basic functional correctness\n                - If you are given \"Code To Use\", you can directly use it as a starting point.""",
+            2: """\n                - Change hyperparameters such as learning rate, number of epochs, batch size, etc. to improve the performance\n                - DO NOT change the model architecture from the previous stage\n                - Introduce TWO more new datasets from HuggingFace test the model. Try very hard to think what Huggingface datasets can be used here for testing.""",
+            3: """\n                - Explore novel improvements\n                - Come up with experiments to reveal new insights\n                - Be creative and think outside the box\n                - MAKE SURE you use THREE HuggingFace dataset in total to test your models""",
+            4: """\n                - Conduct systematic component analysis that reveals the contribution of each part\n                - Use the same datasets you used from the previous stage""",
+        }
+
+        # Determine which stage to resume from
+        saved_stage = ckpt["current_stage"]
+        if saved_stage is not None:
+            main_num = cls.parse_stage_names(None, saved_stage.name)[0]
+            # The checkpoint is saved AFTER a main stage completes,
+            # so we need to create the NEXT main stage.
+            next_main_num = main_num + 1
+            if next_main_num <= 4:
+                next_main_name = obj.main_stage_dict[next_main_num]
+                next_stage = Stage(
+                    name=f"{next_main_num}_{next_main_name}_1_first_attempt",
+                    description="first_attempt",
+                    goals=obj.main_stage_goals[next_main_num],
+                    max_iterations=obj._get_max_iterations(next_main_num),
+                    num_drafts=0,
+                    stage_number=saved_stage.stage_number + 1,
+                )
+                obj.stages.append(next_stage)
+                obj.journals[next_stage.name] = Journal()
+                obj.current_stage = next_stage
+                # Record the transition
+                obj.stage_history.append(
+                    StageTransition(
+                        from_stage=saved_stage.name,
+                        to_stage=next_stage.name,
+                        reason=f"Resumed from checkpoint, moving to stage {next_main_num}",
+                        config_adjustments={},
+                    )
+                )
+                print(f"[green]Resumed from checkpoint. Continuing from stage: {next_stage.name}[/green]")
+            else:
+                print("[yellow]All 4 main stages already completed in checkpoint.[/yellow]")
+                obj.current_stage = None
+        else:
+            print("[yellow]Checkpoint has no current stage — experiment was fully complete.[/yellow]")
+
+        return obj
 
     def _create_agent_for_stage(self, stage: Stage) -> ParallelAgent:
         """Create a ParallelAgent configured for the given stage"""
@@ -690,7 +770,11 @@ Your research idea:\n\n
         )
 
     def run(self, exec_callback, step_callback=None):
-        """Run the experiment through generated stages"""
+        """Run the experiment through generated stages.
+        
+        Supports resuming from checkpoint — if restored via from_checkpoint(),
+        current_stage will already point to the next stage to run.
+        """
         while self.current_stage:  # Main stage loop
             main_stage = self.parse_stage_names(self.current_stage.name)[0]
             print(f"[green]Starting main stage: {main_stage}[/green]")

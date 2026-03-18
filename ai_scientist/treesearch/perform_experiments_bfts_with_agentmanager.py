@@ -55,7 +55,7 @@ def journal_to_rich_tree(journal: Journal, cfg):
     return tree
 
 
-def perform_experiments_bfts(config_path: str):
+def perform_experiments_bfts(config_path: str, resume_dir: str = None):
     # turn config path string into a path object
     config_path = Path(config_path)
     cfg = load_cfg(config_path)
@@ -76,7 +76,17 @@ def perform_experiments_bfts(config_path: str):
 
     atexit.register(cleanup)
 
-    manager = AgentManager(
+    if resume_dir:
+        # Find the latest checkpoint in the resume directory
+        import glob
+        ckpt_files = sorted(glob.glob(str(Path(resume_dir) / "logs" / "*" / "stage_*" / "checkpoint.pkl")))
+        if not ckpt_files:
+            raise FileNotFoundError(f"No checkpoint.pkl found in {resume_dir}")
+        latest_ckpt = ckpt_files[-1]
+        print(f"[green]Resuming from checkpoint: {latest_ckpt}[/green]")
+        manager = AgentManager.from_checkpoint(latest_ckpt, cfg_override=cfg)
+    else:
+        manager = AgentManager(
         task_desc=task_desc,
         cfg=cfg,
         workspace_dir=Path(cfg.workspace_dir),
@@ -211,6 +221,7 @@ def perform_experiments_bfts(config_path: str):
     manager.run(exec_callback=create_exec_callback(status), step_callback=step_callback)
 
     manager_pickle_path = cfg.log_dir / "manager.pkl"
+    cfg.log_dir.mkdir(parents=True, exist_ok=True)
     try:
         with open(manager_pickle_path, "wb") as f:
             pickle.dump(manager, f)
@@ -232,6 +243,7 @@ def perform_experiments_bfts(config_path: str):
             research_summary,
             ablation_summary,
         ) = overall_summarize(manager.journals.items(), cfg)
+        cfg.log_dir.mkdir(parents=True, exist_ok=True)
         draft_summary_path = cfg.log_dir / "draft_summary.json"
         baseline_summary_path = cfg.log_dir / "baseline_summary.json"
         research_summary_path = cfg.log_dir / "research_summary.json"

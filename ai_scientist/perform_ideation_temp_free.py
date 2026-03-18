@@ -14,11 +14,11 @@ from ai_scientist.llm import (
     get_response_from_llm,
 )
 
-from ai_scientist.tools.semantic_scholar import SemanticScholarSearchTool
+from ai_scientist.tools.literature_search import MultiSourceLiteratureSearchTool
 from ai_scientist.tools.base_tool import BaseTool
 
 # Create tool instances
-semantic_scholar_tool = SemanticScholarSearchTool()
+semantic_scholar_tool = MultiSourceLiteratureSearchTool()
 
 # Define tools at the top of the file
 tools = [
