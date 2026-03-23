@@ -399,7 +399,7 @@ class Journal:
             ]
             for n in self.nodes
         ]
-        print(
+        logger.info(
             f"[purple]all nodes ID and is_buggy/is_buggy_plots flags: {list_of_nodes}[/purple]"
         )
         return [
@@ -468,7 +468,7 @@ class Journal:
 
         try:
             if cfg is None or cfg.agent.get("select_node", None) is None:
-                model = "gpt-4o"
+                model = "deepseek-v3.2"
                 temperature = 0.3
             else:
                 model = cfg.agent.select_node.model
@@ -541,7 +541,7 @@ class Journal:
                 "2. Common failure patterns and pitfalls to avoid\n"
                 "3. Specific recommendations for future experiments based on both successes and failures"
             ),
-            model=model_kwargs.get("model", "gpt-4o"),
+            model=model_kwargs.get("model", "deepseek-v3.2"),
             temperature=model_kwargs.get("temp", 0.3)
         )
 
@@ -604,7 +604,7 @@ class Journal:
         stage_summary = query(
             system_message=summary_prompt,
             user_message="Generate a comprehensive summary of the experimental findings in this stage",
-            model=cfg.agent.summary.model if cfg.agent.get("summary", None) else "gpt-4o",
+            model=cfg.agent.summary.model if cfg.agent.get("summary", None) else "deepseek-v3.2",
             temperature=cfg.agent.summary.temp if cfg.agent.get("summary", None) else 0.3
         )
 

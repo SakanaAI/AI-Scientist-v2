@@ -23,7 +23,7 @@ exec:
 generate_report: True
 # LLM settings for final report from journal
 report:
-  model: gpt-4o-2024-11-20
+  model: deepseek-v3.2
   temp: 1.0
 
 experiment:
@@ -54,19 +54,20 @@ agent:
 
   # LLM settings for coding
   code:
-    model: anthropic.claude-3-5-sonnet-20241022-v2:0
+    model: deepseek-v3.2
     temp: 1.0
     max_tokens: 12000
 
   # LLM settings for evaluating program output / tracebacks
   feedback:
-    model: gpt-4o-2024-11-20
+    model: deepseek-v3.2
     # gpt-4o
     temp: 0.5
     max_tokens: 8192
 
   vlm_feedback:
-    model: gpt-4o-2024-11-20
+    # DashScope Qwen-VL (OPENAI-compatible). Override with qwen/<id> or ollama/<tag> for local VLMs.
+    model: qwen/qwen3-vl-plus
     temp: 0.5
     max_tokens: null
 
@@ -75,13 +76,11 @@ agent:
     debug_prob: 0.5
     num_drafts: 3
 
-  # Options for summarizing findings and selecting the best node
-  # If not specified, the default behavior will be used.
+  # Options for summarizing findings and selecting the best node (same LLM as code/feedback)
+  summary:
+    model: deepseek-v3.2
+    temp: 0.3
 
-  # summary:
-  #   model: gpt-4o
-  #   temp: 0.3
-
-  # select_node:
-  #   model: gpt-4o
-  #   temp: 0.3
+  select_node:
+    model: deepseek-v3.2
+    temp: 0.3

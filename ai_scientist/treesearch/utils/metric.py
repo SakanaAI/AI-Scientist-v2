@@ -4,6 +4,9 @@ from typing import Any
 
 import numpy as np
 from dataclasses_json import DataClassJsonMixin
+import logging
+logger = logging.getLogger(__name__)
+
 
 
 @dataclass
@@ -197,7 +200,7 @@ class MetricValue(DataClassJsonMixin):
                 try:
                     return not self.value["metric_names"][0]["lower_is_better"]
                 except Exception as e:
-                    print(f"error during metric value: {e}")
+                    logger.info(f"error during metric value: {e}")
             # Old format
             return bool(self.maximize)
         # Single value case
@@ -220,7 +223,7 @@ class MetricValue(DataClassJsonMixin):
                             for d in metric["data"]
                         )
                     except Exception as e:
-                        print(f"error during metric value: {e}")
+                        logger.info(f"error during metric value: {e}")
                         values_str = "None"
                     parts.append(f"{metric['metric_name']}{opt_dir}[{values_str}]")
                 return "Metrics(" + "; ".join(parts) + ")"

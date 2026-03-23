@@ -267,7 +267,7 @@ Your research idea:\n\n
             "workspace_dir": self.workspace_dir,
             "current_stage": self.current_stage,
         }
-        print("Saving checkpoint to ", save_path)
+        logger.info("Saving checkpoint to %s", save_path)
         with open(save_path, "wb") as f:
             pickle.dump(checkpoint, f)
 
@@ -286,8 +286,8 @@ Your research idea:\n\n
         task_desc = f"{task_desc}\n\nCurrent Main Stage: {main_stage_name}\n"
         task_desc += f"Sub-stage: {sub_stage_num} - {sub_stage_name}\n"
         task_desc += f"Sub-stage goals: {stage.goals}"
-        print("Checking task_desc inside _create_agent_for_stage")
-        print(task_desc)
+        logger.info("Checking task_desc inside _create_agent_for_stage")
+        logger.info(task_desc)
 
         if main_stage == 2:
             stage1_substages = [s for s in self.stages if s.name.startswith("1_")]
@@ -372,7 +372,7 @@ Your research idea:\n\n
                 logger.info(
                     f"Stage {current_substage.name} completed: {evaluation['reasoning']}"
                 )
-                print(
+                logger.info(
                     f"[green]Stage {current_substage.name} completed: {evaluation['reasoning']}[/green]"
                 )
                 return True, "Found working implementation"
@@ -381,7 +381,7 @@ Your research idea:\n\n
                 logger.info(
                     f"Stage {current_substage.name} not complete. Missing: {missing}"
                 )
-                print(
+                logger.info(
                     f"[yellow]Stage {current_substage.name} not complete. Missing: {missing}[/yellow]"
                 )
                 return False, "Missing criteria: " + missing
@@ -399,12 +399,12 @@ Your research idea:\n\n
             logger.info(
                 f"Stage {current_substage.name} completed: reached max iterations"
             )
-            print(
+            logger.info(
                 f"[green]Stage {current_substage.name} completed: reached max iterations[/green]"
             )
             return True, "Reached max iterations"
 
-        print(f"[green]Stage {current_substage.name} not completed[/green]")
+        logger.info(f"[green]Stage {current_substage.name} not completed[/green]")
         return False
 
     def _check_stage_completion(self, stage: Stage) -> bool:
@@ -413,7 +413,7 @@ Your research idea:\n\n
         # Terminate if max iterations reached
         if len(journal.nodes) >= stage.max_iterations:
             logger.info(f"Stage {stage.name} completed: reached max iterations")
-            print(
+            logger.info(
                 f"[green]Stage {stage.name} completed: reached max iterations[/green]"
             )
             if stage.stage_number == 1:
@@ -422,7 +422,7 @@ Your research idea:\n\n
                 logger.error(
                     f"Initial stage {stage.name} did not find a working implementation after {stage.max_iterations} iterations. Consider increasing the max iterations or reducing the complexity of the research idea."
                 )
-                print(
+                logger.info(
                     f"[red]Experiment ended: Could not find working implementation in initial stage after {stage.max_iterations} iterations[/red]"
                 )
                 self.current_stage = None  # This will cause the run loop to exit
@@ -436,7 +436,7 @@ Your research idea:\n\n
                 logger.info(
                     f"Stage {stage.name} completed: found working implementation"
                 )
-                print(
+                logger.info(
                     f"[green]Stage {stage.name} completed: found working implementation[/green]"
                 )
                 return True, "Found working implementation"
@@ -482,14 +482,14 @@ Your research idea:\n\n
                     logger.info(
                         f"Stage {stage.name} completed: {evaluation['reasoning']}"
                     )
-                    print(
+                    logger.info(
                         f"[green]Stage {stage.name} completed: {evaluation['reasoning']}[/green]"
                     )
                     return True, "Found working implementation"
                 else:
                     missing = ", ".join(evaluation["missing_criteria"])
                     logger.info(f"Stage {stage.name} not complete. Missing: {missing}")
-                    print(
+                    logger.info(
                         f"[yellow]Stage {stage.name} not complete. Missing: {missing}[/yellow]"
                     )
                     return False, "Missing criteria: " + missing
@@ -510,7 +510,7 @@ Your research idea:\n\n
             # Or, we could just let the agent run until max iterations is reached
             # Check if the experiment execution time is too short
             exec_time_minutes = best_node.exec_time / 60
-            print(f"[cyan]exec_time_minutes: {exec_time_minutes}[/cyan]")
+            logger.info(f"[cyan]exec_time_minutes: {exec_time_minutes}[/cyan]")
             if len(self.journals[stage.name].nodes) > (
                 self.cfg.agent.stages.stage3_max_iters / 2
             ):
@@ -523,7 +523,7 @@ Your research idea:\n\n
                         "Given that the current execution time is {exec_time_minutes:.2f} minutes, think about how changing the number of epochs to run, or using a larger model, or working with bigger datasets to run"
                         "will affect the execution time, and make sure to scale up the experiment accordingly."
                     )
-                    print(f"[cyan]exec_time_feedback: {exec_time_feedback}[/cyan]")
+                    logger.info(f"[cyan]exec_time_feedback: {exec_time_feedback}[/cyan]")
                     self.journals[stage.name].nodes[
                         -1
                     ].exec_time_feedback = exec_time_feedback
@@ -532,7 +532,7 @@ Your research idea:\n\n
             # Just let the agent run until max iterations is reached
             pass
 
-        print(f"[green]Stage {stage.name} not completed[/green]")
+        logger.info(f"[green]Stage {stage.name} not completed[/green]")
         return False, "stage not completed"
 
     def _get_best_implementation(self, stage_name: str) -> Optional[Node]:
@@ -693,24 +693,24 @@ Your research idea:\n\n
         """Run the experiment through generated stages"""
         while self.current_stage:  # Main stage loop
             main_stage = self.parse_stage_names(self.current_stage.name)[0]
-            print(f"[green]Starting main stage: {main_stage}[/green]")
-            print(f"[cyan]Goals: {self.current_stage.goals}[/cyan]")
+            logger.info(f"[green]Starting main stage: {main_stage}[/green]")
+            logger.info(f"[cyan]Goals: {self.current_stage.goals}[/cyan]")
 
             current_substage = self.current_stage
             while current_substage:  # Sub-stage loop
-                print(f"[green]Starting sub-stage: {current_substage.name}[/green]")
+                logger.info(f"[green]Starting sub-stage: {current_substage.name}[/green]")
 
                 with self._create_agent_for_stage(current_substage) as agent:
                     # Initialize with best result from previous sub-stage if available
                     if self.stage_history:
                         prev_stage = self.stage_history[-1].from_stage
-                        print(f"[cyan]prev_stage: {prev_stage}[/cyan]")
-                        print(f"[cyan]self.stage_history: {self.stage_history}[/cyan]")
+                        logger.info(f"[cyan]prev_stage: {prev_stage}[/cyan]")
+                        logger.info(f"[cyan]self.stage_history: {self.stage_history}[/cyan]")
                         prev_best = self._get_best_implementation(prev_stage)
                         if prev_best:
                             self.journals[self.current_stage.name].append(prev_best)
                         else:
-                            print(
+                            logger.info(
                                 f"[red]No previous best implementation found for {self.current_stage.name}. Something went wrong so finishing the experiment...[/red]"
                             )
                             self.current_stage = None
@@ -730,7 +730,7 @@ Your research idea:\n\n
                             main_stage_complete,
                             main_stage_feedback,
                         ) = self._check_stage_completion(current_substage)
-                        print(
+                        logger.info(
                             f"[cyan]Feedback from _check_stage_completion: {main_stage_feedback}[/cyan]"
                         )
                         if main_stage_complete:
@@ -754,7 +754,7 @@ Your research idea:\n\n
                                             current_substage,
                                             self.journals[current_substage.name],
                                         )
-                                    print(
+                                    logger.info(
                                         f"Stage {current_substage.name} multi-seed eval done."
                                     )
                                 else:

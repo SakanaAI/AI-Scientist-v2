@@ -4,6 +4,9 @@ import os
 from .utils import FunctionSpec, OutputType, opt_messages_to_list, backoff_create
 from funcy import notnone, once, select_values
 import anthropic
+import logging
+logger = logging.getLogger(__name__)
+
 
 
 ANTHROPIC_TIMEOUT_EXCEPTIONS = (
@@ -54,7 +57,7 @@ def query(
         **filtered_kwargs,
     )
     req_time = time.time() - t0
-    print(filtered_kwargs)
+    logger.info(filtered_kwargs)
 
     if "thinking" in filtered_kwargs:
         assert (

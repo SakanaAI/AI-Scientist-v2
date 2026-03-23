@@ -60,11 +60,25 @@ pip install -r requirements.txt
 
 Installation usually takes no more than one hour.
 
+### Logging
+
+The codebase uses Python `logging` (default **INFO**). Importing the `ai_scientist` package configures the root logger to emit to **stderr** (so cluster schedulers like Slurm typically show output in your job’s `.err` file). Override verbosity with the environment variable `AI_SCIENTIST_LOG_LEVEL` (`DEBUG`, `INFO`, `WARNING`, or `ERROR`).
+
 ### Supported Models and API Keys
 
-#### OpenAI Models
+#### DeepSeek Models
 
-By default, the system uses the `OPENAI_API_KEY` environment variable for OpenAI models.
+By default, this repository is configured to use `deepseek-v3.2` for LLM/code tasks through the DeepSeek OpenAI-compatible API (`DEEPSEEK_API_KEY`).
+
+#### Qwen VLM Models
+
+**Defaults:** `bfts_config.yaml` uses **`qwen/qwen3-vl-plus`** (DashScope). `launch_scientist_bfts.py` defaults `--model_vlm` to the same. **`auto`** still resolves to DashScope Qwen-VL (`qwen/<QWEN_VLM_MODEL>`, default **`qwen3-vl-plus`**) and requires **`QWEN_API_KEY`**; it does **not** probe Ollama. For a **local** VLM, set `agent.vlm_feedback.model` or `--model_vlm` to **`ollama/<tag>`** explicitly. See [Alibaba’s Qwen-VL OpenAI-compat docs](https://www.alibabacloud.com/help/en/model-studio/developer-reference/qwen-vl-compatible-with-openai). Override the cloud model with **`QWEN_VLM_MODEL`** (e.g. `qwen-vl-max` or `qwen/qwen-vl-max`).
+
+Set **`QWEN_API_KEY`** like **`DEEPSEEK_API_KEY`**. Default base URL: `https://dashscope.aliyuncs.com/compatible-mode/v1`. For the international endpoint, set **`QWEN_BASE_URL`** to `https://dashscope-intl.aliyuncs.com/compatible-mode/v1`.
+
+Explicit model strings (no auto): `ollama/<tag>`, `qwen/<dashscope-model-id>`, or OpenAI `gpt-4o*`, etc. The `qwen/` prefix is stripped for the API.
+
+This applies everywhere VLM is used: `ai_scientist/vlm.py`, `launch_scientist_bfts.py`, `bfts_config.yaml` → `agent.vlm_feedback.model`, and writeup scripts (`--vlm-model`).
 
 #### Gemini Models
 
@@ -82,12 +96,29 @@ Next, configure valid [AWS Credentials](https://docs.aws.amazon.com/cli/v1/userg
 
 Our code can optionally use a Semantic Scholar API Key (`S2_API_KEY`) for higher throughput during literature search [if you have one](https://www.semanticscholar.org/product/api). This is used during both the ideation and paper writing stages. The system should work without it, though you might encounter rate limits or reduced novelty checking during ideation. If you experience issues with Semantic Scholar, you can skip the citation phase during paper generation.
 
+**Ai4Scholar (S2-compatible Graph API):** If you use [Ai4Scholar](https://ai4scholar.net), set the base URL and put your platform token in `S2_API_KEY`. Requests go to `{S2_API_BASE_URL}/graph/v1/paper/search` with `Authorization: Bearer <token>` (detected automatically when the host contains `ai4scholar`).
+
+```bash
+export S2_API_BASE_URL="https://ai4scholar.net"
+export S2_API_KEY="sk-your-ai4scholar-token"
+# Optional: official Semantic Scholar only needs S2_API_KEY (default base is api.semanticscholar.org, header X-API-KEY)
+# Optional: S2_AUTH_MODE=bearer | x-api-key | auto  (default: auto)
+```
+
 #### Setting API Keys
 
 Ensure you provide the necessary API keys as environment variables for the models you intend to use. For example:
 ```bash
-export OPENAI_API_KEY="YOUR_OPENAI_KEY_HERE"
-export S2_API_KEY="YOUR_S2_KEY_HERE"
+export DEEPSEEK_API_KEY="YOUR_DEEPSEEK_API_KEY_HERE"
+export QWEN_API_KEY="YOUR_DASHSCOPE_API_KEY_HERE"
+# Optional DashScope VL model when using auto mode without Ollama (default: qwen3-vl-plus)
+# export QWEN_VLM_MODEL="qwen-vl-max"
+# Optional; default is the China-compatible DashScope OpenAI base URL
+# export QWEN_BASE_URL="https://dashscope-intl.aliyuncs.com/compatible-mode/v1"
+export S2_API_KEY="YOUR_S2_OR_AI4SCHOLAR_TOKEN_HERE"
+# export S2_API_BASE_URL="https://ai4scholar.net"   # Ai4Scholar only
+# Optional for local Qwen3-VL via Ollama:
+# export OLLAMA_API_KEY=""
 # Set AWS credentials if using Bedrock
 # export AWS_ACCESS_KEY_ID="YOUR_AWS_ACCESS_KEY_ID"
 # export AWS_SECRET_ACCESS_KEY="YOUR_AWS_SECRET_KEY"
@@ -105,7 +136,7 @@ Before running the full AI Scientist-v2 experiment pipeline, you first use the `
     ```bash
     python ai_scientist/perform_ideation_temp_free.py \
      --workshop-file "ai_scientist/ideas/my_research_topic.md" \
-     --model gpt-4o-2024-05-13 \
+     --model deepseek-v3.2 \
      --max-num-generations 20 \
      --num-reflections 5
     ```
@@ -138,17 +169,19 @@ Key tree search configuration parameters in `bfts_config.yaml`:
     -   `debug_prob`: The probability of attempting to debug a failing node.
     -   `num_drafts`: The number of initial root nodes (i.e., the number of independent trees to grow) during Stage 1.
 
-Example command to run AI-Scientist-v2 using a generated idea file (e.g., `my_research_topic.json`). Please review `bfts_config.yaml` for detailed tree search parameters (the default config includes `claude-3-5-sonnet` for experiments). Do not set `load_code` if you do not want to initialize experimentation with a code snippet.
+Example command to run AI-Scientist-v2 using a generated idea file (e.g., `my_research_topic.json`). Please review `bfts_config.yaml` for detailed tree search parameters (defaults use **DeepSeek** for LLM steps and **Qwen-VL** on DashScope for VLM). Do not set `load_code` if you do not want to initialize experimentation with a code snippet.
 
 ```bash
+# Default VLM is DashScope Qwen-VL (QWEN_API_KEY); optional --model_vlm ollama/<tag> for local VLMs.
 python launch_scientist_bfts.py \
  --load_ideas "ai_scientist/ideas/my_research_topic.json" \
  --load_code \
  --add_dataset_ref \
- --model_writeup o1-preview-2024-09-12 \
- --model_citation gpt-4o-2024-11-20 \
- --model_review gpt-4o-2024-11-20 \
- --model_agg_plots o3-mini-2025-01-31 \
+ --model_writeup deepseek-v3.2 \
+ --model_writeup_small deepseek-v3.2 \
+ --model_citation deepseek-v3.2 \
+ --model_review deepseek-v3.2 \
+ --model_agg_plots deepseek-v3.2 \
  --num_cite_rounds 20
 ```
 

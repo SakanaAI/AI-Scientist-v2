@@ -1,14 +1,30 @@
 import base64
-from typing import Any
-import re
 import json
+import re
+import urllib.error
+import urllib.request
+from typing import Any
+
 import backoff
 import openai
 import os
 from PIL import Image
 from ai_scientist.utils.token_tracker import track_token_usage
+import logging
+logger = logging.getLogger(__name__)
+
 
 MAX_NUM_TOKENS = 4096
+
+# DashScope OpenAI-compatible API (Qwen VL). Override with env QWEN_BASE_URL if needed
+# (e.g. international: https://dashscope-intl.aliyuncs.com/compatible-mode/v1).
+DEFAULT_QWEN_OPENAI_BASE_URL = "https://dashscope.aliyuncs.com/compatible-mode/v1"
+
+# Default local VLM when Ollama responds at OLLAMA_HOST (see resolve_vlm_model).
+DEFAULT_OLLAMA_VLM_MODEL = "ollama/qwen3-vl:32b"
+# Default DashScope VL model id (no ``qwen/`` prefix). Override with env QWEN_VLM_MODEL.
+# See: https://www.alibabacloud.com/help/en/model-studio/developer-reference/qwen-vl-compatible-with-openai
+DEFAULT_QWEN_VLM_DASHSCOPE_MODEL = "qwen3-vl-plus"
 
 AVAILABLE_VLMS = [
     "gpt-4o-2024-05-13",
@@ -27,9 +43,63 @@ AVAILABLE_VLMS = [
 
     # qwen
     "ollama/qwen2.5vl:32b",
+    "ollama/qwen3-vl:32b",
 
     "ollama/z-uo/qwen2.5vl_tools:32b",
 ]
+
+
+def is_supported_vlm_model(model: str) -> bool:
+    """True for built-in IDs or DashScope models ``qwen/<dashscope-model-name>``."""
+    return model in AVAILABLE_VLMS or model.startswith("qwen/")
+
+
+def _ollama_http_base() -> str:
+    host = os.environ.get("OLLAMA_HOST", "127.0.0.1:11434").strip()
+    if not host:
+        host = "127.0.0.1:11434"
+    if host.startswith("http://") or host.startswith("https://"):
+        return host.rstrip("/")
+    return f"http://{host}".rstrip("/")
+
+
+def is_ollama_server_reachable(timeout: float = 2.0) -> bool:
+    """True if an Ollama daemon responds (GET /api/tags). Uses OLLAMA_HOST like the Ollama CLI."""
+    url = f"{_ollama_http_base()}/api/tags"
+    try:
+        req = urllib.request.Request(url, method="GET")
+        with urllib.request.urlopen(req, timeout=timeout) as resp:
+            code = getattr(resp, "status", None) or resp.getcode()
+            return 200 <= int(code) < 300
+    except (urllib.error.URLError, OSError, TimeoutError, ValueError):
+        return False
+
+
+def resolve_vlm_model(model: str) -> str:
+    """Pick a concrete VLM id.
+
+    If ``model`` is ``auto`` (case-insensitive): use DashScope Qwen-VL
+    ``qwen/<QWEN_VLM_MODEL>`` (requires ``QWEN_API_KEY``). Ollama is not used for
+    ``auto``; pass ``ollama/<tag>`` explicitly for local VLMs.
+    Any other value is returned unchanged.
+    """
+    raw = (model or "").strip()
+    if raw.lower() != "auto":
+        return raw
+
+    dash = os.environ.get("QWEN_VLM_MODEL", DEFAULT_QWEN_VLM_DASHSCOPE_MODEL).strip()
+    if dash.startswith("qwen/"):
+        resolved = dash
+    else:
+        resolved = f"qwen/{dash}"
+    logger.info("VLM auto: using DashScope model %s", resolved)
+    if "QWEN_API_KEY" not in os.environ:
+        raise ValueError(
+            "VLM auto mode requires QWEN_API_KEY (DashScope Qwen-VL). "
+            "Optional: QWEN_VLM_MODEL (default qwen3-vl-plus), QWEN_BASE_URL. "
+            "For Ollama, set agent.vlm_feedback.model to ollama/<tag> explicitly."
+        )
+    return resolved
 
 
 def encode_image_to_base64(image_path: str) -> str:
@@ -104,6 +174,16 @@ def make_vlm_call(client, model, temperature, system_message, prompt):
             temperature=temperature,
             max_tokens=MAX_NUM_TOKENS,
         )
+    elif model.startswith("qwen/"):
+        return client.chat.completions.create(
+            model=model.replace("qwen/", "", 1),
+            messages=[
+                {"role": "system", "content": system_message},
+                *prompt,
+            ],
+            temperature=temperature,
+            max_tokens=MAX_NUM_TOKENS,
+        )
     elif "gpt" in model:
         return client.chat.completions.create(
             model=model,
@@ -144,7 +224,7 @@ def get_response_from_vlm(
     if msg_history is None:
         msg_history = []
 
-    if model in AVAILABLE_VLMS:
+    if is_supported_vlm_model(model):
         # Convert single image path to list for consistent handling
         if isinstance(image_paths, str):
             image_paths = [image_paths]
@@ -181,13 +261,13 @@ def get_response_from_vlm(
         raise ValueError(f"Model {model} not supported.")
 
     if print_debug:
-        print()
-        print("*" * 20 + " VLM START " + "*" * 20)
+        logger.info()
+        logger.info("*" * 20 + " VLM START " + "*" * 20)
         for j, msg in enumerate(new_msg_history):
-            print(f'{j}, {msg["role"]}: {msg["content"]}')
-        print(content)
-        print("*" * 21 + " VLM END " + "*" * 21)
-        print()
+            logger.info(f'{j}, {msg["role"]}: {msg["content"]}')
+        logger.info(content)
+        logger.info("*" * 21 + " VLM END " + "*" * 21)
+        logger.info()
 
     return content, new_msg_history
 
@@ -201,13 +281,19 @@ def create_client(model: str) -> tuple[Any, str]:
         "gpt-4o-mini-2024-07-18",
         "o3-mini",
     ]:
-        print(f"Using OpenAI API with model {model}.")
+        logger.info(f"Using OpenAI API with model {model}.")
         return openai.OpenAI(), model
     elif model.startswith("ollama/"):
-        print(f"Using Ollama API with model {model}.")
+        logger.info(f"Using Ollama API with model {model}.")
         return openai.OpenAI(
             api_key=os.environ.get("OLLAMA_API_KEY", ""),
             base_url="http://localhost:11434/v1"
+        ), model
+    elif model.startswith("qwen/"):
+        logger.info(f"Using Qwen (DashScope) API with model {model}.")
+        return openai.OpenAI(
+            api_key=os.environ["QWEN_API_KEY"],
+            base_url=os.environ.get("QWEN_BASE_URL", DEFAULT_QWEN_OPENAI_BASE_URL),
         ), model
     else:
         raise ValueError(f"Model {model} not supported.")
@@ -279,7 +365,7 @@ def get_batch_responses_from_vlm(
     if msg_history is None:
         msg_history = []
 
-    if model in AVAILABLE_VLMS:
+    if is_supported_vlm_model(model):
         # Convert single image path to list
         if isinstance(image_paths, str):
             image_paths = [image_paths]
@@ -302,30 +388,23 @@ def get_batch_responses_from_vlm(
         new_msg_history = msg_history + [{"role": "user", "content": content}]
 
         if model.startswith("ollama/"):
-            response = client.chat.completions.create(
-                model=model.replace("ollama/", ""),
-                messages=[
-                    {"role": "system", "content": system_message},
-                    *new_msg_history,
-                ],
-                temperature=temperature,
-                max_tokens=MAX_NUM_TOKENS,
-                n=n_responses,
-                seed=0,
-            )
+            api_model = model.replace("ollama/", "", 1)
+        elif model.startswith("qwen/"):
+            api_model = model.replace("qwen/", "", 1)
         else:
-            # Get multiple responses
-            response = client.chat.completions.create(
-                model=model,
-                messages=[
-                    {"role": "system", "content": system_message},
-                    *new_msg_history,
-                ],
-                temperature=temperature,
-                max_tokens=MAX_NUM_TOKENS,
-                n=n_responses,
-                seed=0,
-            )
+            api_model = model
+
+        response = client.chat.completions.create(
+            model=api_model,
+            messages=[
+                {"role": "system", "content": system_message},
+                *new_msg_history,
+            ],
+            temperature=temperature,
+            max_tokens=MAX_NUM_TOKENS,
+            n=n_responses,
+            seed=0,
+        )
 
         # Extract content from all responses
         contents = [r.message.content for r in response.choices]
@@ -337,12 +416,12 @@ def get_batch_responses_from_vlm(
 
     if print_debug:
         # Just print the first response
-        print()
-        print("*" * 20 + " VLM START " + "*" * 20)
+        logger.info()
+        logger.info("*" * 20 + " VLM START " + "*" * 20)
         for j, msg in enumerate(new_msg_histories[0]):
-            print(f'{j}, {msg["role"]}: {msg["content"]}')
-        print(contents[0])
-        print("*" * 21 + " VLM END " + "*" * 21)
-        print()
+            logger.info(f'{j}, {msg["role"]}: {msg["content"]}')
+        logger.info(contents[0])
+        logger.info("*" * 21 + " VLM END " + "*" * 21)
+        logger.info()
 
     return contents, new_msg_histories

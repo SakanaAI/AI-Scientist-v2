@@ -25,11 +25,15 @@ from ai_scientist.perform_icbinb_writeup import (
 )
 from ai_scientist.perform_llm_review import perform_review, load_paper
 from ai_scientist.perform_vlm_review import perform_imgs_cap_ref_review
+from ai_scientist.vlm import create_client as create_vlm_client, resolve_vlm_model
 from ai_scientist.utils.token_tracker import token_tracker
+import logging
+logger = logging.getLogger(__name__)
+
 
 
 def print_time():
-    print(datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
+    logger.info(datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
 
 
 def save_token_tracker(idea_dir):
@@ -85,19 +89,19 @@ def parse_arguments():
     parser.add_argument(
         "--model_agg_plots",
         type=str,
-        default="o3-mini-2025-01-31",
+        default="deepseek-v3.2",
         help="Model to use for plot aggregation",
     )
     parser.add_argument(
         "--model_writeup",
         type=str,
-        default="o1-preview-2024-09-12",
+        default="deepseek-v3.2",
         help="Model to use for writeup",
     )
     parser.add_argument(
         "--model_citation",
         type=str,
-        default="gpt-4o-2024-11-20",
+        default="deepseek-v3.2",
         help="Model to use for citation gathering",
     )
     parser.add_argument(
@@ -109,14 +113,23 @@ def parse_arguments():
     parser.add_argument(
         "--model_writeup_small",
         type=str,
-        default="gpt-4o-2024-05-13",
+        default="deepseek-v3.2",
         help="Smaller model to use for writeup",
     )
     parser.add_argument(
         "--model_review",
         type=str,
-        default="gpt-4o-2024-11-20",
+        default="deepseek-v3.2",
         help="Model to use for review main text and captions",
+    )
+    parser.add_argument(
+        "--model_vlm",
+        type=str,
+        default="qwen/qwen3-vl-plus",
+        help=(
+            "VLM: default DashScope Qwen-VL; 'auto' = same (QWEN_API_KEY). "
+            "Use ollama/<tag> for local VLMs."
+        ),
     )
     parser.add_argument(
         "--skip_writeup",
@@ -138,30 +151,31 @@ def get_available_gpus(gpu_ids=None):
 
 
 def find_pdf_path_for_review(idea_dir):
-    pdf_files = [f for f in os.listdir(idea_dir) if f.endswith(".pdf")]
-    reflection_pdfs = [f for f in pdf_files if "reflection" in f]
-    if reflection_pdfs:
-        # First check if there's a final version
-        final_pdfs = [f for f in reflection_pdfs if "final" in f.lower()]
-        if final_pdfs:
-            # Use the final version if available
-            pdf_path = osp.join(idea_dir, final_pdfs[0])
-        else:
-            # Try to find numbered reflections
-            reflection_nums = []
-            for f in reflection_pdfs:
-                match = re.search(r"reflection[_.]?(\d+)", f)
-                if match:
-                    reflection_nums.append((int(match.group(1)), f))
+    """Reflection PDF only (name contains 'reflection'); else None.
 
-            if reflection_nums:
-                # Get the file with the highest reflection number
-                highest_reflection = max(reflection_nums, key=lambda x: x[0])
-                pdf_path = osp.join(idea_dir, highest_reflection[1])
-            else:
-                # Fall back to the first reflection PDF if no numbers found
-                pdf_path = osp.join(idea_dir, reflection_pdfs[0])
-    return pdf_path
+    If writeup/VLM failed, there is usually no such file — skip review, do not
+    substitute another PDF.
+    """
+    try:
+        names = os.listdir(idea_dir)
+    except OSError:
+        return None
+    pdf_files = sorted(f for f in names if f.endswith(".pdf"))
+    reflection_pdfs = [f for f in pdf_files if "reflection" in f]
+    if not reflection_pdfs:
+        return None
+    final_pdfs = [f for f in reflection_pdfs if "final" in f.lower()]
+    if final_pdfs:
+        return osp.join(idea_dir, final_pdfs[0])
+    reflection_nums = []
+    for f in reflection_pdfs:
+        match = re.search(r"reflection[_.]?(\d+)", f)
+        if match:
+            reflection_nums.append((int(match.group(1)), f))
+    if reflection_nums:
+        highest_reflection = max(reflection_nums, key=lambda x: x[0])
+        return osp.join(idea_dir, highest_reflection[1])
+    return osp.join(idea_dir, reflection_pdfs[0])
 
 
 @contextmanager
@@ -181,22 +195,23 @@ def redirect_stdout_stderr_to_file(log_file_path):
 
 if __name__ == "__main__":
     args = parse_arguments()
+    args.model_vlm = resolve_vlm_model(args.model_vlm)
     os.environ["AI_SCIENTIST_ROOT"] = os.path.dirname(os.path.abspath(__file__))
-    print(f"Set AI_SCIENTIST_ROOT to {os.environ['AI_SCIENTIST_ROOT']}")
+    logger.info(f"Set AI_SCIENTIST_ROOT to {os.environ['AI_SCIENTIST_ROOT']}")
 
     # Check available GPUs and adjust parallel processes if necessary
     available_gpus = get_available_gpus()
-    print(f"Using GPUs: {available_gpus}")
+    logger.info(f"Using GPUs: {available_gpus}")
 
     with open(args.load_ideas, "r") as f:
         ideas = json.load(f)
-        print(f"Loaded {len(ideas)} pregenerated ideas from {args.load_ideas}")
+        logger.info(f"Loaded {len(ideas)} pregenerated ideas from {args.load_ideas}")
 
     idea = ideas[args.idea_idx]
 
     date = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
     idea_dir = f"experiments/{date}_{idea['Name']}_attempt_{args.attempt_id}"
-    print(f"Results will be saved in {idea_dir}")
+    logger.info(f"Results will be saved in {idea_dir}")
     os.makedirs(idea_dir, exist_ok=True)
 
     # Convert idea json to markdown file
@@ -210,7 +225,7 @@ if __name__ == "__main__":
             with open(code_path, "r") as f:
                 code = f.read()
         else:
-            print(f"Warning: Code file {code_path} not found")
+            logger.info(f"Warning: Code file {code_path} not found")
     else:
         code_path = None
 
@@ -223,7 +238,7 @@ if __name__ == "__main__":
             with open(dataset_ref_path, "r") as f:
                 dataset_ref_code = f.read()
         else:
-            print(f"Warning: Dataset reference file {dataset_ref_path} not found")
+            logger.info(f"Warning: Dataset reference file {dataset_ref_path} not found")
             dataset_ref_code = None
 
     if dataset_ref_code is not None and code is not None:
@@ -235,7 +250,7 @@ if __name__ == "__main__":
     else:
         added_code = None
 
-    print(added_code)
+    logger.info(added_code)
 
     # Add code to idea json if it was loaded
     if added_code is not None:
@@ -251,6 +266,7 @@ if __name__ == "__main__":
         config_path,
         idea_dir,
         idea_path_json,
+        vlm_model=args.model_vlm,
     )
 
     perform_experiments_bfts(idea_config_path)
@@ -276,12 +292,13 @@ if __name__ == "__main__":
             small_model=args.model_citation,
         )
         for attempt in range(args.writeup_retries):
-            print(f"Writeup attempt {attempt+1} of {args.writeup_retries}")
+            logger.info(f"Writeup attempt {attempt+1} of {args.writeup_retries}")
             if args.writeup_type == "normal":
                 writeup_success = perform_writeup(
                     base_folder=idea_dir,
                     small_model=args.model_writeup_small,
                     big_model=args.model_writeup,
+                    vlm_model=args.model_vlm,
                     page_limit=8,
                     citations_text=citations_text,
                 )
@@ -290,6 +307,7 @@ if __name__ == "__main__":
                     base_folder=idea_dir,
                     small_model=args.model_writeup_small,
                     big_model=args.model_writeup,
+                    vlm_model=args.model_vlm,
                     page_limit=4,
                     citations_text=citations_text,
                 )
@@ -297,28 +315,35 @@ if __name__ == "__main__":
                 break
 
         if not writeup_success:
-            print("Writeup process did not complete successfully after all retries.")
+            logger.info("Writeup process did not complete successfully after all retries.")
 
     save_token_tracker(idea_dir)
 
     if not args.skip_review and not args.skip_writeup:
         # Perform paper review if the paper exists
         pdf_path = find_pdf_path_for_review(idea_dir)
-        if os.path.exists(pdf_path):
-            print("Paper found at: ", pdf_path)
+        if pdf_path and os.path.exists(pdf_path):
+            logger.info("Reflection paper found at: %s", pdf_path)
             paper_content = load_paper(pdf_path)
             client, client_model = create_client(args.model_review)
             review_text = perform_review(paper_content, client_model, client)
+            vlm_client, vlm_model = create_vlm_client(args.model_vlm)
             review_img_cap_ref = perform_imgs_cap_ref_review(
-                client, client_model, pdf_path
+                vlm_client, vlm_model, pdf_path
             )
             with open(osp.join(idea_dir, "review_text.txt"), "w") as f:
                 f.write(json.dumps(review_text, indent=4))
             with open(osp.join(idea_dir, "review_img_cap_ref.json"), "w") as f:
                 json.dump(review_img_cap_ref, f, indent=4)
-            print("Paper review completed.")
+            logger.info("Paper review completed.")
+        else:
+            logger.info(
+                "Skipping paper review: no PDF whose name contains 'reflection' "
+                "in %s (writeup likely did not produce one).",
+                idea_dir,
+            )
 
-    print("Start cleaning up processes")
+    logger.info("Start cleaning up processes")
     # Kill all mp and torch processes associated with this experiment
     import psutil
     import signal

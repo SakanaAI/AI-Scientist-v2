@@ -1,13 +1,24 @@
 import json
 import logging
 import time
+import os
 
 from .utils import FunctionSpec, OutputType, opt_messages_to_list, backoff_create
 from funcy import notnone, once, select_values
 import openai
 from rich import print
 
+from ai_scientist.vlm import DEFAULT_QWEN_OPENAI_BASE_URL
+
+logger = logging.getLogger(__name__)
+
+
 logger = logging.getLogger("ai-scientist")
+
+DEEPSEEK_MODEL_MAP = {
+    "deepseek-v3.2": "deepseek-chat",
+    "deepseek-coder-v2-0724": "deepseek-coder",
+}
 
 
 OPENAI_TIMEOUT_EXCEPTIONS = (
@@ -20,8 +31,20 @@ OPENAI_TIMEOUT_EXCEPTIONS = (
 def get_ai_client(model: str, max_retries=2) -> openai.OpenAI:
     if model.startswith("ollama/"):
         client = openai.OpenAI(
-            base_url="http://localhost:11434/v1", 
-            max_retries=max_retries
+            base_url="http://localhost:11434/v1",
+            max_retries=max_retries,
+        )
+    elif model.startswith("qwen/"):
+        client = openai.OpenAI(
+            api_key=os.environ["QWEN_API_KEY"],
+            base_url=os.environ.get("QWEN_BASE_URL", DEFAULT_QWEN_OPENAI_BASE_URL),
+            max_retries=max_retries,
+        )
+    elif model in DEEPSEEK_MODEL_MAP:
+        client = openai.OpenAI(
+            api_key=os.environ["DEEPSEEK_API_KEY"],
+            base_url="https://api.deepseek.com",
+            max_retries=max_retries,
         )
     else:
         client = openai.OpenAI(max_retries=max_retries)
@@ -46,6 +69,10 @@ def query(
 
     if filtered_kwargs.get("model", "").startswith("ollama/"):
        filtered_kwargs["model"] = filtered_kwargs["model"].replace("ollama/", "")
+    elif filtered_kwargs.get("model", "").startswith("qwen/"):
+        filtered_kwargs["model"] = filtered_kwargs["model"].replace("qwen/", "", 1)
+    elif filtered_kwargs.get("model", "") in DEEPSEEK_MODEL_MAP:
+        filtered_kwargs["model"] = DEEPSEEK_MODEL_MAP[filtered_kwargs["model"]]
 
     t0 = time.time()
     completion = backoff_create(
@@ -68,7 +95,7 @@ def query(
             choice.message.tool_calls[0].function.name == func_spec.name
         ), "Function name mismatch"
         try:
-            print(f"[cyan]Raw func call response: {choice}[/cyan]")
+            logger.info(f"[cyan]Raw func call response: {choice}[/cyan]")
             output = json.loads(choice.message.tool_calls[0].function.arguments)
         except json.JSONDecodeError as e:
             logger.error(

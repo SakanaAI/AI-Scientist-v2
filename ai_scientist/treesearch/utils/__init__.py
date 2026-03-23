@@ -2,19 +2,21 @@ import logging
 import shutil
 import zipfile
 from pathlib import Path
+from typing import Union
 
 logger = logging.getLogger("ai-scientist")
 
 
-def copytree(src: Path, dst: Path, use_symlinks=True):
+def copytree(src: Union[str, Path], dst: Union[str, Path], use_symlinks=True):
     """
     Copy contents of `src` to `dst`. Unlike shutil.copytree, the dst dir can exist and will be merged.
     If src is a file, only that file will be copied. Optionally uses symlinks instead of copying.
 
     Args:
-        src (Path): source directory
-        dst (Path): destination directory
+        src: source directory or file (str or Path; config often passes str)
+        dst: destination directory (str or Path)
     """
+    src, dst = Path(src), Path(dst)
     assert dst.is_dir()
 
     if src.is_file():

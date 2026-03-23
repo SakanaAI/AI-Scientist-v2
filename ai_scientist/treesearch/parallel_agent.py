@@ -22,6 +22,8 @@ from rich import print
 from pathlib import Path
 import base64
 import sys
+logger = logging.getLogger(__name__)
+
 
 logger = logging.getLogger("ai-scientist")
 
@@ -300,8 +302,10 @@ class MinimalAgent:
             "CRITICAL GPU REQUIREMENTS - Your code MUST include ALL of these:",
             "  - At the start of your code, add these lines to handle GPU/CPU:",
             "    ```python",
+            "    import logging",
+            "    logger = logging.getLogger(__name__)",
             "    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')",
-            "    print(f'Using device: {device}')",
+            "    logger.info(f'Using device: {device}')",
             "    ```",
             "  - ALWAYS move models to device using the `.to(device)` method",
             "  - ALWAYS move input tensors to device using the `.to(device)` method",
@@ -372,9 +376,11 @@ class MinimalAgent:
                 "- Include timestamps or epochs with the saved metrics",
                 "- For large datasets, consider saving in chunks or using np.savez_compressed()",
                 "CRITICAL EVALUATION REQUIREMENTS - Your code MUST include ALL of these:",
-                "  1. Track and print validation loss at each epoch or at suitable intervals:",
+                "  1. Track and log validation loss at each epoch or at suitable intervals:",
                 "     ```python",
-                "     print(f'Epoch {{epoch}}: validation_loss = {{val_loss:.4f}}')",
+                "     import logging",
+                "     logger = logging.getLogger(__name__)",
+                "     logger.info(f'Epoch {{epoch}}: validation_loss = {{val_loss:.4f}}')",
                 "     ```",
                 "  2. Track and update ALL these additional metrics: "
                 + str(self.evaluation_metrics),
@@ -481,14 +487,14 @@ class MinimalAgent:
         if self.cfg.agent.data_preview:
             prompt["Data Overview"] = self.data_preview
 
-        print("[cyan]--------------------------------[/cyan]")
-        print("[cyan]self.task_desc[/cyan]")
-        print("[cyan]" + self.task_desc + "[/cyan]")
-        print("[cyan]--------------------------------[/cyan]")
+        logger.info("[cyan]--------------------------------[/cyan]")
+        logger.info("[cyan]self.task_desc[/cyan]")
+        logger.info("[cyan]" + self.task_desc + "[/cyan]")
+        logger.info("[cyan]--------------------------------[/cyan]")
 
-        print("MinimalAgent: Getting plan and code")
+        logger.info("MinimalAgent: Getting plan and code")
         plan, code = self.plan_and_code_query(prompt)
-        print("MinimalAgent: Draft complete")
+        logger.info("MinimalAgent: Draft complete")
         return Node(plan=plan, code=code)
 
     def _debug(self, parent_node: Node) -> Node:
@@ -673,11 +679,11 @@ class MinimalAgent:
                 # merge all code blocks into a single string
                 return nl_text, code
 
-            print("Plan + code extraction failed, retrying...")
+            logger.info("Plan + code extraction failed, retrying...")
             prompt["Parsing Feedback"] = (
                 "The code extraction failed. Make sure to use the format ```python ... ``` for the code blocks."
             )
-        print("Final plan + code extraction attempt failed, giving up...")
+        logger.info("Final plan + code extraction attempt failed, giving up...")
         return "", completion_text  # type: ignore
 
     def parse_exec_result(
@@ -711,11 +717,10 @@ class MinimalAgent:
 
         node.analysis = response["summary"]
         node.is_buggy = response["is_bug"] or node.exc_type is not None
-        print(
-            "[red]Checking if response contains metric name and description[/red]",
-            flush=True,
+        logger.info(
+            "[red]Checking if response contains metric name and description[/red]"
         )
-        print(response)
+        logger.info("%s", response)
 
     def _generate_plotting_code(
         self, node: Node, working_dir: str, plot_code_from_prev_stage: str = None
@@ -748,10 +753,12 @@ class MinimalAgent:
         prompt_guideline += [
             "Example data loading and plot saving code: ",
             """
+                import logging
+                logger = logging.getLogger(__name__)
                 try:
                     experiment_data = np.load(os.path.join(working_dir, 'experiment_data.npy'), allow_pickle=True).item()
                 except Exception as e:
-                    print(f'Error loading experiment data: {{e}}')
+                    logger.info(f'Error loading experiment data: {{e}}')
 
                 try:
                     # First plot
@@ -760,7 +767,7 @@ class MinimalAgent:
                     plt.savefig('working_dir/[plot_name_1].png')
                     plt.close()
                 except Exception as e:
-                    print(f"Error creating plot1: {{e}}")
+                    logger.info(f"Error creating plot1: {{e}}")
                     plt.close()  # Always close figure even if error occurs
 
                 try:
@@ -770,7 +777,7 @@ class MinimalAgent:
                     plt.savefig('working_dir/[plot_name_2].png')
                     plt.close()
                 except Exception as e:
-                    print(f"Error creating plot2: {{e}}")
+                    logger.info(f"Error creating plot2: {{e}}")
                     plt.close()
             """,
         ]
@@ -865,8 +872,8 @@ class MinimalAgent:
             ) = _parse_keyword_prefix_response(
                 response, "REASONING:", "SUCCESSFULLY_TESTED_DATASETS:"
             )
-            print(f"[green]Reasoning:[/green] {reasoning}")
-            print(
+            logger.info(f"[green]Reasoning:[/green] {reasoning}")
+            logger.info(
                 f"[green]Datasets successfully tested:[/green] {datasets_successfully_tested_str}"
             )
             if reasoning is not None and datasets_successfully_tested_str is not None:
@@ -897,20 +904,20 @@ class MinimalAgent:
             return
 
         # for debugging
-        print(f"[cyan]Plot paths:[/cyan] {node.plot_paths}")
+        logger.info(f"[cyan]Plot paths:[/cyan] {node.plot_paths}")
 
         def encode_image_to_base64(image_path):
             with open(image_path, "rb") as image_file:
                 try:
                     return base64.b64encode(image_file.read()).decode("utf-8")
                 except Exception as e:
-                    print(f"[red]Error encoding image {image_path}: {e}[/red]")
+                    logger.info(f"[red]Error encoding image {image_path}: {e}[/red]")
                     return None
 
         if not len(node.plot_paths) > 10:
             selected_plots = node.plot_paths
         else:
-            print(
+            logger.info(
                 f"[red]Warning: {len(node.plot_paths)} plots received, this may be too many to analyze effectively. Calling LLM to select the most relevant plots to analyze.[/red]"
             )
             # select 10 plots to analyze
@@ -937,7 +944,7 @@ class MinimalAgent:
                     ),
                 )
 
-                print(f"[cyan]Plot selection response:[/cyan] {response_select_plots}")
+                logger.info(f"[cyan]Plot selection response:[/cyan] {response_select_plots}")
                 # Extract the plot paths list
                 selected_plots = response_select_plots.get("selected_plots", [])
 
@@ -955,7 +962,7 @@ class MinimalAgent:
 
                 # Use the validated list
                 if valid_plots:
-                    print(f"[cyan]Selected valid plots:[/cyan] {valid_plots}")
+                    logger.info(f"[cyan]Selected valid plots:[/cyan] {valid_plots}")
                     selected_plots = valid_plots
                 else:
                     logger.warning(
@@ -979,7 +986,7 @@ class MinimalAgent:
                 # Fallback to using first 10 plots
                 selected_plots = node.plot_paths[:10]
 
-        print("[cyan]Before encoding images[/cyan]")
+        logger.info("[cyan]Before encoding images[/cyan]")
         user_message = [
             {
                 "type": "text",
@@ -1014,7 +1021,7 @@ class MinimalAgent:
                 temperature=self.cfg.agent.vlm_feedback.temp,
             ),
         )
-        print(
+        logger.info(
             f"[cyan]VLM response from {self.cfg.agent.vlm_feedback.model}:[/cyan] {response}"
         )
         if response["valid_plots_received"]:
@@ -1100,13 +1107,13 @@ class GPUManager:
         """Assigns a GPU to a process"""
         if not self.available_gpus:
             raise RuntimeError("No GPUs available")
-        print(f"Available GPUs: {self.available_gpus}")
-        print(f"Process ID: {process_id}")
+        logger.info(f"Available GPUs: {self.available_gpus}")
+        logger.info(f"Process ID: {process_id}")
         gpu_id = min(self.available_gpus)
-        print(f"Acquiring GPU {gpu_id} for process {process_id}")
+        logger.info(f"Acquiring GPU {gpu_id} for process {process_id}")
         self.available_gpus.remove(gpu_id)
         self.gpu_assignments[process_id] = gpu_id
-        print(f"GPU assignments: {self.gpu_assignments}")
+        logger.info(f"GPU assignments: {self.gpu_assignments}")
         return gpu_id
 
     def release_gpu(self, process_id: str):
@@ -1167,11 +1174,11 @@ class ParallelAgent:
         self.data_preview = None
         self.num_workers = cfg.agent.num_workers
         self.num_gpus = get_gpu_count()
-        print(f"num_gpus: {self.num_gpus}")
+        logger.info(f"num_gpus: {self.num_gpus}")
         if self.num_gpus == 0:
-            print("No GPUs detected, falling back to CPU-only mode")
+            logger.info("No GPUs detected, falling back to CPU-only mode")
         else:
-            print(f"Detected {self.num_gpus} GPUs")
+            logger.info(f"Detected {self.num_gpus} GPUs")
 
         self.gpu_manager = GPUManager(self.num_gpus) if self.num_gpus > 0 else None
 
@@ -1218,7 +1225,7 @@ class ParallelAgent:
             temperature=self.cfg.agent.code.temp,
         )
 
-        print(f"[green]Defined eval metrics:[/green] {response}")
+        logger.info(f"[green]Defined eval metrics:[/green] {response}")
         return response
 
     def plan_and_code_query(self, prompt, retries=3) -> tuple[str, str]:
@@ -1238,11 +1245,11 @@ class ParallelAgent:
             if code and nl_text:
                 # merge all code blocks into a single string
                 return nl_text, code
-            print("Plan + code extraction failed, retrying...")
+            logger.info("Plan + code extraction failed, retrying...")
             prompt["Parsing Feedback"] = (
                 "The code extraction failed. Make sure to use the format ```python ... ``` for the code blocks."
             )
-        print("Final plan + code extraction attempt failed, giving up...")
+        logger.info("Final plan + code extraction attempt failed, giving up...")
         return "", completion_text
 
     def _generate_seed_eval_aggregation_node(
@@ -1294,7 +1301,7 @@ class ParallelAgent:
             best_stage3_plot_code = None
             seed_eval = True
             memory_summary = ""
-            print("[yellow]Starting multi-seed eval...[/yellow]")
+            logger.info("[yellow]Starting multi-seed eval...[/yellow]")
             futures.append(
                 self.executor.submit(
                     self._process_node_wrapper,
@@ -1318,12 +1325,12 @@ class ParallelAgent:
             try:
                 result_data = future.result(timeout=self.timeout)
                 result_node = Node.from_dict(result_data, self.journal)
-                print(f"Parent node id: {result_node.parent.id}")
-                print(f"Sanity check: actual parent node id: {node.id}")
+                logger.info(f"Parent node id: {result_node.parent.id}")
+                logger.info(f"Sanity check: actual parent node id: {node.id}")
                 # Add node to journal's list and assign its step number
                 self.journal.append(result_node)
                 seed_nodes.append(self.journal.get_node_by_id(result_node.id))
-                print("Added result node to journal")
+                logger.info("Added result node to journal")
             except Exception as e:
                 logger.error(f"Error in multi-seed evaluation: {str(e)}")
 
@@ -1345,7 +1352,7 @@ class ParallelAgent:
                 agg_node.parent = node
 
                 # Execute aggregation plotting code
-                print("[blue]Creating Interpreter for seed node aggregation[/blue]")
+                logger.info("[blue]Creating Interpreter for seed node aggregation[/blue]")
                 process_interpreter = Interpreter(
                     working_dir=self.cfg.workspace_dir,
                     timeout=self.cfg.exec.timeout,
@@ -1357,11 +1364,11 @@ class ParallelAgent:
                 try:
                     working_dir = process_interpreter.working_dir
                     plot_exec_result = process_interpreter.run(agg_plotting_code, True)
-                    print(plot_exec_result)
+                    logger.info(plot_exec_result)
                     process_interpreter.cleanup_session()
                     # Save aggregated plots
                     plots_dir = Path(working_dir) / "working"
-                    print("[red]plots_dir[/red]", plots_dir)
+                    logger.info("[red]plots_dir[/red] %s", plots_dir)
                     if plots_dir.exists():
                         base_dir = Path(self.cfg.workspace_dir).parent  # .parent
                         run_name = Path(self.cfg.workspace_dir).name
@@ -1372,7 +1379,7 @@ class ParallelAgent:
                             / "experiment_results"
                             / f"seed_aggregation_{agg_node.id}"
                         )
-                        print("[red]exp_results_dir[/red]", exp_results_dir)
+                        logger.info("[red]exp_results_dir[/red] %s", exp_results_dir)
                         exp_results_dir.mkdir(parents=True, exist_ok=True)
 
                         # Save plotting code
@@ -1384,8 +1391,10 @@ class ParallelAgent:
                         # Move generated plots
                         for plot_file in plots_dir.glob("*.png"):
                             final_path = exp_results_dir / plot_file.name
-                            print("mv_from:plot_file.resolve(): ", plot_file.resolve())
-                            print("mv_to:final_path: ", final_path)
+                            logger.info(
+                                "mv_from:plot_file.resolve(): %s", plot_file.resolve()
+                            )
+                            logger.info("mv_to:final_path: %s", final_path)
                             plot_file.resolve().rename(final_path)
                             web_path = f"../../logs/{Path(self.cfg.workspace_dir).name}/experiment_results/seed_aggregation_{agg_node.id}/{plot_file.name}"
                             agg_node.plots.append(web_path)
@@ -1404,7 +1413,7 @@ class ParallelAgent:
                         process_interpreter.cleanup_session()
 
             except Exception as e:
-                print(f"Error in seed result aggregation: {str(e)}")
+                logger.info(f"Error in seed result aggregation: {str(e)}")
 
     @staticmethod
     def _process_node_wrapper(
@@ -1429,13 +1438,13 @@ class ParallelAgent:
         import os
         import multiprocessing
 
-        print("Starting _process_node_wrapper")
+        logger.info("Starting _process_node_wrapper")
 
         # Create process-specific workspace
         process_id = multiprocessing.current_process().name
         workspace = os.path.join(cfg.workspace_dir, f"process_{process_id}")
         os.makedirs(workspace, exist_ok=True)
-        print(f"Process {process_id} using workspace: {workspace}")
+        logger.info(f"Process {process_id} using workspace: {workspace}")
         # Create process-specific working directory
         working_dir = os.path.join(workspace, "working")
         os.makedirs(working_dir, exist_ok=True)
@@ -1457,7 +1466,7 @@ class ParallelAgent:
         )
 
         # Create interpreter instance for worker process
-        print("Creating Interpreter")
+        logger.info("Creating Interpreter")
         process_interpreter = Interpreter(
             working_dir=workspace,
             timeout=cfg.exec.timeout,
@@ -1466,17 +1475,17 @@ class ParallelAgent:
         )
 
         try:
-            print(f"stage_name: {stage_name}")
+            logger.info(f"stage_name: {stage_name}")
             # Recreate node object from node_data, which becomes a parent node.
             if node_data:
                 parent_node = Node.from_dict(node_data, journal=None)
-                print(f"Recreated parent node: {parent_node.id}")
+                logger.info(f"Recreated parent node: {parent_node.id}")
             else:
                 parent_node = None
-                print("No parent node to recreate")
+                logger.info("No parent node to recreate")
 
             # Process the node using worker agent
-            print("Starting node processing")
+            logger.info("Starting node processing")
             if seed_eval:
                 # Use the parent node's code to run the same code again
                 child_node = worker_agent._generate_seed_node(parent_node)
@@ -1485,10 +1494,10 @@ class ParallelAgent:
                 child_node.plot_code = parent_node.plot_code
             else:
                 if parent_node is None:
-                    print("Drafting new node")
+                    logger.info("Drafting new node")
                     child_node = worker_agent._draft()
                 elif parent_node.is_buggy:
-                    print("Debugging node with id: ", parent_node.id)
+                    logger.info("Debugging node with id: %s", parent_node.id)
                     child_node = worker_agent._debug(parent_node)
                     child_node.parent = parent_node
                 else:
@@ -1502,7 +1511,7 @@ class ParallelAgent:
                         logger.info(
                             f"Processing hyperparam tuning: {child_node.hyperparam_name}"
                         )
-                        print(
+                        logger.info(
                             f"[cyan]Running hyperparam tuning: {child_node.hyperparam_name}[/cyan]"
                         )
                     elif (
@@ -1513,20 +1522,20 @@ class ParallelAgent:
                         )
                         child_node.parent = parent_node
                         logger.info(f"Processing ablation: {child_node.ablation_name}")
-                        print(
+                        logger.info(
                             f"[cyan]Running ablation study: {child_node.ablation_name}[/cyan]"
                         )
                     else:
-                        print("Improving node with id: ", parent_node.id)
+                        logger.info("Improving node with id: %s", parent_node.id)
                         child_node = worker_agent._improve(parent_node)
                         child_node.parent = parent_node
 
             # Execute and parse results
-            print("Running code")
+            logger.info("Running code")
             exec_result = process_interpreter.run(child_node.code, True)
             process_interpreter.cleanup_session()
 
-            print("Parsing execution results")
+            logger.info("Parsing execution results")
             worker_agent.parse_exec_result(
                 node=child_node, exec_result=exec_result, workspace=working_dir
             )
@@ -1542,10 +1551,10 @@ class ParallelAgent:
                     # Use the parent node's parse code to parse the same data files again
                     parse_metrics_code = parent_node.parse_metrics_code
                     parse_metrics_plan = parent_node.parse_metrics_plan
-                    print(
+                    logger.info(
                         f"[blue]SEED EVAL: Parse metrics plan:[/blue] {parse_metrics_plan}"
                     )
-                    print(
+                    logger.info(
                         f"[blue]SEED EVAL: Parse metrics code:[/blue] {parse_metrics_code}"
                     )
                     child_node.parse_metrics_code = parse_metrics_code
@@ -1588,8 +1597,8 @@ class ParallelAgent:
                         parse_metrics_plan,
                         parse_metrics_code,
                     ) = worker_agent.plan_and_code_query(parse_metrics_prompt)
-                    print(f"[blue]Parse metrics plan:[/blue] {parse_metrics_plan}")
-                    print(f"[blue]Parse metrics code:[/blue] {parse_metrics_code}")
+                    logger.info(f"[blue]Parse metrics plan:[/blue] {parse_metrics_plan}")
+                    logger.info(f"[blue]Parse metrics code:[/blue] {parse_metrics_code}")
                     child_node.parse_metrics_plan = parse_metrics_plan
                     child_node.parse_metrics_code = parse_metrics_code
                 try:
@@ -1609,10 +1618,10 @@ class ParallelAgent:
                             "Introduction": "Parse the metrics from the execution output. You only need the final or best value of a metric for each dataset, not the entire list during training.",
                             "Execution Output": metrics_exec_result.term_out,
                         }
-                        print(
+                        logger.info(
                             f"[blue]Metrics_exec_result.term_out: {metrics_exec_result.term_out}[/blue]"
                         )
-                        print(
+                        logger.info(
                             f"[blue]Metrics Parsing Execution Result:\n[/blue] {metrics_exec_result}"
                         )
 
@@ -1630,7 +1639,7 @@ class ParallelAgent:
                         # This is achieved by raising an error in the MetricValue class,
                         # which sets child_node.is_buggy to True, thereby
                         # causing child_node.metric to be assigned WorstMetricValue.
-                        print(f"[blue]Metrics:[/blue] {metrics_response}")
+                        logger.info(f"[blue]Metrics:[/blue] {metrics_response}")
                         if metrics_response["valid_metrics_received"]:
                             child_node.metric = MetricValue(
                                 value={"metric_names": metrics_response["metric_names"]}
@@ -1696,13 +1705,13 @@ class ParallelAgent:
                         process_interpreter.cleanup_session()
                         child_node.plot_exec_result = plot_exec_result
                         if child_node.plot_exc_type and retry_count < 3:
-                            print(
+                            logger.info(
                                 f"[red]Plotting code failed with exception: {child_node.plot_exc_type}[/red]"
                             )
-                            print(
+                            logger.info(
                                 f"[red]Plotting code term out:[/red] {child_node.plot_term_out}"
                             )
-                            print(
+                            logger.info(
                                 f"[red]Plotting code code:[/red] {child_node.plot_code}"
                             )
                             retry_count += 1
@@ -1710,11 +1719,11 @@ class ParallelAgent:
                         else:
                             break
 
-                    print("[blue]Plotting result:[/blue] ", plot_exec_result)
+                    logger.info("[blue]Plotting result:[/blue] %s", plot_exec_result)
                     # Track generated plots
                     plots_dir = Path(working_dir)
                     if plots_dir.exists():
-                        print("Plots directory exists, saving plots to node")
+                        logger.info("Plots directory exists, saving plots to node")
                         # Save the plotting code first
                         base_dir = Path(cfg.workspace_dir).parent
                         run_name = Path(cfg.workspace_dir).name
@@ -1781,15 +1790,15 @@ class ParallelAgent:
                         )
 
             # Convert result node to dict
-            print("Converting result to dict")
+            logger.info("Converting result to dict")
             result_data = child_node.to_dict()
-            print(f"Result data keys: {result_data.keys()}")
-            print(f"Result data size: {len(str(result_data))} chars")
-            print("Returning result")
+            logger.info(f"Result data keys: {result_data.keys()}")
+            logger.info(f"Result data size: {len(str(result_data))} chars")
+            logger.info("Returning result")
             return result_data
 
         except Exception as e:
-            print(f"Worker process error: {str(e)}")
+            logger.info(f"Worker process error: {str(e)}")
             import traceback
 
             traceback.print_exc()
@@ -1942,11 +1951,11 @@ class ParallelAgent:
         nodes_to_process = []
         processed_trees = set()
         search_cfg = self.cfg.agent.search
-        print(f"[cyan]self.num_workers: {self.num_workers}, [/cyan]")
+        logger.info(f"[cyan]self.num_workers: {self.num_workers}, [/cyan]")
 
         while len(nodes_to_process) < self.num_workers:
             # Initial drafting phase, creating root nodes
-            print(
+            logger.info(
                 f"Checking draft nodes... num of journal.draft_nodes: {len(self.journal.draft_nodes)}, search_cfg.num_drafts: {search_cfg.num_drafts}"
             )
             if len(self.journal.draft_nodes) < search_cfg.num_drafts:
@@ -1962,18 +1971,18 @@ class ParallelAgent:
 
             # Debugging phase (with some probability)
             if random.random() < search_cfg.debug_prob:
-                print("Checking debuggable nodes")
+                logger.info("Checking debuggable nodes")
                 # print(f"Buggy nodes: {self.journal.buggy_nodes}")
                 try:
                     debuggable_nodes = None
-                    print("Checking buggy nodes...")
+                    logger.info("Checking buggy nodes...")
                     buggy_nodes = self.journal.buggy_nodes
-                    print(f"Type of buggy_nodes: {type(buggy_nodes)}")
-                    print(f"Length of buggy_nodes: {len(buggy_nodes)}")
+                    logger.info(f"Type of buggy_nodes: {type(buggy_nodes)}")
+                    logger.info(f"Length of buggy_nodes: {len(buggy_nodes)}")
 
                     for i, n in enumerate(buggy_nodes):
                         if not isinstance(n, Node):
-                            print(f"Found non-Node object in journal.buggy_nodes: {n}")
+                            logger.info(f"Found non-Node object in journal.buggy_nodes: {n}")
                             raise ValueError(
                                 "Found non-Node object in journal.buggy_nodes"
                             )
@@ -1987,9 +1996,9 @@ class ParallelAgent:
                         )
                     ]
                 except Exception as e:
-                    print(f"Error getting debuggable nodes: {e}")
+                    logger.info(f"Error getting debuggable nodes: {e}")
                 if debuggable_nodes:
-                    print("Found debuggable nodes")
+                    logger.info("Found debuggable nodes")
                     node = random.choice(debuggable_nodes)
                     tree_root = node
                     while tree_root.parent:
@@ -2004,7 +2013,7 @@ class ParallelAgent:
                         continue
 
             # Special handling for Stage 4 (Ablation Studies)
-            print(f"[red]self.stage_name: {self.stage_name}[/red]")
+            logger.info(f"[red]self.stage_name: {self.stage_name}[/red]")
             # print(f"[red]self.best_stage3_node: {self.best_stage3_node}[/red]")
             if self.stage_name and self.stage_name.startswith("4_"):
                 nodes_to_process.append(self.best_stage3_node)
@@ -2015,7 +2024,7 @@ class ParallelAgent:
                 continue
             else:  # Stage 1, 3 (normal best-first search)
                 # Improvement phase
-                print("Checking good nodes..")
+                logger.info("Checking good nodes..")
                 good_nodes = self.journal.good_nodes
                 if not good_nodes:
                     nodes_to_process.append(None)  # Back to drafting
@@ -2051,9 +2060,9 @@ class ParallelAgent:
         return nodes_to_process
 
     def step(self, exec_callback: ExecCallbackType):
-        print("Selecting nodes to process")
+        logger.info("Selecting nodes to process")
         nodes_to_process = self._select_parallel_nodes()
-        print(f"Selected nodes: {[n.id if n else None for n in nodes_to_process]}")
+        logger.info(f"Selected nodes: {[n.id if n else None for n in nodes_to_process]}")
 
         # Convert nodes to dicts
         node_data_list = []
@@ -2080,7 +2089,7 @@ class ParallelAgent:
         else:
             memory_summary = self.journal.generate_summary(include_code=False)
 
-        print("Submitting tasks to process pool")
+        logger.info("Submitting tasks to process pool")
         futures = []
         for node_data in node_data_list:
             gpu_id = None
@@ -2145,21 +2154,21 @@ class ParallelAgent:
             )
 
         # Add results to journal
-        print("Waiting for results")
+        logger.info("Waiting for results")
         for i, future in enumerate(futures):
             try:
-                print("About to get result from future")
+                logger.info("About to get result from future")
                 result_data = future.result(timeout=self.timeout)
                 if "metric" in result_data:
-                    print(f"metric type: {type(result_data['metric'])}")
-                    print(f"metric contents: {result_data['metric']}")
+                    logger.info(f"metric type: {type(result_data['metric'])}")
+                    logger.info(f"metric contents: {result_data['metric']}")
 
                 # Create node and restore relationships using journal.
                 # Journal acts as a database to look up a parent node,
                 # and add the result node as a child.
                 result_node = Node.from_dict(result_data, self.journal)
-                print("[red]Investigating if result node has metric[/red]", flush=True)
-                print(result_node.metric)
+                logger.info("[red]Investigating if result node has metric[/red]")
+                logger.info("%s", result_node.metric)
                 # Update hyperparam tuning state if in Stage 2
                 self._update_hyperparam_tuning_state(result_node)
                 # Update ablation state if in Stage 4
@@ -2167,13 +2176,13 @@ class ParallelAgent:
 
                 # Add node to journal's list and assign its step number
                 self.journal.append(result_node)
-                print("Added result node to journal")
+                logger.info("Added result node to journal")
 
             except TimeoutError:
-                print("Worker process timed out, couldn't get the result")
+                logger.info("Worker process timed out, couldn't get the result")
                 logger.error(f"Worker process timed out, couldn't get the result")
             except Exception as e:
-                print(f"Error processing node: {str(e)}")
+                logger.info(f"Error processing node: {str(e)}")
                 logger.error(f"Error processing node: {str(e)}")
                 import traceback
 
@@ -2196,7 +2205,7 @@ class ParallelAgent:
 
         hyperparam_name = result_node.hyperparam_name
         if hyperparam_name is None:
-            print(
+            logger.info(
                 f"[red]hyperparam_name is None for result_node: {result_node.id}[/red]"
             )
             return
@@ -2218,7 +2227,7 @@ class ParallelAgent:
 
         ablation_name = result_node.ablation_name
         if ablation_name is None:
-            print(f"[red]ablation_name is None for result_node: {result_node.id}[/red]")
+            logger.info(f"[red]ablation_name is None for result_node: {result_node.id}[/red]")
             return
 
         if not result_node.is_buggy:
@@ -2261,6 +2270,8 @@ class ParallelAgent:
         prompt_guideline += [
             "Example data loading and plot saving code: ",
             """
+                import logging
+                logger = logging.getLogger(__name__)
                 try:
                     experiment_data_path_list = # Make sure to use the correct experiment data path that's provided in the Experiment Data Path section
                     all_experiment_data = []
@@ -2268,7 +2279,7 @@ class ParallelAgent:
                         experiment_data = np.load(os.path.join(os.getenv("AI_SCIENTIST_ROOT"), experiment_data_path), allow_pickle=True).item()
                         all_experiment_data.append(experiment_data)
                 except Exception as e:
-                    print(f'Error loading experiment data: {{e}}')
+                    logger.info(f'Error loading experiment data: {{e}}')
 
                 try:
                     # First plot
@@ -2277,7 +2288,7 @@ class ParallelAgent:
                     plt.savefig('working_dir/[plot_name_1].png')
                     plt.close()
                 except Exception as e:
-                    print(f"Error creating plot1: {{e}}")
+                    logger.info(f"Error creating plot1: {{e}}")
                     plt.close()  # Always close figure even if error occurs
 
                 try:
@@ -2287,7 +2298,7 @@ class ParallelAgent:
                     plt.savefig('working_dir/[plot_name_2].png')
                     plt.close()
                 except Exception as e:
-                    print(f"Error creating plot2: {{e}}")
+                    logger.info(f"Error creating plot2: {{e}}")
                     plt.close()
             """,
         ]
@@ -2325,8 +2336,8 @@ class ParallelAgent:
         }
         plan, code = self.plan_and_code_query(plotting_prompt)
 
-        print("[green]Plan:[/green]\n", plan)
-        print(f"[green]Generated aggregated plotting code:[/green]\n{code}")
+        logger.info("[green]Plan:[/green]\n%s", plan)
+        logger.info(f"[green]Generated aggregated plotting code:[/green]\n{code}")
 
         return code
 
@@ -2336,7 +2347,7 @@ class ParallelAgent:
     def cleanup(self):
         """Cleanup parallel workers and resources"""
         if not self._is_shutdown:
-            print("Shutting down parallel executor...")
+            logger.info("Shutting down parallel executor...")
             try:
                 # Release all GPUs
                 if self.gpu_manager is not None:
@@ -2357,10 +2368,10 @@ class ParallelAgent:
                             process.terminate()
                             process.join(timeout=1)
 
-                print("Executor shutdown complete")
+                logger.info("Executor shutdown complete")
 
             except Exception as e:
-                print(f"Error during executor shutdown: {e}")
+                logger.info(f"Error during executor shutdown: {e}")
             finally:
                 self._is_shutdown = True
 

@@ -26,6 +26,8 @@ from .agent_manager import AgentManager
 from pathlib import Path
 from .agent_manager import Stage
 from .log_summarization import overall_summarize
+logger = logging.getLogger(__name__)
+
 
 
 logger = logging.getLogger("ai-scientist")
@@ -61,8 +63,10 @@ def perform_experiments_bfts(config_path: str):
     cfg = load_cfg(config_path)
     logger.info(f'Starting run "{cfg.exp_name}"')
 
+    log_dir = Path(cfg.log_dir)
+
     task_desc = load_task_desc(cfg)
-    print(task_desc)
+    logger.info(task_desc)
     task_desc_str = backend.compile_prompt_to_md(task_desc)
 
     global_step = 0
@@ -101,10 +105,10 @@ def perform_experiments_bfts(config_path: str):
         return exec_callback
 
     def step_callback(stage, journal):
-        print("Step complete")
+        logger.info("Step complete")
         try:
             # Generate and save notes for this step
-            notes_dir = cfg.log_dir / f"stage_{stage.name}" / "notes"
+            notes_dir = log_dir / f"stage_{stage.name}" / "notes"
             notes_dir.mkdir(parents=True, exist_ok=True)
 
             # Save latest node summary
@@ -152,11 +156,11 @@ def perform_experiments_bfts(config_path: str):
             save_run(cfg, journal, stage_name=f"stage_{stage.name}")
 
         except Exception as e:
-            print(f"Error in step callback: {e}")
+            logger.info(f"Error in step callback: {e}")
 
-        print(f"Run saved at {cfg.log_dir / f'stage_{stage.name}'}")
-        print(f"Step {len(journal)}/{stage.max_iterations} at stage_{stage.name}")
-        print(f"Run saved at {cfg.log_dir / f'stage_{stage.name}'}")
+        logger.info(f"Run saved at {log_dir / f'stage_{stage.name}'}")
+        logger.info(f"Step {len(journal)}/{stage.max_iterations} at stage_{stage.name}")
+        logger.info(f"Run saved at {log_dir / f'stage_{stage.name}'}")
 
     def generate_live(manager):
         current_stage = manager.current_stage
@@ -170,9 +174,9 @@ def perform_experiments_bfts(config_path: str):
             tree = Tree("[bold blue]No results yet")
 
         file_paths = [
-            f"Result visualization:\n[yellow]▶ {str((cfg.log_dir / 'tree_plot.html'))}",
+            f"Result visualization:\n[yellow]▶ {str((log_dir / 'tree_plot.html'))}",
             f"Agent workspace directory:\n[yellow]▶ {str(cfg.workspace_dir)}",
-            f"Experiment log directory:\n[yellow]▶ {str(cfg.log_dir)}",
+            f"Experiment log directory:\n[yellow]▶ {str(log_dir)}",
         ]
 
         stage_info = [
@@ -210,7 +214,7 @@ def perform_experiments_bfts(config_path: str):
 
     manager.run(exec_callback=create_exec_callback(status), step_callback=step_callback)
 
-    manager_pickle_path = cfg.log_dir / "manager.pkl"
+    manager_pickle_path = log_dir / "manager.pkl"
     try:
         with open(manager_pickle_path, "wb") as f:
             pickle.dump(manager, f)
@@ -225,17 +229,17 @@ def perform_experiments_bfts(config_path: str):
             logger.error(f"Failed to save manager journals: {e}")
 
     if cfg.generate_report:
-        print("Generating final report from all stages...")
+        logger.info("Generating final report from all stages...")
         (
             draft_summary,
             baseline_summary,
             research_summary,
             ablation_summary,
         ) = overall_summarize(manager.journals.items(), cfg)
-        draft_summary_path = cfg.log_dir / "draft_summary.json"
-        baseline_summary_path = cfg.log_dir / "baseline_summary.json"
-        research_summary_path = cfg.log_dir / "research_summary.json"
-        ablation_summary_path = cfg.log_dir / "ablation_summary.json"
+        draft_summary_path = log_dir / "draft_summary.json"
+        baseline_summary_path = log_dir / "baseline_summary.json"
+        research_summary_path = log_dir / "research_summary.json"
+        ablation_summary_path = log_dir / "ablation_summary.json"
 
         with open(draft_summary_path, "w") as draft_file:
             json.dump(draft_summary, draft_file, indent=2)
@@ -249,11 +253,11 @@ def perform_experiments_bfts(config_path: str):
         with open(ablation_summary_path, "w") as ablation_file:
             json.dump(ablation_summary, ablation_file, indent=2)
 
-        print(f"Summary reports written to files:")
-        print(f"- Draft summary: {draft_summary_path}")
-        print(f"- Baseline summary: {baseline_summary_path}")
-        print(f"- Research summary: {research_summary_path}")
-        print(f"- Ablation summary: {ablation_summary_path}")
+        logger.info(f"Summary reports written to files:")
+        logger.info(f"- Draft summary: {draft_summary_path}")
+        logger.info(f"- Baseline summary: {baseline_summary_path}")
+        logger.info(f"- Research summary: {research_summary_path}")
+        logger.info(f"- Ablation summary: {ablation_summary_path}")
 
 
 if __name__ == "__main__":

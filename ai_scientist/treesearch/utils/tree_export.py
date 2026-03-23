@@ -9,6 +9,9 @@ from igraph import Graph
 from ..journal import Journal
 
 from rich import print
+import logging
+logger = logging.getLogger(__name__)
+
 
 
 def get_edges(journal: Journal):
@@ -75,16 +78,16 @@ def get_completed_stages(log_dir):
 
 def cfg_to_tree_struct(cfg, jou: Journal, out_path: Path = None):
     edges = list(get_edges(jou))
-    print(f"[red]Edges: {edges}[/red]")
+    logger.info(f"[red]Edges: {edges}[/red]")
     try:
         gen_layout = generate_layout(len(jou), edges)
     except Exception as e:
-        print(f"Error in generate_layout: {e}")
+        logger.info(f"Error in generate_layout: {e}")
         raise
     try:
         layout = normalize_layout(gen_layout)
     except Exception as e:
-        print(f"Error in normalize_layout: {e}")
+        logger.info(f"Error in normalize_layout: {e}")
         raise
 
     best_node = jou.get_best_node(cfg=cfg)
@@ -129,13 +132,13 @@ def cfg_to_tree_struct(cfg, jou: Journal, out_path: Path = None):
     try:
         tmp["edges"] = edges
     except Exception as e:
-        print(f"Error setting edges: {e}")
+        logger.info(f"Error setting edges: {e}")
         raise
 
     try:
         tmp["layout"] = layout.tolist()
     except Exception as e:
-        print(f"Error setting layout: {e}")
+        logger.info(f"Error setting layout: {e}")
         raise
 
     try:
@@ -144,13 +147,13 @@ def cfg_to_tree_struct(cfg, jou: Journal, out_path: Path = None):
             for n in jou.nodes
         ]
     except Exception as e:
-        print(f"Error setting plan: {e}")
+        logger.info(f"Error setting plan: {e}")
         raise
 
     try:
         tmp["code"] = [n.code for n in jou]
     except Exception as e:
-        print(f"Error setting code: {e}")
+        logger.info(f"Error setting code: {e}")
         raise
 
     try:
@@ -159,8 +162,8 @@ def cfg_to_tree_struct(cfg, jou: Journal, out_path: Path = None):
             for n in jou
         ]
     except Exception as e:
-        print(f"Error setting term_out: {e}")
-        print(f"n.term_out: {n._term_out}")
+        logger.info(f"Error setting term_out: {e}")
+        logger.info(f"n.term_out: {n._term_out}")
         raise
 
     try:
@@ -169,61 +172,61 @@ def cfg_to_tree_struct(cfg, jou: Journal, out_path: Path = None):
             for n in jou
         ]
     except Exception as e:
-        print(f"Error setting analysis: {e}")
+        logger.info(f"Error setting analysis: {e}")
         raise
 
     try:
         tmp["exc_type"] = [n.exc_type for n in jou]
     except Exception as e:
-        print(f"Error setting exc_type: {e}")
+        logger.info(f"Error setting exc_type: {e}")
         raise
 
     try:
         tmp["exc_info"] = [n.exc_info for n in jou]
     except Exception as e:
-        print(f"Error setting exc_info: {e}")
+        logger.info(f"Error setting exc_info: {e}")
         raise
 
     try:
         tmp["exc_stack"] = [n.exc_stack for n in jou]
     except Exception as e:
-        print(f"Error setting exc_stack: {e}")
+        logger.info(f"Error setting exc_stack: {e}")
         raise
 
     try:
         tmp["exp_name"] = cfg.exp_name
     except Exception as e:
-        print(f"Error setting exp_name: {e}")
+        logger.info(f"Error setting exp_name: {e}")
         raise
 
     try:
         tmp["metrics"] = metrics
     except Exception as e:
-        print(f"Error setting metrics: {e}")
+        logger.info(f"Error setting metrics: {e}")
         raise
 
     try:
         tmp["is_best_node"] = is_best_node
     except Exception as e:
-        print(f"Error setting is_best_node: {e}")
+        logger.info(f"Error setting is_best_node: {e}")
         raise
 
     try:
         tmp["plots"] = [n.plots for n in jou]
     except Exception as e:
-        print(f"Error setting plots: {e}")
+        logger.info(f"Error setting plots: {e}")
         raise
 
     try:
         tmp["plot_paths"] = [n.plot_paths for n in jou]
     except Exception as e:
-        print(f"Error setting plot_paths: {e}")
+        logger.info(f"Error setting plot_paths: {e}")
         raise
 
     try:
         tmp["plot_analyses"] = [n.plot_analyses for n in jou]
     except Exception as e:
-        print(f"Error setting plot_analyses: {e}")
+        logger.info(f"Error setting plot_analyses: {e}")
         raise
 
     try:
@@ -239,13 +242,13 @@ def cfg_to_tree_struct(cfg, jou: Journal, out_path: Path = None):
             for n in jou
         ]
     except Exception as e:
-        print(f"Error setting vlm_feedback_summary: {e}")
+        logger.info(f"Error setting vlm_feedback_summary: {e}")
         raise
 
     try:
         tmp["exec_time"] = [n.exec_time for n in jou]
     except Exception as e:
-        print(f"Error setting exec_time: {e}")
+        logger.info(f"Error setting exec_time: {e}")
         raise
 
     try:
@@ -257,7 +260,7 @@ def cfg_to_tree_struct(cfg, jou: Journal, out_path: Path = None):
             for n in jou
         ]
     except Exception as e:
-        print(f"Error setting exec_time_feedback: {e}")
+        logger.info(f"Error setting exec_time_feedback: {e}")
         raise
 
     try:
@@ -265,43 +268,43 @@ def cfg_to_tree_struct(cfg, jou: Journal, out_path: Path = None):
             n.datasets_successfully_tested for n in jou
         ]
     except Exception as e:
-        print(f"Error setting datasets_successfully_tested: {e}")
+        logger.info(f"Error setting datasets_successfully_tested: {e}")
         raise
 
     try:
         tmp["plot_code"] = [n.plot_code for n in jou]
     except Exception as e:
-        print(f"Error setting plot_code: {e}")
+        logger.info(f"Error setting plot_code: {e}")
         raise
 
     try:
         tmp["plot_plan"] = [n.plot_plan for n in jou]
     except Exception as e:
-        print(f"Error setting plot_plan: {e}")
+        logger.info(f"Error setting plot_plan: {e}")
         raise
 
     try:
         tmp["ablation_name"] = [n.ablation_name for n in jou]
     except Exception as e:
-        print(f"Error setting ablation_name: {e}")
+        logger.info(f"Error setting ablation_name: {e}")
         raise
 
     try:
         tmp["hyperparam_name"] = [n.hyperparam_name for n in jou]
     except Exception as e:
-        print(f"Error setting hyperparam_name: {e}")
+        logger.info(f"Error setting hyperparam_name: {e}")
         raise
 
     try:
         tmp["is_seed_node"] = [n.is_seed_node for n in jou]
     except Exception as e:
-        print(f"Error setting is_seed_node: {e}")
+        logger.info(f"Error setting is_seed_node: {e}")
         raise
 
     try:
         tmp["is_seed_agg_node"] = [n.is_seed_agg_node for n in jou]
     except Exception as e:
-        print(f"Error setting is_seed_agg_node: {e}")
+        logger.info(f"Error setting is_seed_agg_node: {e}")
         raise
 
     try:
@@ -313,13 +316,13 @@ def cfg_to_tree_struct(cfg, jou: Journal, out_path: Path = None):
             for n in jou
         ]
     except Exception as e:
-        print(f"Error setting parse_metrics_plan: {e}")
+        logger.info(f"Error setting parse_metrics_plan: {e}")
         raise
 
     try:
         tmp["parse_metrics_code"] = [n.parse_metrics_code for n in jou]
     except Exception as e:
-        print(f"Error setting parse_metrics_code: {e}")
+        logger.info(f"Error setting parse_metrics_code: {e}")
         raise
 
     try:
@@ -330,25 +333,25 @@ def cfg_to_tree_struct(cfg, jou: Journal, out_path: Path = None):
             for n in jou
         ]
     except Exception as e:
-        print(f"Error setting parse_term_out: {e}")
+        logger.info(f"Error setting parse_term_out: {e}")
         raise
 
     try:
         tmp["parse_exc_type"] = [n.parse_exc_type for n in jou]
     except Exception as e:
-        print(f"Error setting parse_exc_type: {e}")
+        logger.info(f"Error setting parse_exc_type: {e}")
         raise
 
     try:
         tmp["parse_exc_info"] = [n.parse_exc_info for n in jou]
     except Exception as e:
-        print(f"Error setting parse_exc_info: {e}")
+        logger.info(f"Error setting parse_exc_info: {e}")
         raise
 
     try:
         tmp["parse_exc_stack"] = [n.parse_exc_stack for n in jou]
     except Exception as e:
-        print(f"Error setting parse_exc_stack: {e}")
+        logger.info(f"Error setting parse_exc_stack: {e}")
         raise
 
     # Add the list of completed stages by checking directories
@@ -374,11 +377,11 @@ def generate_html(tree_graph_str: str):
 
 
 def generate(cfg, jou: Journal, out_path: Path):
-    print("[red]Checking Journal[/red]")
+    logger.info("[red]Checking Journal[/red]")
     try:
         tree_struct = cfg_to_tree_struct(cfg, jou, out_path)
     except Exception as e:
-        print(f"Error in cfg_to_tree_struct: {e}")
+        logger.info(f"Error in cfg_to_tree_struct: {e}")
         raise
 
     # Save tree data as JSON for loading by the tabbed visualization
@@ -388,17 +391,17 @@ def generate(cfg, jou: Journal, out_path: Path):
         with open(data_path, "w") as f:
             json.dump(tree_struct, f)
     except Exception as e:
-        print(f"Error saving tree data JSON: {e}")
+        logger.info(f"Error saving tree data JSON: {e}")
 
     try:
         tree_graph_str = json.dumps(tree_struct)
     except Exception as e:
-        print(f"Error in json.dumps: {e}")
+        logger.info(f"Error in json.dumps: {e}")
         raise
     try:
         html = generate_html(tree_graph_str)
     except Exception as e:
-        print(f"Error in generate_html: {e}")
+        logger.info(f"Error in generate_html: {e}")
         raise
     with open(out_path, "w") as f:
         f.write(html)
@@ -407,7 +410,7 @@ def generate(cfg, jou: Journal, out_path: Path):
     try:
         create_unified_viz(cfg, out_path)
     except Exception as e:
-        print(f"Error creating unified visualization: {e}")
+        logger.info(f"Error creating unified visualization: {e}")
         # Continue even if unified viz creation fails
 
 
@@ -462,7 +465,7 @@ def create_unified_viz(cfg, current_stage_viz_path):
                 "edges": [],
             }
     except Exception as e:
-        print(f"Error loading stage data: {e}")
+        logger.info(f"Error loading stage data: {e}")
         # Create a minimal data structure that won't cause JS errors
         base_data = {
             "current_stage": current_stage,
@@ -481,4 +484,4 @@ def create_unified_viz(cfg, current_stage_viz_path):
     with open(unified_viz_path, "w") as f:
         f.write(html)
 
-    print(f"[green]Created unified visualization at {unified_viz_path}[/green]")
+    logger.info(f"[green]Created unified visualization at {unified_viz_path}[/green]")

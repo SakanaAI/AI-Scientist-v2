@@ -14,6 +14,8 @@ import logging
 
 from . import tree_export
 from . import copytree, preproc_data, serialize
+logger = logging.getLogger(__name__)
+
 
 shutup.mute_warnings()
 logging.basicConfig(
@@ -87,14 +89,15 @@ class ExperimentConfig:
 
 @dataclass
 class Config(Hashable):
-    data_dir: Path
-    desc_file: Path | None
+    # Stored as str in OmegaConf (Path is not a supported node value).
+    data_dir: str
+    desc_file: str | None
 
     goal: str | None
     eval: str | None
 
-    log_dir: Path
-    workspace_dir: Path
+    log_dir: str
+    workspace_dir: str
 
     preprocess_data: bool
     copy_data: bool
@@ -118,7 +121,7 @@ def _get_next_logindex(dir: Path) -> int:
                 max_index = current_index
         except ValueError:
             pass
-    print("max_index: ", max_index)
+    logger.info("max_index: %s", max_index)
     return max_index + 1
 
 
@@ -145,12 +148,15 @@ def prep_cfg(cfg: Config):
             "You must provide either a description of the task goal (`goal=...`) or a path to a plaintext file containing the description (`desc_file=...`)."
         )
 
-    if cfg.data_dir.startswith("example_tasks/"):
-        cfg.data_dir = Path(__file__).parent.parent / cfg.data_dir
-    cfg.data_dir = Path(cfg.data_dir).resolve()
+    data_dir_s = str(cfg.data_dir)
+    if data_dir_s.startswith("example_tasks/"):
+        data_dir_s = str((Path(__file__).parent.parent / data_dir_s).resolve())
+    else:
+        data_dir_s = str(Path(data_dir_s).resolve())
+    cfg.data_dir = data_dir_s
 
     if cfg.desc_file is not None:
-        cfg.desc_file = Path(cfg.desc_file).resolve()
+        cfg.desc_file = str(Path(cfg.desc_file).resolve())
 
     top_log_dir = Path(cfg.log_dir).resolve()
     top_log_dir.mkdir(parents=True, exist_ok=True)
@@ -163,12 +169,18 @@ def prep_cfg(cfg: Config):
     cfg.exp_name = cfg.exp_name or coolname.generate_slug(3)
     cfg.exp_name = f"{ind}-{cfg.exp_name}"
 
-    cfg.log_dir = (top_log_dir / cfg.exp_name).resolve()
-    cfg.workspace_dir = (top_workspace_dir / cfg.exp_name).resolve()
+    cfg.log_dir = str((top_log_dir / cfg.exp_name).resolve())
+    cfg.workspace_dir = str((top_workspace_dir / cfg.exp_name).resolve())
 
     # validate the config
     cfg_schema: Config = OmegaConf.structured(Config)
     cfg = OmegaConf.merge(cfg_schema, cfg)
+
+    _vlm = cfg.agent.vlm_feedback.model
+    if isinstance(_vlm, str) and _vlm.strip().lower() == "auto":
+        from ai_scientist.vlm import resolve_vlm_model
+
+        cfg.agent.vlm_feedback.model = resolve_vlm_model("auto")
 
     if cfg.agent.type not in ["parallel", "sequential"]:
         raise ValueError("agent.type must be either 'parallel' or 'sequential'")
@@ -202,43 +214,44 @@ def load_task_desc(cfg: Config):
     task_desc = {"Task goal": cfg.goal}
     if cfg.eval is not None:
         task_desc["Task evaluation"] = cfg.eval
-    print(task_desc)
+    logger.info(task_desc)
     return task_desc
 
 
 def prep_agent_workspace(cfg: Config):
     """Setup the agent's workspace and preprocess data if necessary."""
-    (cfg.workspace_dir / "input").mkdir(parents=True, exist_ok=True)
-    (cfg.workspace_dir / "working").mkdir(parents=True, exist_ok=True)
+    ws = Path(cfg.workspace_dir)
+    (ws / "input").mkdir(parents=True, exist_ok=True)
+    (ws / "working").mkdir(parents=True, exist_ok=True)
 
-    copytree(cfg.data_dir, cfg.workspace_dir / "input", use_symlinks=not cfg.copy_data)
+    copytree(cfg.data_dir, ws / "input", use_symlinks=not cfg.copy_data)
     if cfg.preprocess_data:
-        preproc_data(cfg.workspace_dir / "input")
+        preproc_data(ws / "input")
 
 
 def save_run(cfg: Config, journal, stage_name: str = None):
     if stage_name is None:
         stage_name = "NoStageRun"
-    save_dir = cfg.log_dir / stage_name
+    save_dir = Path(cfg.log_dir) / stage_name
     save_dir.mkdir(parents=True, exist_ok=True)
 
     # save journal
     try:
         serialize.dump_json(journal, save_dir / "journal.json")
     except Exception as e:
-        print(f"Error saving journal: {e}")
+        logger.info(f"Error saving journal: {e}")
         raise
     # save config
     try:
         OmegaConf.save(config=cfg, f=save_dir / "config.yaml")
     except Exception as e:
-        print(f"Error saving config: {e}")
+        logger.info(f"Error saving config: {e}")
         raise
     # create the tree + code visualization
     try:
         tree_export.generate(cfg, journal, save_dir / "tree_plot.html")
     except Exception as e:
-        print(f"Error generating tree: {e}")
+        logger.info(f"Error generating tree: {e}")
         raise
     # save the best found solution
     try:
@@ -254,6 +267,6 @@ def save_run(cfg: Config, journal, stage_name: str = None):
             with open(save_dir / "best_node_id.txt", "w") as f:
                 f.write(str(best_node.id))
         else:
-            print("No best node found yet")
+            logger.info("No best node found yet")
     except Exception as e:
-        print(f"Error saving best solution: {e}")
+        logger.info(f"Error saving best solution: {e}")

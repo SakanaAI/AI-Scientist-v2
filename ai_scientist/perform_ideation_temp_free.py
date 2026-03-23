@@ -1,11 +1,13 @@
 import argparse
 import json
+import logging
 import os.path as osp
 import re
-import traceback
 from typing import Any, Dict, List
 
 import sys
+
+logger = logging.getLogger(__name__)
 
 sys.path.append(osp.join(osp.dirname(__file__), ".."))
 from ai_scientist.llm import (
@@ -141,13 +143,15 @@ def generate_temp_free_idea(
             idea_str_content = json.load(f)
             for idea in idea_str_content:
                 idea_str_archive.append(json.dumps(idea))
-            print(f"Loaded {len(idea_str_archive)} ideas from {idea_fname}")
+            logger.info("Loaded %s ideas from %s", len(idea_str_archive), idea_fname)
     else:
-        print(f"No ideas found in {idea_fname}. Starting from scratch.")
+        logger.info("No ideas found in %s. Starting from scratch.", idea_fname)
 
     for gen_idx in range(max_num_generations):
-        print()
-        print(f"Generating proposal {gen_idx + 1}/{max_num_generations}")
+        logger.info("")
+        logger.info(
+            "Generating proposal %s/%s", gen_idx + 1, max_num_generations
+        )
         try:
             prev_ideas_string = "\n\n".join(idea_str_archive)
 
@@ -196,8 +200,8 @@ def generate_temp_free_idea(
 
                     action = action_match.group(1).strip()
                     arguments_text = arguments_match.group(1).strip()
-                    print(f"Action: {action}")
-                    print(f"Arguments: {arguments_text}")
+                    logger.info("Action: %s", action)
+                    logger.info("Arguments: %s", arguments_text)
 
                     # If arguments are wrapped in ```json blocks, extract the content
                     if arguments_text.startswith("```json"):
@@ -232,29 +236,28 @@ def generate_temp_free_idea(
 
                             # Append the idea to the archive
                             idea_str_archive.append(json.dumps(idea))
-                            print(f"Proposal finalized: {idea}")
+                            logger.info("Proposal finalized: %s", idea)
                             idea_finalized = True
                             break
                         except json.JSONDecodeError:
                             raise ValueError("Invalid arguments JSON for FinalizeIdea.")
                     else:
-                        print(
+                        logger.info(
                             "Invalid action. Please specify one of the available tools."
                         )
-                        print(f"Available actions are: {tool_names_str}")
-                except Exception as e:
-                    print(
-                        f"Failed to parse LLM response. Response text:\n{response_text}"
+                        logger.info("Available actions are: %s", tool_names_str)
+                except Exception:
+                    logger.exception(
+                        "Failed to parse LLM response. Response text:\n%s",
+                        response_text,
                     )
-                    traceback.print_exc()
                     break  # Exit the loop if parsing fails
 
             if idea_finalized:
                 continue  # Move to the next idea
 
-        except Exception as e:
-            print("Failed to generate proposal:")
-            traceback.print_exc()
+        except Exception:
+            logger.exception("Failed to generate proposal:")
             continue
 
     # Save ideas
@@ -262,7 +265,7 @@ def generate_temp_free_idea(
 
     with open(idea_fname, "w") as f:
         json.dump(ideas, f, indent=4)
-    print(f"Stored {len(ideas)} ideas in {idea_fname}")
+    logger.info("Stored %s ideas in %s", len(ideas), idea_fname)
     return ideas
 
 
@@ -273,7 +276,7 @@ if __name__ == "__main__":
     parser.add_argument(
         "--model",
         type=str,
-        default="gpt-4o-2024-05-13",
+        default="deepseek-v3.2",
         choices=AVAILABLE_LLMS,
         help="Model to use for AI Scientist.",
     )
@@ -297,17 +300,22 @@ if __name__ == "__main__":
     )
     args = parser.parse_args()
 
+    # Logging is configured in ai_scientist/__init__.py (setup_logging).
+
     # Create the LLM client
     client, client_model = create_client(args.model)
 
     with open(args.workshop_file, "r") as f:
         workshop_description = f.read()
-    print(f"Using workshop description from {args.workshop_file} for idea generation.")
-    print(f"Workshop description:\n{workshop_description}")
+    logger.info(
+        "Using workshop description from %s for idea generation.",
+        args.workshop_file,
+    )
+    logger.info("Workshop description:\n%s", workshop_description)
 
     # Create output filename by replacing .md extension with .json
     idea_fname = args.workshop_file.replace(".md", ".json")
-    print("Starting idea generation for", idea_fname)
+    logger.info("Starting idea generation for %s", idea_fname)
     ideas = generate_temp_free_idea(
         idea_fname=idea_fname,
         client=client,
@@ -316,4 +324,4 @@ if __name__ == "__main__":
         max_num_generations=args.max_num_generations,
         num_reflections=args.num_reflections,
     )
-    print(f"{args.workshop_file} generated {len(ideas)} ideas.")
+    logger.info("%s generated %s ideas.", args.workshop_file, len(ideas))

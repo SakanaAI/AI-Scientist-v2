@@ -11,6 +11,7 @@ import uuid
 
 from ai_scientist.llm import (
     get_response_from_llm,
+    get_writeup_response_with_length_continuations,
     extract_json_between_markers,
     create_client,
     AVAILABLE_LLMS,
@@ -19,7 +20,87 @@ from ai_scientist.llm import (
 from ai_scientist.tools.semantic_scholar import search_for_papers
 
 from ai_scientist.perform_vlm_review import generate_vlm_img_review
-from ai_scientist.vlm import create_client as create_vlm_client
+from ai_scientist.vlm import create_client as create_vlm_client, resolve_vlm_model
+from ai_scientist.latex_compile import compile_latex
+from ai_scientist.latex_repair import compile_latex_with_incremental_repair
+from ai_scientist.extract_latex_block import extract_latex_fenced_block
+
+import logging
+logger = logging.getLogger(__name__)
+
+
+def _extract_bibliography_name(latex_text: str) -> str:
+    """Extract the first bibliography database name from \\bibliography{...}."""
+    m = re.search(r"\\bibliography\{([^}]*)\}", latex_text)
+    if not m:
+        return "references"
+    names = [n.strip() for n in m.group(1).split(",") if n.strip()]
+    return names[0] if names else "references"
+
+
+def _extract_bib_entries_from_filecontents(latex_text: str, bib_name: str) -> str | None:
+    """Return entries inside \\begin{filecontents[*]}{<bib_name>.bib} ... \\end{filecontents[*]}."""
+    pattern = (
+        rf"\\begin{{filecontents\*?}}{{{re.escape(bib_name)}\.bib}}"
+        rf"(.*?)"
+        rf"\\end{{filecontents\*?}}"
+    )
+    m = re.search(pattern, latex_text, re.DOTALL)
+    return m.group(1) if m else None
+
+
+def _append_bib_entries_to_filecontents(
+    latex_text: str, bib_name: str, bib_entries: str
+) -> str:
+    """Append bib entries inside the matching filecontents/filecontents* block."""
+    pattern = (
+        rf"(\\begin{{filecontents\*?}}{{{re.escape(bib_name)}\.bib}}.*?)"
+        rf"(\\end{{filecontents\*?}})"
+    )
+    updated, count = re.subn(
+        pattern,
+        rf"\1\n{bib_entries}\2",
+        latex_text,
+        count=1,
+        flags=re.DOTALL,
+    )
+    if count == 0:
+        raise ValueError(f"No filecontents block found for {bib_name}.bib in template.tex")
+    return updated
+
+
+def _remove_external_bib_file(latex_folder: str, bib_filename: str) -> None:
+    """Enforce single-source bibliography from template.tex filecontents."""
+    external_bib_path = osp.join(latex_folder, bib_filename)
+    if osp.exists(external_bib_path):
+        os.remove(external_bib_path)
+        logger.info(
+            "Removed external bibliography file %s to enforce filecontents-only mode.",
+            external_bib_path,
+        )
+
+
+def _sanitize_bibtex_text(bib_text: str) -> str:
+    """Escape high-risk LaTeX special chars in BibTeX text."""
+    if not bib_text:
+        return bib_text
+    out = bib_text
+    out = re.sub(r"(?<!\\)&", r"\\&", out)
+    out = re.sub(r"(?<!\\)%", r"\\%", out)
+    out = re.sub(r"(?<!\\)#", r"\\#", out)
+    return out
+
+
+def _sanitize_filecontents_bib_blocks(latex_text: str) -> str:
+    """Sanitize bibliography content embedded inside filecontents blocks."""
+    pattern = r"(\\begin\{filecontents\*?\}\{[^}]+\.bib\})(.*?)(\\end\{filecontents\*?\})"
+    return re.sub(
+        pattern,
+        lambda m: f"{m.group(1)}{_sanitize_bibtex_text(m.group(2))}{m.group(3)}",
+        latex_text,
+        flags=re.DOTALL,
+    )
+
 
 
 def remove_accents_and_clean(s):
@@ -34,49 +115,6 @@ def remove_accents_and_clean(s):
     ascii_str = ascii_str.lower()
     # print("Cleaned: ", ascii_str)
     return ascii_str
-
-
-def compile_latex(cwd, pdf_file, timeout=30):
-    print("GENERATING LATEX")
-
-    commands = [
-        ["pdflatex", "-interaction=nonstopmode", "template.tex"],
-        ["bibtex", "template"],
-        ["pdflatex", "-interaction=nonstopmode", "template.tex"],
-        ["pdflatex", "-interaction=nonstopmode", "template.tex"],
-    ]
-
-    for command in commands:
-        try:
-            result = subprocess.run(
-                command,
-                cwd=cwd,
-                stdout=subprocess.PIPE,
-                stderr=subprocess.PIPE,
-                text=True,
-                timeout=timeout,
-            )
-            print("Standard Output:\n", result.stdout)
-            print("Standard Error:\n", result.stderr)
-        except subprocess.TimeoutExpired:
-            print(
-                f"EXCEPTION in compile_latex: LaTeX timed out after {timeout} seconds."
-            )
-            print(traceback.format_exc())
-        except subprocess.CalledProcessError:
-            print(
-                f"EXCEPTION in compile_latex: Error running command {' '.join(command)}"
-            )
-            print(traceback.format_exc())
-
-    print("FINISHED GENERATING LATEX")
-
-    try:
-        shutil.move(osp.join(cwd, "template.pdf"), pdf_file)
-    except FileNotFoundError:
-        print("Failed to rename PDF.")
-        print("EXCEPTION in compile_latex while moving PDF:")
-        print(traceback.format_exc())
 
 
 def detect_pages_before_impact(latex_folder, timeout=30):
@@ -147,14 +185,14 @@ def detect_pages_before_impact(latex_folder, timeout=30):
 
 
 def get_citation_addition(
-    client, model, context, current_round, total_rounds, idea_text
+    client, model, context, current_round, total_rounds, idea_text, bib_filename
 ):
     report, citations = context
     msg_history = []
     citation_system_msg_template = """You are an ambitious AI researcher who is looking to publish a paper to a top-tier ML conference that will contribute significantly to the field.
 You have already completed the experiments and now you are looking to collect citations to related papers.
 This phase focuses on collecting references and annotating them to be integrated later.
-Collected citations will be added to a references.bib file.
+Collected citations will be added to a {bib_filename} file.
 
 Reasons to reference papers include:
 1. Summarizing Research: Cite sources when summarizing the existing literature.
@@ -227,7 +265,7 @@ RESPONSE:
 
 In <THOUGHT>, first briefly reason over the search results and identify which citation(s) best fit your paper.
 If none are appropriate or would contribute significantly to the write-up, add "Do not add any" to your thoughts.
-Do not select papers that are already in the `references.bib` file, or if the same citation exists under a different name.
+Do not select papers that are already in the `{bib_filename}` file, or if the same citation exists under a different name.
 
 In <JSON>, respond in JSON format with the following fields:
 - "Selected": A list of integer indices for the selected papers, for example [0, 1]. Do not use quotes for the indices, e.g. "['0', '1']" is invalid.
@@ -246,13 +284,13 @@ This JSON will be automatically parsed, so ensure the format is precise."""
             client=client,
             model=model,
             system_message=citation_system_msg_template.format(
-                total_rounds=total_rounds
+                total_rounds=total_rounds, bib_filename=bib_filename
             ),
             msg_history=msg_history,
             print_debug=False,
         )
         if "No more citations needed" in text:
-            print("No more citations needed.")
+            logger.info("No more citations needed.")
             return None, True
 
         json_output = extract_json_between_markers(text)
@@ -260,12 +298,12 @@ This JSON will be automatically parsed, so ensure the format is precise."""
         query = json_output["Query"]
         papers = search_for_papers(query)
     except Exception:
-        print("EXCEPTION in get_citation_addition (initial search):")
-        print(traceback.format_exc())
+        logger.info("EXCEPTION in get_citation_addition (initial search):")
+        logger.info(traceback.format_exc())
         return None, False
 
     if papers is None:
-        print("No papers found.")
+        logger.info("No papers found.")
         return None, False
 
     paper_strings = []
@@ -292,13 +330,13 @@ This JSON will be automatically parsed, so ensure the format is precise."""
             client=client,
             model=model,
             system_message=citation_system_msg_template.format(
-                total_rounds=total_rounds
+                total_rounds=total_rounds, bib_filename=bib_filename
             ),
             msg_history=msg_history,
             print_debug=False,
         )
         if "Do not add any" in text:
-            print("Do not add any.")
+            logger.info("Do not add any.")
             return None, False
 
         json_output = extract_json_between_markers(text)
@@ -330,8 +368,8 @@ This JSON will be automatically parsed, so ensure the format is precise."""
             return None, False
 
     except Exception:
-        print("EXCEPTION in get_citation_addition (selecting papers):")
-        print(traceback.format_exc())
+        logger.info("EXCEPTION in get_citation_addition (selecting papers):")
+        logger.info(traceback.format_exc())
         return None, False
 
     references_format = """% {description}
@@ -347,8 +385,14 @@ Ensure that the paper is scientifically accurate, objective, and truthful. Accur
 You are planning to submit to a top-tier ML conference, which has guidelines:
 - The main paper is limited to {page_limit} pages, including all figures and tables, but excluding references, the impact statement, and optional appendices. In general, try to use the available space and include all relevant information.
 - The main paper should be double-column format, while the appendices can be in single-column format. When in double column format, make sure that tables and figures are correctly placed.
-- Do not change the overall style which is mandated by the conference. Keep to the current method of including the references.bib file.
+- Do not change the overall style which is mandated by the conference. Keep to the current method of including the {bib_filename} file.
 - Do not remove the \\graphicspath directive or no figures will be found.
+
+CRITICAL — LaTeX must be syntactically valid and compile with pdflatex:
+- Every \\begin{{...}} must have a matching \\end{{...}} with correct nesting.
+- The **assembled full manuscript** (after any continuation turns for length limits) MUST end with \\end{{document}} inside the ```latex block. Do **not** add a premature \\end{{document}} only to satisfy length in a single reply.
+- If you hit a length limit while generating, stop at a **safe** boundary; the system will ask you to continue until the real \\end{{document}}.
+- Escape special characters in text: & % $ # _ {{ }} ~ ^ \\ (use \\% for percent in text, etc.).
 
 Here are some tips for each section of the paper:
 
@@ -442,6 +486,7 @@ Your current progress on the LaTeX write-up is:
 Produce the final version of the LaTeX manuscript now, ensuring the paper is coherent, concise, and reports results accurately.
 Return the entire file in full, with no unfilled placeholders!
 This must be an acceptable complete LaTeX writeup.
+Prioritize syntactically correct LaTeX (balanced environments, \\end{{document}} present).
 
 Please provide the updated LaTeX code for 'template.tex', wrapped in triple backticks
 with "latex" syntax highlighting, like so:
@@ -456,8 +501,9 @@ def perform_writeup(
     base_folder,
     no_writing=False,
     num_cite_rounds=20,
-    small_model="gpt-4o-2024-05-13",
-    big_model="o1-2024-12-17",
+    small_model="deepseek-v3.2",
+    big_model="deepseek-v3.2",
+    vlm_model="qwen/qwen3-vl-plus",
     n_writeup_reflections=3,
     page_limit=8,
 ):
@@ -472,6 +518,7 @@ def perform_writeup(
     #     os.remove(pdf_file)
 
     try:
+        vlm_model = resolve_vlm_model(vlm_model)
         # Load idea text
         idea_text = ""
         research_idea_path = osp.join(base_folder, "research_idea.md")
@@ -498,7 +545,7 @@ def perform_writeup(
                     with open(path, "r") as f:
                         loaded_summaries[key] = json.load(f)
                 except json.JSONDecodeError:
-                    print(
+                    logger.info(
                         f"Warning: {fname} is not valid JSON. Using empty data for {key}."
                     )
                     loaded_summaries[key] = {}
@@ -517,6 +564,9 @@ def perform_writeup(
         writeup_file = osp.join(latex_folder, "template.tex")
         with open(writeup_file, "r") as f:
             writeup_text = f.read()
+        bib_name = _extract_bibliography_name(writeup_text)
+        bib_filename = f"{bib_name}.bib"
+        _remove_external_bib_file(latex_folder, bib_filename)
 
         # Gather plot filenames from figures/ folder
         figures_dir = osp.join(base_folder, "figures")
@@ -536,8 +586,7 @@ def perform_writeup(
             aggregator_code = "No aggregator script found."
 
         if no_writing:
-            compile_latex(latex_folder, base_pdf_file + ".pdf")
-            return osp.exists(base_pdf_file + ".pdf")
+            return compile_latex(latex_folder, base_pdf_file + ".pdf")
 
         # Run small model for citation additions
         client, client_model = create_client(small_model)
@@ -545,14 +594,13 @@ def perform_writeup(
             with open(writeup_file, "r") as f:
                 writeup_text = f.read()
             try:
-                references_bib = re.search(
-                    r"\\begin{filecontents}{references.bib}(.*?)\\end{filecontents}",
-                    writeup_text,
-                    re.DOTALL,
-                )
-                if references_bib is None:
-                    raise ValueError("No references.bib found in template.tex")
-                citations_text = references_bib.group(1)
+                bib_name = _extract_bibliography_name(writeup_text)
+                bib_filename = f"{bib_name}.bib"
+                _remove_external_bib_file(latex_folder, bib_filename)
+                bib_entries = _extract_bib_entries_from_filecontents(writeup_text, bib_name)
+                if bib_entries is None:
+                    raise ValueError(f"No {bib_filename} found in template.tex filecontents")
+                citations_text = bib_entries
                 context_for_citation = (combined_summaries_str, citations_text)
 
                 addition, done = get_citation_addition(
@@ -562,11 +610,13 @@ def perform_writeup(
                     round_idx,
                     num_cite_rounds,
                     idea_text,
+                    bib_filename,
                 )
                 if done:
                     break
 
                 if addition is not None:
+                    addition = _sanitize_bibtex_text(addition)
                     # Simple check to avoid duplicating the same title
                     title_match = re.search(r" title = {(.*?)}", addition)
                     if title_match:
@@ -576,20 +626,20 @@ def perform_writeup(
                         )
                         existing_titles = [t.lower() for t in existing_titles]
                         if new_title not in existing_titles:
-                            pattern_end = r"\end{filecontents}"
-                            revised = writeup_text.replace(
-                                pattern_end, f"\n{addition}{pattern_end}"
+                            revised = _append_bib_entries_to_filecontents(
+                                writeup_text, bib_name, addition
                             )
                             with open(writeup_file, "w") as fo:
                                 fo.write(revised)
+                            _remove_external_bib_file(latex_folder, bib_filename)
             except Exception:
-                print("EXCEPTION in perform_writeup (citation round):")
-                print(traceback.format_exc())
+                logger.info("EXCEPTION in perform_writeup (citation round):")
+                logger.info(traceback.format_exc())
                 continue
 
         # Generate VLM-based descriptions but do not overwrite plot_names
         try:
-            vlm_client, vlm_model = create_vlm_client(small_model)
+            vlm_client, vlm_model = create_vlm_client(vlm_model)
             desc_map = {}
             for pf in plot_names:
                 ppath = osp.join(figures_dir, pf)
@@ -614,17 +664,34 @@ def perform_writeup(
                 plot_descriptions_list.append(f"{fname}: {desc_text}")
             plot_descriptions_str = "\n".join(plot_descriptions_list)
         except Exception:
-            print("EXCEPTION in VLM figure description generation:")
-            print(traceback.format_exc())
+            logger.info("EXCEPTION in VLM figure description generation:")
+            logger.info(traceback.format_exc())
             plot_descriptions_str = "No descriptions available."
+
+        with open(writeup_file, "r") as f:
+            writeup_text = f.read()
+        writeup_text = _sanitize_filecontents_bib_blocks(writeup_text)
+        with open(writeup_file, "w") as f:
+            f.write(writeup_text)
+        bib_name = _extract_bibliography_name(writeup_text)
+        bib_filename = f"{bib_name}.bib"
+        _remove_external_bib_file(latex_folder, bib_filename)
 
         # Construct final prompt for big model, placing the figure descriptions alongside the plot list
         big_model_system_message = writeup_system_message_template.format(
-            page_limit=page_limit
+            page_limit=page_limit,
+            bib_filename=bib_filename,
         )
         big_client, big_client_model = create_client(big_model)
-        with open(writeup_file, "r") as f:
-            writeup_text = f.read()
+
+        def _compile_to_pdf(out_pdf: str) -> bool:
+            return compile_latex_with_incremental_repair(
+                latex_folder,
+                out_pdf,
+                writeup_file,
+                big_client,
+                big_client_model,
+            )
 
         combined_prompt = writeup_prompt.format(
             idea_text=idea_text,
@@ -633,20 +700,29 @@ def perform_writeup(
             plot_list=", ".join(plot_names),
             latex_writeup=writeup_text,
             plot_descriptions=plot_descriptions_str,
+            bib_filename=bib_filename,
         )
 
-        response, msg_history = get_response_from_llm(
-            msg=combined_prompt,
+        response, msg_history = get_writeup_response_with_length_continuations(
+            prompt=combined_prompt,
             client=big_client,
             model=big_client_model,
             system_message=big_model_system_message,
             print_debug=False,
         )
 
-        latex_code_match = re.search(r"```latex(.*?)```", response, re.DOTALL)
-        if not latex_code_match:
+        updated_latex_code = extract_latex_fenced_block(response)
+        if not updated_latex_code:
+            preview = (response or "").strip().replace("\n", " ")[:900]
+            logger.warning(
+                "Writeup: could not extract LaTeX from model response (need "
+                "```latex ... ``` or ```latex with no closing fence). "
+                "Response preview: %s%s",
+                preview,
+                "…" if len(response or "") > 900 else "",
+            )
             return False
-        updated_latex_code = latex_code_match.group(1).strip()
+        updated_latex_code = _sanitize_filecontents_bib_blocks(updated_latex_code)
         with open(writeup_file, "w") as f:
             f.write(updated_latex_code)
 
@@ -654,6 +730,9 @@ def perform_writeup(
         for i in range(n_writeup_reflections):
             with open(writeup_file, "r") as f:
                 current_latex = f.read()
+            current_bib_name = _extract_bibliography_name(current_latex)
+            current_bib_filename = f"{current_bib_name}.bib"
+            _remove_external_bib_file(latex_folder, current_bib_filename)
 
             # Check for unused or invalid figure references
             referenced_figs_temp = re.findall(
@@ -665,9 +744,9 @@ def perform_writeup(
             invalid_figs = used_figs - all_figs
 
             # Compile current version before reflection
-            compile_latex(latex_folder, base_pdf_file + f"_{compile_attempt}.pdf")
+            _compile_to_pdf(base_pdf_file + f"_{compile_attempt}.pdf")
             compile_attempt += 1
-            print(f"Compiled {base_pdf_file}_{compile_attempt}.pdf")
+            logger.info(f"Compiled {base_pdf_file}_{compile_attempt}.pdf")
 
             # Detect where "Impact Statement" appears
             impact_loc = detect_pages_before_impact(latex_folder)
@@ -706,8 +785,8 @@ Do not hallucinate any details!
 If you believe you are done, simply say: "I am done".
 """
 
-            reflection_response, msg_history = get_response_from_llm(
-                msg=reflection_prompt,
+            reflection_response, msg_history = get_writeup_response_with_length_continuations(
+                prompt=reflection_prompt,
                 client=big_client,
                 model=big_client_model,
                 system_message=big_model_system_message,
@@ -716,16 +795,13 @@ If you believe you are done, simply say: "I am done".
             )
 
             if "I am done" in reflection_response:
-                print(
+                logger.info(
                     "LLM indicated it is done with reflections. Exiting reflection loop."
                 )
                 break
 
-            reflection_code_match = re.search(
-                r"```latex(.*?)```", reflection_response, re.DOTALL
-            )
-            if reflection_code_match:
-                reflected_latex_code = reflection_code_match.group(1).strip()
+            reflected_latex_code = extract_latex_fenced_block(reflection_response)
+            if reflected_latex_code:
                 if reflected_latex_code != current_latex:
                     final_text = reflected_latex_code
                     cleanup_map = {
@@ -740,23 +816,28 @@ If you believe you are done, simply say: "I am done".
                     with open(writeup_file, "w") as fo:
                         fo.write(final_text)
 
-                    compile_latex(
-                        latex_folder, base_pdf_file + f"_{compile_attempt}.pdf"
-                    )
+                    _compile_to_pdf(base_pdf_file + f"_{compile_attempt}.pdf")
                     compile_attempt += 1
-                    print(f"Compiled {base_pdf_file}_{compile_attempt}.pdf")
+                    logger.info(f"Compiled {base_pdf_file}_{compile_attempt}.pdf")
                 else:
-                    print(f"No changes in reflection step {i+1}.")
+                    logger.info(f"No changes in reflection step {i+1}.")
                     break
             else:
-                print(f"No valid LaTeX code block found in reflection step {i+1}.")
+                logger.info(f"No valid LaTeX code block found in reflection step {i+1}.")
                 break
 
-        return osp.exists(base_pdf_file + f"_{compile_attempt-1}.pdf")
+        out_pdf = base_pdf_file + f"_{compile_attempt-1}.pdf"
+        if osp.exists(out_pdf):
+            return True
+        logger.warning(
+            "Writeup: expected PDF missing after reflection loop: %s (see LaTeX messages above).",
+            out_pdf,
+        )
+        return False
 
     except Exception:
-        print("EXCEPTION in perform_writeup:")
-        print(traceback.format_exc())
+        logger.warning("EXCEPTION in perform_writeup:")
+        logger.warning("%s", traceback.format_exc())
         return False
 
 
@@ -768,16 +849,25 @@ if __name__ == "__main__":
     parser.add_argument(
         "--model",
         type=str,
-        default="bedrock/anthropic.claude-3-5-sonnet-20240620-v1:0",
+        default="deepseek-v3.2",
         choices=AVAILABLE_LLMS,
         help="Model to use for citation collection (small model).",
     )
     parser.add_argument(
         "--big-model",
         type=str,
-        default="o1-2024-12-17",
+        default="deepseek-v3.2",
         choices=AVAILABLE_LLMS,
         help="Model to use for final writeup (big model).",
+    )
+    parser.add_argument(
+        "--vlm-model",
+        type=str,
+        default="qwen/qwen3-vl-plus",
+        help=(
+            "VLM: default DashScope Qwen-VL; 'auto' = same (QWEN_API_KEY). "
+            "Use ollama/<tag> for local VLMs."
+        ),
     )
     parser.add_argument(
         "--writeup-reflections",
@@ -800,11 +890,12 @@ if __name__ == "__main__":
             num_cite_rounds=args.num_cite_rounds,
             small_model=args.model,
             big_model=args.big_model,
+            vlm_model=args.vlm_model,
             n_writeup_reflections=args.writeup_reflections,
             page_limit=args.page_limit,
         )
         if not success:
-            print("Writeup process did not complete successfully.")
+            logger.info("Writeup process did not complete successfully.")
     except Exception:
-        print("EXCEPTION in main:")
-        print(traceback.format_exc())
+        logger.info("EXCEPTION in main:")
+        logger.info(traceback.format_exc())

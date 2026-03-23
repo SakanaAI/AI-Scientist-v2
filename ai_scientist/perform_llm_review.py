@@ -9,6 +9,9 @@ from ai_scientist.llm import (
     get_batch_responses_from_llm,
     extract_json_between_markers,
 )
+import logging
+logger = logging.getLogger(__name__)
+
 
 reviewer_system_prompt_base = (
     "You are an AI researcher who is reviewing a paper that was submitted to a prestigious ML venue."
@@ -163,7 +166,7 @@ Here is the paper you are asked to review:
             try:
                 parsed_reviews.append(extract_json_between_markers(rev))
             except Exception as e:
-                print(f"Ensemble review {idx} failed: {e}")
+                logger.info(f"Ensemble review {idx} failed: {e}")
         parsed_reviews = [r for r in parsed_reviews if r is not None]
         review = get_meta_review(model, client, temperature, parsed_reviews)
         if review is None:
@@ -265,7 +268,7 @@ def load_paper(pdf_path, num_pages=None, min_size=100):
         if len(text) < min_size:
             raise Exception("Text too short")
     except Exception as e:
-        print(f"Error with pymupdf4llm, falling back to pymupdf: {e}")
+        logger.info(f"Error with pymupdf4llm, falling back to pymupdf: {e}")
         try:
             doc = pymupdf.open(pdf_path)
             if num_pages:
@@ -276,7 +279,7 @@ def load_paper(pdf_path, num_pages=None, min_size=100):
             if len(text) < min_size:
                 raise Exception("Text too short")
         except Exception as e:
-            print(f"Error with pymupdf, falling back to pypdf: {e}")
+            logger.info(f"Error with pymupdf, falling back to pypdf: {e}")
             reader = PdfReader(pdf_path)
             if num_pages is None:
                 pages = reader.pages

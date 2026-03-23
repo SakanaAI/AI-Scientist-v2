@@ -3,6 +3,9 @@ import os
 import sys
 
 from .journal import Node, Journal
+import logging
+logger = logging.getLogger(__name__)
+
 
 parent_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", ".."))
 sys.path.insert(0, parent_dir)
@@ -138,7 +141,7 @@ def get_nodes_infos(nodes):
 def get_summarizer_prompt(journal, stage_name):
     good_leaf_nodes = [n for n in journal.good_nodes if n.is_leaf]
     if not good_leaf_nodes:
-        print("NO GOOD LEAF NODES!!!")
+        logger.info("NO GOOD LEAF NODES!!!")
         good_leaf_nodes = [n for n in journal.good_nodes]
     node_infos = get_nodes_infos(good_leaf_nodes)
     return report_summarizer_sys_msg, report_summarizer_prompt.format(
@@ -213,7 +216,7 @@ def update_summary(
         assert summary_json
     except Exception as e:
         if max_retry > 0:
-            print(f"Error occurred: {e}. Retrying... ({max_retry} attempts left)")
+            logger.info(f"Error occurred: {e}. Retrying... ({max_retry} attempts left)")
             return update_summary(
                 prev_summary,
                 cur_stage_name,
@@ -224,7 +227,7 @@ def update_summary(
                 max_retry - 1,
             )
         else:
-            print(f"Failed to update summary after multiple attempts. Error: {e}")
+            logger.info(f"Failed to update summary after multiple attempts. Error: {e}")
             raise
     return summary_json
 
@@ -269,7 +272,7 @@ def annotate_history(journal, cfg=None):
                     if cfg.agent.get("summary", None) is not None:
                         model = cfg.agent.summary.model
                     else:
-                        model = "gpt-4o-2024-08-06"
+                        model = "deepseek-v3.2"
                     client = get_ai_client(model)
                     response = get_response_from_llm(
                         overall_plan_summarizer_prompt.format(
@@ -287,9 +290,9 @@ def annotate_history(journal, cfg=None):
                 except Exception as e:
                     retry_count += 1
                     if retry_count == max_retries:
-                        print(f"Failed after {max_retries} attempts. Error: {e}")
+                        logger.info(f"Failed after {max_retries} attempts. Error: {e}")
                         raise
-                    print(
+                    logger.info(
                         f"Error occurred: {e}. Retrying... ({max_retries - retry_count} attempts left)"
                     )
         else:
@@ -341,7 +344,7 @@ def overall_summarize(journals, cfg=None):
             if cfg.agent.get("summary", None) is not None:
                 model = cfg.agent.summary.get("model", "")
             else:
-                model = "gpt-4o-2024-08-06"
+                model = "deepseek-v3.2"
             client = get_ai_client(model)
             summary_json = get_stage_summary(journal, stage_name, model, client)
             return summary_json
@@ -408,15 +411,15 @@ if __name__ == "__main__":
     stage_folders = load_stage_folders(example_path)
     journals = []
     for index, folder in enumerate(stage_folders, start=1):
-        print(f"Stage {index}: {folder}")
+        logger.info(f"Stage {index}: {folder}")
         stage_name = os.path.basename(folder)
         journal_path = os.path.join(folder, "journal.json")
         if os.path.exists(journal_path):
             with open(journal_path, "r") as file:
                 journal_data = json.load(file)
-                print(f"Loaded journal.json for Stage {index}")
+                logger.info(f"Loaded journal.json for Stage {index}")
         else:
-            print(f"No journal.json found for Stage {index}")
+            logger.info(f"No journal.json found for Stage {index}")
         journal = reconstruct_journal(journal_data)
         journals.append((stage_name, journal))
 
@@ -445,8 +448,8 @@ if __name__ == "__main__":
     with open(ablation_summary_path, "w") as ablation_file:
         json.dump(ablation_summary, ablation_file, indent=2)
 
-    print(f"Summary reports written to files:")
-    print(f"- Draft summary: {draft_summary_path}")
-    print(f"- Baseline summary: {baseline_summary_path}")
-    print(f"- Research summary: {research_summary_path}")
-    print(f"- Ablation summary: {ablation_summary_path}")
+    logger.info(f"Summary reports written to files:")
+    logger.info(f"- Draft summary: {draft_summary_path}")
+    logger.info(f"- Baseline summary: {baseline_summary_path}")
+    logger.info(f"- Research summary: {research_summary_path}")
+    logger.info(f"- Ablation summary: {ablation_summary_path}")

@@ -2,6 +2,9 @@ import warnings
 from datetime import datetime
 import numpy as np
 import time  # Add at the top with other imports
+import logging
+logger = logging.getLogger(__name__)
+
 
 warnings.filterwarnings("ignore", category=UserWarning)
 
@@ -229,7 +232,7 @@ if torch.cuda.is_available():
     try:
         model = torch.compile(model)
     except Exception as e:
-        print(f"Warning: torch.compile failed, falling back to eager mode. Error: {e}")
+        logger.info(f"Warning: torch.compile failed, falling back to eager mode. Error: {e}")
 
 criterion = nn.CrossEntropyLoss(label_smoothing=0.1)
 
@@ -337,7 +340,7 @@ for epoch in range(NUM_EPOCHS):
             )
 
             # Log to console
-            print(
+            logger.info(
                 f"Epoch [{epoch + 1}/{NUM_EPOCHS}], "
                 f"Step [{step + 1}/{len(train_loader)}], "
                 f"Loss: {loss.item():.4f}, "
@@ -380,23 +383,23 @@ for epoch in range(NUM_EPOCHS):
                     checkpoint_path,
                 )
                 np.save(log_file, metrics)
-                print(f"Saved checkpoint to {checkpoint_path}")
+                logger.info(f"Saved checkpoint to {checkpoint_path}")
             running_loss = 0.0
             model.train()  # Set back to training mode
 
     # Reset epoch timer and print epoch summary
     epoch_time = time.time() - epoch_start_time
     epoch_start_time = time.time()
-    print(f"Epoch {epoch+1} completed in {epoch_time:.2f} seconds")
+    logger.info(f"Epoch {epoch+1} completed in {epoch_time:.2f} seconds")
 
     # Print total training time at the end
     total_time = time.time() - start_time
     hours = total_time // 3600
     minutes = (total_time % 3600) // 60
     seconds = total_time % 60
-    print(f"Total training time: {hours:.0f}h {minutes:.0f}m {seconds:.2f}s")
+    logger.info(f"Total training time: {hours:.0f}h {minutes:.0f}m {seconds:.2f}s")
 
-print("Training finished!")
+logger.info("Training finished!")
 
 # Save final metrics and model
 np.save(log_file, metrics)

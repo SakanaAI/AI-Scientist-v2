@@ -42,7 +42,12 @@ def idea_to_markdown(data: dict, output_path: str, load_code: str) -> None:
                 f.write(f"```python\n{code}\n```\n\n")
 
 
-def edit_bfts_config_file(config_path: str, idea_dir: str, idea_path: str) -> str:
+def edit_bfts_config_file(
+    config_path: str,
+    idea_dir: str,
+    idea_path: str,
+    vlm_model: str | None = None,
+) -> str:
     """
     Edit the bfts_config.yaml file to point to the idea.md file
 
@@ -50,6 +55,7 @@ def edit_bfts_config_file(config_path: str, idea_dir: str, idea_path: str) -> st
         config_path: Path to the bfts_config.yaml file
         idea_dir: Directory where the idea.md file is located
         idea_path: Path to the idea.md file
+        vlm_model: If set, overwrites ``agent.vlm_feedback.model`` (e.g. resolved ``auto`` choice).
 
     Returns:
         Path to the edited bfts_config.yaml file
@@ -70,6 +76,9 @@ def edit_bfts_config_file(config_path: str, idea_dir: str, idea_path: str) -> st
     log_dir = osp.join(idea_dir, "logs")
     os.makedirs(log_dir, exist_ok=True)
     config["log_dir"] = log_dir
+
+    if vlm_model is not None:
+        config["agent"]["vlm_feedback"]["model"] = vlm_model
 
     with open(run_config_path, "w") as f:
         yaml.dump(config, f)

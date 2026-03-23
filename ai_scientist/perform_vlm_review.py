@@ -10,6 +10,9 @@ from ai_scientist.vlm import (
 )
 
 from ai_scientist.perform_llm_review import load_paper
+import logging
+logger = logging.getLogger(__name__)
+
 
 
 def encode_image_to_base64(image_data):
@@ -183,7 +186,7 @@ def extract_figure_screenshots(
                     bbox = pymupdf.Rect(b[0], b[1], b[2], b[3])
                     text_blocks.append({"page": page_num, "bbox": bbox, "text": txt})
         except Exception as e:
-            print(f"Error extracting text from page {page_num}: {e}")
+            logger.info(f"Error extracting text from page {page_num}: {e}")
 
     # ---------- (B) REGEX FOR FIGURE CAPTIONS  ----------
     # Captures the figure label so we can reference it later (group name 'fig_label').
@@ -441,7 +444,7 @@ def detect_duplicate_figures(client, client_model, pdf_path):
         return analysis
 
     except Exception as e:
-        print(f"Error analyzing images: {e}")
+        logger.info(f"Error analyzing images: {e}")
         return {"error": str(e)}
 
 

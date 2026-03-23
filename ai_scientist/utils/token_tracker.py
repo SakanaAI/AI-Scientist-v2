@@ -1,10 +1,66 @@
 from functools import wraps
-from typing import Dict, Optional, List
+from typing import Any, Dict, Optional, List
 import tiktoken
 from collections import defaultdict
 import asyncio
 from datetime import datetime
 import logging
+
+
+def _usage_int(value: Any) -> int:
+    """OpenAI-compatible providers (e.g. DashScope) may omit usage fields or use null."""
+    if value is None:
+        return 0
+    try:
+        return int(value)
+    except (TypeError, ValueError):
+        return 0
+
+
+def record_openai_completion_usage(
+    result: Any,
+    system_message: Optional[str],
+    prompt: Optional[str],
+) -> None:
+    """Accumulate token counts and interaction from a chat.completions result."""
+    system_message = system_message if system_message is not None else ""
+    prompt = prompt if prompt is not None else ""
+
+    model = getattr(result, "model", None) or "unknown"
+    ts = getattr(result, "created", None)
+
+    content = ""
+    choices = getattr(result, "choices", None) or []
+    if choices:
+        msg = getattr(choices[0], "message", None)
+        if msg is not None:
+            raw = getattr(msg, "content", None)
+            if isinstance(raw, str):
+                content = raw
+            elif raw is not None:
+                content = str(raw)
+
+    usage = getattr(result, "usage", None)
+    if usage is not None:
+        prompt_t = _usage_int(getattr(usage, "prompt_tokens", None))
+        completion_t = _usage_int(getattr(usage, "completion_tokens", None))
+        reasoning_t = 0
+        ctd = getattr(usage, "completion_tokens_details", None)
+        if ctd is not None:
+            reasoning_t = _usage_int(getattr(ctd, "reasoning_tokens", None))
+        cached_t = 0
+        ptd = getattr(usage, "prompt_tokens_details", None)
+        if ptd is not None:
+            cached_t = _usage_int(getattr(ptd, "cached_tokens", None))
+        token_tracker.add_tokens(
+            model, prompt_t, completion_t, reasoning_t, cached_t
+        )
+        # Match original repo: only log interactions when completion_tokens_details
+        # exists (VLM prompts can be huge; avoid orphan logs without that signal).
+        if ctd is not None:
+            token_tracker.add_interaction(
+                model, system_message, prompt, content, ts
+            )
 
 
 class TokenTracker:
@@ -67,10 +123,10 @@ class TokenTracker:
         reasoning_tokens: int,
         cached_tokens: int,
     ):
-        self.token_counts[model]["prompt"] += prompt_tokens
-        self.token_counts[model]["completion"] += completion_tokens
-        self.token_counts[model]["reasoning"] += reasoning_tokens
-        self.token_counts[model]["cached"] += cached_tokens
+        self.token_counts[model]["prompt"] += _usage_int(prompt_tokens)
+        self.token_counts[model]["completion"] += _usage_int(completion_tokens)
+        self.token_counts[model]["reasoning"] += _usage_int(reasoning_tokens)
+        self.token_counts[model]["cached"] += _usage_int(cached_tokens)
 
     def add_interaction(
         self,
@@ -150,35 +206,8 @@ def track_token_usage(func):
                 "Either 'prompt' or 'system_message' must be provided for token tracking"
             )
 
-        logging.info("args: ", args)
-        logging.info("kwargs: ", kwargs)
-
         result = await func(*args, **kwargs)
-        model = result.model
-        timestamp = result.created
-
-        if hasattr(result, "usage") and result.usage.completion_tokens_details is not None:
-            token_tracker.add_tokens(
-                model,
-                result.usage.prompt_tokens,
-                result.usage.completion_tokens,
-                result.usage.completion_tokens_details.reasoning_tokens,
-                (
-                    result.usage.prompt_tokens_details.cached_tokens
-                    if hasattr(result.usage, "prompt_tokens_details")
-                    else 0
-                ),
-            )
-            # Add interaction details
-            token_tracker.add_interaction(
-                model,
-                system_message,
-                prompt,
-                result.choices[
-                    0
-                ].message.content,  # Assumes response is in content field
-                timestamp,
-            )
+        record_openai_completion_usage(result, system_message, prompt)
         return result
 
     @wraps(func)
@@ -190,33 +219,7 @@ def track_token_usage(func):
                 "Either 'prompt' or 'system_message' must be provided for token tracking"
             )
         result = func(*args, **kwargs)
-        model = result.model
-        timestamp = result.created
-        logging.info("args: ", args)
-        logging.info("kwargs: ", kwargs)
-
-        if hasattr(result, "usage") and result.usage.completion_tokens_details is not None:
-            token_tracker.add_tokens(
-                model,
-                result.usage.prompt_tokens,
-                result.usage.completion_tokens,
-                result.usage.completion_tokens_details.reasoning_tokens,
-                (
-                    result.usage.prompt_tokens_details.cached_tokens
-                    if hasattr(result.usage, "prompt_tokens_details")
-                    else 0
-                ),
-            )
-            # Add interaction details
-            token_tracker.add_interaction(
-                model,
-                system_message,
-                prompt,
-                result.choices[
-                    0
-                ].message.content,  # Assumes response is in content field
-                timestamp,
-            )
+        record_openai_completion_usage(result, system_message, prompt)
         return result
 
     return async_wrapper if asyncio.iscoroutinefunction(func) else sync_wrapper
