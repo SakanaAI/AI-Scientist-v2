@@ -1,0 +1,13 @@
+{
+  "name": "strelkon-AI-Scientist-v2",
+  "owner": {
+    "name": "strelkon"
+  },
+  "plugins": [
+    {
+      "name": "ai-scientist",
+      "description": "Autonomous scientific research pipeline — generate ideas, run experiments, write papers, and peer review. No external LLM API keys required.",
+      "source": "./plugin"
+    }
+  ]
+}

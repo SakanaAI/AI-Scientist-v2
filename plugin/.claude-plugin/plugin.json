@@ -1,0 +1,35 @@
+{
+  "name": "ai-scientist",
+  "version": "1.0.0",
+  "description": "Fully autonomous scientific research pipeline — generate ideas, run experiments, write papers, and peer review. All stages run natively in Claude Code with no external LLM API keys.",
+  "author": {
+    "name": "Sakana AI",
+    "url": "https://github.com/SakanaAI/AI-Scientist-v2"
+  },
+  "repository": "https://github.com/strelkon/AI-Scientist-v2",
+  "license": "Apache-2.0",
+  "keywords": [
+    "research",
+    "science",
+    "ml",
+    "experiments",
+    "paper-writing",
+    "peer-review",
+    "latex",
+    "semantic-scholar"
+  ],
+  "userConfig": {
+    "S2_API_KEY": {
+      "title": "Semantic Scholar API Key",
+      "description": "API key for literature search (recommended). Get one at https://www.semanticscholar.org/product/api",
+      "type": "string",
+      "required": false
+    },
+    "PROJECT_DIR": {
+      "title": "AI-Scientist-v2 Repository Path",
+      "description": "Path to the AI-Scientist-v2 repository checkout (with ai_scientist/ and bfts_config.yaml)",
+      "type": "directory",
+      "required": true
+    }
+  }
+}
