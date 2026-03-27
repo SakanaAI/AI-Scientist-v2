@@ -145,78 +145,90 @@ def track_token_usage(func):
     async def async_wrapper(*args, **kwargs):
         prompt = kwargs.get("prompt")
         system_message = kwargs.get("system_message")
-        if not prompt and not system_message:
-            raise ValueError(
-                "Either 'prompt' or 'system_message' must be provided for token tracking"
-            )
-
-        logging.info("args: ", args)
-        logging.info("kwargs: ", kwargs)
 
         result = await func(*args, **kwargs)
+
+        # Handle cases where the LLM response lacks usage information
+        # (e.g., some providers/models don't return token usage)
+        if not hasattr(result, "usage") or result.usage is None:
+            logging.warning(
+                "track_token_usage: LLM response has no usage information. "
+                "Token tracking will be skipped for this call."
+            )
+            return result
+
         model = result.model
         timestamp = result.created
 
-        if hasattr(result, "usage") and result.usage.completion_tokens_details is not None:
-            token_tracker.add_tokens(
-                model,
-                result.usage.prompt_tokens,
-                result.usage.completion_tokens,
-                result.usage.completion_tokens_details.reasoning_tokens,
-                (
-                    result.usage.prompt_tokens_details.cached_tokens
-                    if hasattr(result.usage, "prompt_tokens_details")
-                    else 0
-                ),
-            )
-            # Add interaction details
-            token_tracker.add_interaction(
-                model,
-                system_message,
-                prompt,
-                result.choices[
-                    0
-                ].message.content,  # Assumes response is in content field
-                timestamp,
-            )
+        completion_details = getattr(result.usage, "completion_tokens_details", None)
+        if completion_details is not None:
+            reasoning_tokens = getattr(completion_details, "reasoning_tokens", 0)
+        else:
+            reasoning_tokens = 0
+
+        prompt_details = getattr(result.usage, "prompt_tokens_details", None)
+        cached_tokens = getattr(prompt_details, "cached_tokens", 0) if prompt_details else 0
+
+        token_tracker.add_tokens(
+            model,
+            result.usage.prompt_tokens or 0,
+            result.usage.completion_tokens or 0,
+            reasoning_tokens or 0,
+            cached_tokens or 0,
+        )
+        # Add interaction details
+        token_tracker.add_interaction(
+            model,
+            system_message,
+            prompt,
+            result.choices[0].message.content if result.choices else "",
+            timestamp,
+        )
         return result
 
     @wraps(func)
     def sync_wrapper(*args, **kwargs):
         prompt = kwargs.get("prompt")
         system_message = kwargs.get("system_message")
-        if not prompt and not system_message:
-            raise ValueError(
-                "Either 'prompt' or 'system_message' must be provided for token tracking"
-            )
+
         result = func(*args, **kwargs)
+
+        # Handle cases where the LLM response lacks usage information
+        # (e.g., some providers/models don't return token usage)
+        if not hasattr(result, "usage") or result.usage is None:
+            logging.warning(
+                "track_token_usage: LLM response has no usage information. "
+                "Token tracking will be skipped for this call."
+            )
+            return result
+
         model = result.model
         timestamp = result.created
-        logging.info("args: ", args)
-        logging.info("kwargs: ", kwargs)
 
-        if hasattr(result, "usage") and result.usage.completion_tokens_details is not None:
-            token_tracker.add_tokens(
-                model,
-                result.usage.prompt_tokens,
-                result.usage.completion_tokens,
-                result.usage.completion_tokens_details.reasoning_tokens,
-                (
-                    result.usage.prompt_tokens_details.cached_tokens
-                    if hasattr(result.usage, "prompt_tokens_details")
-                    else 0
-                ),
-            )
-            # Add interaction details
-            token_tracker.add_interaction(
-                model,
-                system_message,
-                prompt,
-                result.choices[
-                    0
-                ].message.content,  # Assumes response is in content field
-                timestamp,
-            )
+        completion_details = getattr(result.usage, "completion_tokens_details", None)
+        if completion_details is not None:
+            reasoning_tokens = getattr(completion_details, "reasoning_tokens", 0)
+        else:
+            reasoning_tokens = 0
+
+        prompt_details = getattr(result.usage, "prompt_tokens_details", None)
+        cached_tokens = getattr(prompt_details, "cached_tokens", 0) if prompt_details else 0
+
+        token_tracker.add_tokens(
+            model,
+            result.usage.prompt_tokens or 0,
+            result.usage.completion_tokens or 0,
+            reasoning_tokens or 0,
+            cached_tokens or 0,
+        )
+        # Add interaction details
+        token_tracker.add_interaction(
+            model,
+            system_message,
+            prompt,
+            result.choices[0].message.content if result.choices else "",
+            timestamp,
+        )
         return result
 
     return async_wrapper if asyncio.iscoroutinefunction(func) else sync_wrapper
