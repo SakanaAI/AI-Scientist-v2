@@ -1,5 +1,5 @@
 <div align="center">
-  <a href="https://github.com/SakanaAI/AI-Scientist_v2/blob/main/docs/logo_v1.jpg">
+  <a href="https://github.com/SakanaAI/AI-Scientist-v2/blob/main/docs/logo_v1.jpg">
     <img src="docs/logo_v1.png" width="215" alt="AI Scientist v2 Logo" />
   </a>
   <h1>
@@ -207,4 +207,4 @@ This project is licensed under **The AI Scientist Source Code License** (a deriv
 **Mandatory Disclosure:** By using this code, you are legally bound to clearly and prominently disclose the use of AI in any resulting scientific manuscripts or papers. 
 
 We recommend the following attribution in your paper's Abstract or Methods section:
-> "This manuscript was autonomously generated using [The AI Scientist](https://github.com/SakanaAI/AI-Scientist)."
+> "This manuscript was autonomously generated using [The AI Scientist-v2](https://github.com/SakanaAI/AI-Scientist-v2)."

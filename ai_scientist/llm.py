@@ -70,6 +70,8 @@ AVAILABLE_LLMS = [
     "ollama/deepseek-r1:32b",
     "ollama/deepseek-r1:70b",
     "ollama/deepseek-r1:671b",
+    # Additional Models
+    "claude-3-7-sonnet-20250219",
 ]
 
 
