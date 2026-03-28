@@ -1,5 +1,7 @@
 import json
+import logging
 import os
+import re
 import sys
 
 from .journal import Node, Journal
@@ -8,6 +10,8 @@ parent_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..",
 sys.path.insert(0, parent_dir)
 from ai_scientist.llm import get_response_from_llm, extract_json_between_markers
 from ai_scientist.treesearch.backend import get_ai_client
+
+logger = logging.getLogger(__name__)
 
 
 report_summarizer_sys_msg = """You are an expert machine learning researcher.
@@ -299,10 +303,20 @@ def annotate_history(journal, cfg=None):
 def overall_summarize(journals, cfg=None):
     from concurrent.futures import ThreadPoolExecutor
 
-    def process_stage(idx, stage_tuple):
+    def parse_stage_indices(stage_name):
+        numbers = re.findall(r"\d+", stage_name)
+        if len(numbers) < 2:
+            return None
+        main_stage = int(numbers[0])
+        sub_stage = int(numbers[1])
+        if main_stage not in {1, 2, 3, 4}:
+            return None
+        return main_stage, sub_stage
+
+    def process_stage(stage_number, stage_tuple):
         stage_name, journal = stage_tuple
         annotate_history(journal, cfg=cfg)
-        if idx in [1, 2]:
+        if stage_number in [2, 3]:
             best_node = journal.get_best_node(cfg=cfg)
             # get multi-seed results and aggregater node
             child_nodes = best_node.children
@@ -332,13 +346,13 @@ def overall_summarize(journals, cfg=None):
                         agg_node
                     ),
                 }
-        elif idx == 3:
+        elif stage_number == 4:
             good_leaf_nodes = [
                 n for n in journal.good_nodes if n.is_leaf and n.ablation_name
             ]
             return [get_node_log(n) for n in good_leaf_nodes]
-        elif idx == 0:
-            if cfg.agent.get("summary", None) is not None:
+        elif stage_number == 1:
+            if cfg is not None and cfg.agent.get("summary", None) is not None:
                 model = cfg.agent.summary.get("model", "")
             else:
                 model = "gpt-4o-2024-08-06"
@@ -348,17 +362,46 @@ def overall_summarize(journals, cfg=None):
 
     from tqdm import tqdm
 
+    selected_stages = {}
+    for order, stage_tuple in enumerate(list(journals)):
+        stage_name, _ = stage_tuple
+        parsed_stage = parse_stage_indices(stage_name)
+        if parsed_stage is None:
+            logger.warning(f"Skipping unrecognized stage name: {stage_name}")
+            continue
+        main_stage, sub_stage = parsed_stage
+        current = selected_stages.get(main_stage)
+        if current is None or (sub_stage, order) >= (
+            current["sub_stage"],
+            current["order"],
+        ):
+            selected_stages[main_stage] = {
+                "stage_tuple": stage_tuple,
+                "sub_stage": sub_stage,
+                "order": order,
+            }
+
+    stage_numbers = sorted(selected_stages.keys())
+    stage_tuples = [selected_stages[stage]["stage_tuple"] for stage in stage_numbers]
+    results_by_stage = {1: {}, 2: {}, 3: {}, 4: []}
+
     with ThreadPoolExecutor() as executor:
         results = list(
             tqdm(
-                executor.map(process_stage, range(len(list(journals))), journals),
+                executor.map(process_stage, stage_numbers, stage_tuples),
                 desc="Processing stages",
-                total=len(list(journals)),
+                total=len(stage_numbers),
             )
         )
-        draft_summary, baseline_summary, research_summary, ablation_summary = results
+        for stage_number, result in zip(stage_numbers, results):
+            results_by_stage[stage_number] = result
 
-    return draft_summary, baseline_summary, research_summary, ablation_summary
+    return (
+        results_by_stage[1],
+        results_by_stage[2],
+        results_by_stage[3],
+        results_by_stage[4],
+    )
 
 
 if __name__ == "__main__":
