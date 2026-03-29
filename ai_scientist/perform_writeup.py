@@ -454,6 +454,7 @@ with "latex" syntax highlighting, like so:
 
 def perform_writeup(
     base_folder,
+    citations_text=None,
     no_writing=False,
     num_cite_rounds=20,
     small_model="gpt-4o-2024-05-13",
@@ -539,53 +540,65 @@ def perform_writeup(
             compile_latex(latex_folder, base_pdf_file + ".pdf")
             return osp.exists(base_pdf_file + ".pdf")
 
-        # Run small model for citation additions
-        client, client_model = create_client(small_model)
-        for round_idx in range(num_cite_rounds):
+        # If citations are precomputed, inject once and skip citation rounds.
+        if citations_text:
             with open(writeup_file, "r") as f:
-                writeup_text = f.read()
-            try:
-                references_bib = re.search(
-                    r"\\begin{filecontents}{references.bib}(.*?)\\end{filecontents}",
-                    writeup_text,
-                    re.DOTALL,
-                )
-                if references_bib is None:
-                    raise ValueError("No references.bib found in template.tex")
-                citations_text = references_bib.group(1)
-                context_for_citation = (combined_summaries_str, citations_text)
+                content = f.read()
+            pattern_end = r"\end{filecontents}"
+            content = content.replace(pattern_end, f"\n{citations_text}{pattern_end}")
+            with open(writeup_file, "w") as f:
+                f.write(content)
+        else:
+            # Run small model for citation additions
+            client, client_model = create_client(small_model)
+            for round_idx in range(num_cite_rounds):
+                with open(writeup_file, "r") as f:
+                    writeup_text = f.read()
+                try:
+                    references_bib = re.search(
+                        r"\\begin{filecontents}{references.bib}(.*?)\\end{filecontents}",
+                        writeup_text,
+                        re.DOTALL,
+                    )
+                    if references_bib is None:
+                        raise ValueError("No references.bib found in template.tex")
+                    existing_citations_text = references_bib.group(1)
+                    context_for_citation = (
+                        combined_summaries_str,
+                        existing_citations_text,
+                    )
 
-                addition, done = get_citation_addition(
-                    client,
-                    client_model,
-                    context_for_citation,
-                    round_idx,
-                    num_cite_rounds,
-                    idea_text,
-                )
-                if done:
-                    break
+                    addition, done = get_citation_addition(
+                        client,
+                        client_model,
+                        context_for_citation,
+                        round_idx,
+                        num_cite_rounds,
+                        idea_text,
+                    )
+                    if done:
+                        break
 
-                if addition is not None:
-                    # Simple check to avoid duplicating the same title
-                    title_match = re.search(r" title = {(.*?)}", addition)
-                    if title_match:
-                        new_title = title_match.group(1).lower()
-                        existing_titles = re.findall(
-                            r" title = {(.*?)}", citations_text
-                        )
-                        existing_titles = [t.lower() for t in existing_titles]
-                        if new_title not in existing_titles:
-                            pattern_end = r"\end{filecontents}"
-                            revised = writeup_text.replace(
-                                pattern_end, f"\n{addition}{pattern_end}"
+                    if addition is not None:
+                        # Simple check to avoid duplicating the same title
+                        title_match = re.search(r" title = {(.*?)}", addition)
+                        if title_match:
+                            new_title = title_match.group(1).lower()
+                            existing_titles = re.findall(
+                                r" title = {(.*?)}", existing_citations_text
                             )
-                            with open(writeup_file, "w") as fo:
-                                fo.write(revised)
-            except Exception:
-                print("EXCEPTION in perform_writeup (citation round):")
-                print(traceback.format_exc())
-                continue
+                            existing_titles = [t.lower() for t in existing_titles]
+                            if new_title not in existing_titles:
+                                pattern_end = r"\end{filecontents}"
+                                revised = writeup_text.replace(
+                                    pattern_end, f"\n{addition}{pattern_end}"
+                                )
+                                with open(writeup_file, "w") as fo:
+                                    fo.write(revised)
+                except Exception:
+                    print("EXCEPTION in perform_writeup (citation round):")
+                    print(traceback.format_exc())
+                    continue
 
         # Generate VLM-based descriptions but do not overwrite plot_names
         try:
