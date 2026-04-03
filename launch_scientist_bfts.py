@@ -161,7 +161,11 @@ def find_pdf_path_for_review(idea_dir):
             else:
                 # Fall back to the first reflection PDF if no numbers found
                 pdf_path = osp.join(idea_dir, reflection_pdfs[0])
-    return pdf_path
+        return pdf_path
+    elif pdf_files:
+        # Fall back to any PDF in the directory if no reflection PDFs found
+        return osp.join(idea_dir, pdf_files[0])
+    return None
 
 
 @contextmanager
@@ -304,7 +308,7 @@ if __name__ == "__main__":
     if not args.skip_review and not args.skip_writeup:
         # Perform paper review if the paper exists
         pdf_path = find_pdf_path_for_review(idea_dir)
-        if os.path.exists(pdf_path):
+        if pdf_path is not None and os.path.exists(pdf_path):
             print("Paper found at: ", pdf_path)
             paper_content = load_paper(pdf_path)
             client, client_model = create_client(args.model_review)
