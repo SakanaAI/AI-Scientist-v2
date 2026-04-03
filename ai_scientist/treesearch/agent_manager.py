@@ -344,6 +344,16 @@ Your research idea:\n\n
         self, current_substage: Stage, journal: Journal
     ) -> bool:
         """Check if the current sub-stage is complete"""
+        # Terminate if max iterations reached
+        if len(journal.nodes) >= current_substage.max_iterations:
+            logger.info(
+                f"Stage {current_substage.name} completed: reached max iterations"
+            )
+            print(
+                f"[green]Stage {current_substage.name} completed: reached max iterations[/green]"
+            )
+            return True, "Reached max iterations"
+
         best_node = journal.get_best_node(cfg=self.cfg)
         if not best_node:
             return False, "No best node found"
@@ -394,18 +404,8 @@ Your research idea:\n\n
                 f"Error in sub-stage {current_substage.name} completion evaluation",
             )
 
-        # Terminate if max iterations reached
-        if len(journal.nodes) >= current_substage.max_iterations:
-            logger.info(
-                f"Stage {current_substage.name} completed: reached max iterations"
-            )
-            print(
-                f"[green]Stage {current_substage.name} completed: reached max iterations[/green]"
-            )
-            return True, "Reached max iterations"
-
         print(f"[green]Stage {current_substage.name} not completed[/green]")
-        return False
+        return False, "stage not completed"
 
     def _check_stage_completion(self, stage: Stage) -> bool:
         """Check if current stage is complete based on criteria"""
