@@ -1,29 +1,36 @@
 <div align="center">
   <a href="https://github.com/SakanaAI/AI-Scientist_v2/blob/main/docs/logo_v1.jpg">
-    <img src="docs/logo_v1.png" width="215" alt="AI Scientist v2 Logo" />
+    <img src="docs/logo_v1.png" width="215" alt="AI Scientist v3 Logo" />
   </a>
   <h1>
-    <b>The AI Scientist-v2: Workshop-Level Automated</b><br>
-    <b>Scientific Discovery via Agentic Tree Search</b>
+    <b>The AI Scientist-v3: Agent-Orchestrated</b><br>
+    <b>Automated Scientific Discovery</b>
   </h1>
 </div>
 
 <p align="center">
-  📚 <a href="https://pub.sakana.ai/ai-scientist-v2/paper">[Paper]</a> |
+  📚 <a href="https://pub.sakana.ai/ai-scientist-v2/paper">[v2 Paper]</a> |
   📝 <a href="https://sakana.ai/ai-scientist-first-publication/"> [Blog Post]</a> |
   📂 <a href="https://github.com/SakanaAI/AI-Scientist-ICLR2025-Workshop-Experiment"> [ICLR2025 Workshop Experiment]</a>
 </p>
 
-Fully autonomous scientific research systems are becoming increasingly capable, with AI playing a pivotal role in transforming how scientific discoveries are made.
-We are excited to introduce The AI Scientist-v2, a generalized end-to-end agentic system that has generated the first workshop paper written entirely by AI and accepted through peer review.
+**AI-Scientist-v3** is a fork of [Sakana AI’s AI-Scientist-v2](https://github.com/SakanaAI/AI-Scientist_v2) that replaces all direct model-provider API calls (OpenAI, Anthropic, Bedrock, etc.) with **coding agent orchestration**. The coding agent (e.g., Claude Code) uses its own native capabilities instead of raw SDK calls. **No API keys are needed.**
 
-This system autonomously generates hypotheses, runs experiments, analyzes data, and writes scientific manuscripts. Unlike [its predecessor (AI Scientist-v1)](https://github.com/SakanaAI/AI-Scientist), the AI Scientist-v2 removes reliance on human-authored templates, generalizes across Machine Learning (ML) domains, and employs a progressive agentic tree search, guided by an experiment manager agent.
+The system autonomously generates hypotheses, runs experiments via agentic tree search, analyzes data, writes LaTeX papers, and conducts peer review -- all orchestrated through a unified agent backend.
 
-> **Note:**
-> The AI Scientist-v2 doesn’t necessarily produce better papers than v1, especially when a strong starting template is available. v1 follows well-defined templates, leading to high success rates, while v2 takes a broader, more exploratory approach with lower success rates. v1 works best for tasks with clear objectives and a solid foundation, whereas v2 is designed for open-ended scientific exploration.
+### What Changed in v3
+
+| Aspect | v2 | v3 |
+|--------|----|----|
+| LLM calls | Direct SDK (OpenAI, Anthropic, Bedrock) | Agent subprocess (Claude CLI) |
+| API keys | Required (OPENAI_API_KEY, AWS_*, etc.) | Not needed |
+| Model selection | Specific model strings (gpt-4o, claude-3.5-sonnet) | Unified "agent" routing |
+| Function calling | API-level tool_choice | Prompt-based structured output |
+| Token tracking | tiktoken-based | Character estimation (1 token ~ 4 chars) |
+| Backward compatibility | N/A | Set `AI_SCIENTIST_BACKEND=legacy` for v2 behavior |
 
 > **Caution!**
-> This codebase will execute Large Language Model (LLM)-written code. There are various risks and challenges associated with this autonomy, including the potential use of dangerous packages, uncontrolled web access, and the possibility of spawning unintended processes. Ensure that you run this within a controlled sandbox environment (e.g., a Docker container). Use at your own discretion.
+> This codebase will execute LLM-written code. There are various risks and challenges associated with this autonomy. Ensure that you run this within a controlled sandbox environment (e.g., a Docker container). Use at your own discretion.
 
 ## Table of Contents
 
@@ -40,7 +47,9 @@ This system autonomously generates hypotheses, runs experiments, analyzes data, 
 
 This code is designed to run on Linux with NVIDIA GPUs using CUDA and PyTorch.
 
-### Installation
+### Installation (v3 -- Agent Mode)
+
+v3 replaces all direct LLM API calls with coding agent orchestration. **No API keys are needed.**
 
 ```bash
 # Create a new conda environment
@@ -54,13 +63,29 @@ conda install pytorch torchvision torchaudio pytorch-cuda=12.4 -c pytorch -c nvi
 conda install anaconda::poppler
 conda install conda-forge::chktex
 
-# Install Python package requirements
+# Install Python package requirements (no LLM SDKs needed)
 pip install -r requirements.txt
+
+# Install a coding agent (e.g., Claude Code)
+npm install -g @anthropic-ai/claude-code
 ```
 
-Installation usually takes no more than one hour.
+That's it -- no `OPENAI_API_KEY`, `AWS_ACCESS_KEY_ID`, or any other API keys required.
 
-### Supported Models and API Keys
+### Installation (Legacy Mode)
+
+To use the original v2 behavior with direct LLM SDK calls, set the environment variable
+`AI_SCIENTIST_BACKEND=legacy` and install the legacy dependencies:
+
+```bash
+export AI_SCIENTIST_BACKEND=legacy
+pip install anthropic openai backoff botocore boto3 tiktoken
+```
+
+Then configure API keys as described below.
+
+<details>
+<summary>Legacy API Key Configuration</summary>
 
 #### OpenAI Models
 
@@ -94,6 +119,8 @@ export S2_API_KEY="YOUR_S2_KEY_HERE"
 # export AWS_REGION_NAME="your-aws-region"
 ```
 
+</details>
+
 ## Generate Research Ideas
 
 Before running the full AI Scientist-v2 experiment pipeline, you first use the `ai_scientist/perform_ideation_temp_free.py` script to generate potential research ideas. This script uses an LLM to brainstorm and refine ideas based on a high-level topic description you provide, interacting with tools like Semantic Scholar to check for novelty.
@@ -103,14 +130,21 @@ Before running the full AI Scientist-v2 experiment pipeline, you first use the `
 2.  **Run the Ideation Script:** Execute the script from the main project directory, pointing it to your topic description file and specifying the desired LLM.
 
     ```bash
+    # v3 (agent mode -- no API keys needed):
     python ai_scientist/perform_ideation_temp_free.py \
+     --workshop-file "ai_scientist/ideas/my_research_topic.md" \
+     --max-num-generations 20 \
+     --num-reflections 5
+
+    # Legacy mode (requires API keys):
+    AI_SCIENTIST_BACKEND=legacy python ai_scientist/perform_ideation_temp_free.py \
      --workshop-file "ai_scientist/ideas/my_research_topic.md" \
      --model gpt-4o-2024-05-13 \
      --max-num-generations 20 \
      --num-reflections 5
     ```
     *   `--workshop-file`: Path to your topic description Markdown file.
-    *   `--model`: The LLM to use for generating ideas (ensure you have the corresponding API key set).
+    *   `--model`: The model to use. Defaults to `agent` in v3 mode. In legacy mode, specify the model string and set the corresponding API key.
     *   `--max-num-generations`: How many distinct research ideas to attempt generating.
     *   `--num-reflections`: How many refinement steps the LLM should perform for each idea.
 
@@ -141,7 +175,15 @@ Key tree search configuration parameters in `bfts_config.yaml`:
 Example command to run AI-Scientist-v2 using a generated idea file (e.g., `my_research_topic.json`). Please review `bfts_config.yaml` for detailed tree search parameters (the default config includes `claude-3-5-sonnet` for experiments). Do not set `load_code` if you do not want to initialize experimentation with a code snippet.
 
 ```bash
+# v3 (agent mode -- no API keys needed, all models default to "agent"):
 python launch_scientist_bfts.py \
+ --load_ideas "ai_scientist/ideas/my_research_topic.json" \
+ --load_code \
+ --add_dataset_ref \
+ --num_cite_rounds 20
+
+# Legacy mode (requires API keys):
+AI_SCIENTIST_BACKEND=legacy python launch_scientist_bfts.py \
  --load_ideas "ai_scientist/ideas/my_research_topic.json" \
  --load_code \
  --add_dataset_ref \
@@ -177,7 +219,7 @@ The AI Scientist-v2 completes experiments with a success rate that depends on th
 
 **What is the estimated cost per experiment?**
 
-The ideation step cost depends on the LLM used and the number of generations/reflections, but is generally low (a few dollars). For the main experiment pipeline, using Claude 3.5 Sonnet for the experimentation phase typically costs around $15–$20 per run. The subsequent writing phase adds approximately $5 when using the default models specified in the example command. Using GPT-4o for `model_citation` is recommended as it can help reduce writing costs.
+In v3 agent mode, costs depend on your coding agent's pricing (e.g., Claude Code usage). No separate API keys are needed. In legacy mode, the ideation step cost depends on the LLM used and the number of generations/reflections, but is generally low (a few dollars). For the main experiment pipeline, using Claude 3.5 Sonnet for the experimentation phase typically costs around $15-$20 per run.
 
 **How do I run The AI Scientist-v2 for different subject fields?**
 

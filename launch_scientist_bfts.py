@@ -7,7 +7,7 @@ import os
 import re
 import sys
 from datetime import datetime
-from ai_scientist.llm import create_client
+from ai_scientist.llm import create_client, AVAILABLE_LLMS
 
 from contextlib import contextmanager
 from ai_scientist.treesearch.perform_experiments_bfts_with_agentmanager import (
@@ -82,22 +82,23 @@ def parse_arguments():
         default=0,
         help="Attempt ID, used to distinguish same idea in different attempts in parallel runs",
     )
+    _default_model = "agent" if AVAILABLE_LLMS is None else "gpt-4o-2024-11-20"
     parser.add_argument(
         "--model_agg_plots",
         type=str,
-        default="o3-mini-2025-01-31",
+        default=_default_model,
         help="Model to use for plot aggregation",
     )
     parser.add_argument(
         "--model_writeup",
         type=str,
-        default="o1-preview-2024-09-12",
+        default=_default_model,
         help="Model to use for writeup",
     )
     parser.add_argument(
         "--model_citation",
         type=str,
-        default="gpt-4o-2024-11-20",
+        default=_default_model,
         help="Model to use for citation gathering",
     )
     parser.add_argument(
@@ -109,13 +110,13 @@ def parse_arguments():
     parser.add_argument(
         "--model_writeup_small",
         type=str,
-        default="gpt-4o-2024-05-13",
+        default=_default_model,
         help="Smaller model to use for writeup",
     )
     parser.add_argument(
         "--model_review",
         type=str,
-        default="gpt-4o-2024-11-20",
+        default=_default_model,
         help="Model to use for review main text and captions",
     )
     parser.add_argument(

@@ -1250,14 +1250,14 @@ if __name__ == "__main__":
     parser.add_argument(
         "--model",
         type=str,
-        default="bedrock/anthropic.claude-3-5-sonnet-20240620-v1:0",
+        default="agent" if AVAILABLE_LLMS is None else "bedrock/anthropic.claude-3-5-sonnet-20240620-v1:0",
         choices=AVAILABLE_LLMS,
         help="Model to use for citation collection (small model).",
     )
     parser.add_argument(
         "--big-model",
         type=str,
-        default="o1-2024-12-17",
+        default="agent" if AVAILABLE_LLMS is None else "o1-2024-12-17",
         choices=AVAILABLE_LLMS,
         help="Model to use for final writeup (big model).",
     )
