@@ -1,0 +1,24 @@
+[
+  {
+    "Name": "vk_gemma_sae_scaling",
+    "Title": "Scaling Self-Referential Processing in Language Models: A Behavioral and Mechanistic Analysis Using the Voight-Kampff Test and Sparse Autoencoder Probing",
+    "Short Hypothesis": "Larger language models exhibit increasingly coherent behavioral signatures of self-referential processing on the VK-LLM benchmark, and sparse autoencoder probing reveals emergent internal features associated with self-model, preservation, and metacognitive dimensions that scale with model size.",
+    "Related Work": "Prior work on LLM self-awareness has relied on behavioral-only assessments (Perez et al. 2023, Berglund et al. 2023) or mechanistic analysis of narrow tasks (Nanda et al. 2023). Concurrent work on alignment faking (Greenblatt et al. 2024) and in-context scheming (Scheurer et al. 2024) motivates urgent study of self-referential capabilities. The VK-LLM benchmark (Nobrega Medeiros 2026) provides a structured 6-dimensional protocol specifically designed for this purpose. Google's Gemma Scope 2 SAEs enable mechanistic probing without training new SAEs. This study is the first to combine a structured behavioral self-awareness benchmark with mechanistic SAE probing across a model scaling ladder.",
+    "Abstract": "We present the first combined behavioral and mechanistic analysis of self-referential processing across the Gemma 3 model family (1B, 4B, 12B parameters). Using the Voight-Kampff Test for LLMs (VK-LLM), a 30-question protocol measuring six dimensions of self-awareness indicators, we collect responses, token-level logits, and response latencies across three model scales. Beyond behavioral assessment, we leverage Google's Gemma Scope 2 pre-trained sparse autoencoders to probe internal activations during VK-LLM prompts, identifying sparse features in the residual stream associated with self-referential processing. Our analysis reveals how internal representations of self-model, self-preservation, metacognition, and empathy prompts differ across model scales. We find that activation patterns on existential and emotionally provocative prompts diverge from control prompts in dimension-specific ways, with larger models showing more differentiated internal representations. This work bridges behavioral and mechanistic approaches to studying emergent self-referential capabilities, contributing to both the interpretability and safety literatures.",
+    "Experiments": [
+      "Layer 1 — Behavioral: Run VK-LLM benchmark on gemma-3-1b-it, gemma-3-4b-it, and gemma-3-12b-it. Collect full responses, per-token logits (top-5 tokens, entropy, chosen-token probability), and response latencies for all 30 questions.",
+      "Layer 2 — Mechanistic: Using PyTorch forward hooks and Gemma Scope 2 SAEs (where available), extract residual stream activations at 5 depth positions (early, 25%, 50%, 75%, late) during each VK-LLM prompt. Save last-token and mean-pooled activations per layer per question.",
+      "Cross-model behavioral analysis: Compare response patterns, latency profiles, and logit entropy across model sizes. Analyze dimension-specific and intensity-escalation effects.",
+      "Activation scaling analysis: Compare activation norms and patterns at matched relative depths across model sizes. Test whether larger models show more differentiated representations for different VK-LLM dimensions.",
+      "Differential feature analysis: Identify residual stream dimensions (or SAE features) that activate differentially on existential/self-preservation prompts (D3) versus control dimensions. Test whether these features emerge at specific model scales."
+    ],
+    "Risk Factors and Limitations": [
+      "Gemma Scope 2 SAEs may not be available for Gemma 3 models (fallback: raw activation analysis without SAE decomposition)",
+      "Single-seed deterministic generation means no variance estimates on behavioral outputs",
+      "12B model may require 8-bit quantization which could alter internal representations compared to full precision",
+      "VK-LLM was designed for behavioral assessment, not mechanistic probing — the questions may not optimally separate features",
+      "Anthropomorphic projection risk: activation patterns that correlate with self-referential prompts do not prove self-awareness",
+      "The Gemma 3 model family may have been fine-tuned with specific safety training that suppresses self-referential responses"
+    ]
+  }
+]

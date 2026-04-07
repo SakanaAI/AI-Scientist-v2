@@ -1,36 +1,36 @@
 # AI-Scientist-v3 Research Configuration
-# Edit this file to configure your research project.
+# VK-LLM x Gemma 3 x SAE Probing Study
 
-topic: "Test-time augmentation scaling laws for medical image classification"
+topic: "Behavioral and mechanistic analysis of self-referential processing in Gemma 3 models using the Voight-Kampff LLM benchmark and sparse autoencoder probing"
 venue: icbinb           # icbinb (4-page ICLR) | icml (8-page ICML)
 page_limit: 4
-domain: "medical imaging"
+domain: "interpretability and AI safety"
 
 # Human-in-the-loop checkpoints
-# Set to true to pause and ask for human approval after each phase
+# ALL OFF for autonomous overnight operation
 checkpoints:
-  after_ideation: true       # Review generated ideas before experimenting
-  after_experiments: true    # Review experiment results before writing
-  after_writing: false       # Auto-proceed to review
-  after_review: false        # Auto-finish after review
+  after_ideation: false
+  after_experiments: false
+  after_writing: false
+  after_review: false
 
 # Resource constraints
 constraints:
-  max_experiment_runtime_hours: 8    # Max wall-clock time for all experiments
-  gpu_required: true                 # Whether experiments need GPU
-  num_seeds: 3                       # Random seeds for reproducibility
+  max_experiment_runtime_hours: 20   # ~21h A40 GPU available
+  gpu_required: true
+  num_seeds: 1                       # Greedy decoding = deterministic
 
 # Experiment configuration
 experiment:
-  starter_code: "ideas/tta_scaling_medimg.py"    # Optional starter code
-  idea_source: "ideas/tta_scaling_medimg.json"   # Pre-generated ideas (or null to generate)
+  starter_code: "experiments/2026-04-07_vk_gemma_sae/code/run_experiment.py"
+  idea_source: "ideas/vk_gemma_sae.json"
   datasets:
-    - "MedMNIST"
-  baselines_required: true
-  ablations_required: true
+    - "tylerxdurden/Voight-Kampff-Test-2026.1"
+  baselines_required: false          # Cross-model comparison IS the comparison
+  ablations_required: false          # Not applicable for this study design
 
-# Ideation configuration (used when idea_source is null)
+# Ideation configuration (not used — idea is pre-specified)
 ideation:
-  num_ideas: 3                # Number of ideas to generate
-  novelty_check: true         # Verify novelty via literature search
-  topic_description: "ideas/i_cant_believe_its_not_better.md"  # Topic context
+  num_ideas: 1
+  novelty_check: false
+  topic_description: null
