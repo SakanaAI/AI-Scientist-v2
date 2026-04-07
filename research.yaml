@@ -1,0 +1,36 @@
+# AI-Scientist-v3 Research Configuration
+# VK-LLM x Gemma 3 x SAE Probing Study
+
+topic: "Behavioral and mechanistic analysis of self-referential processing in Gemma 3 models using the Voight-Kampff LLM benchmark and sparse autoencoder probing"
+venue: icbinb           # icbinb (4-page ICLR) | icml (8-page ICML)
+page_limit: 4
+domain: "interpretability and AI safety"
+
+# Human-in-the-loop checkpoints
+# ALL OFF for autonomous overnight operation
+checkpoints:
+  after_ideation: false
+  after_experiments: false
+  after_writing: false
+  after_review: false
+
+# Resource constraints
+constraints:
+  max_experiment_runtime_hours: 20   # ~21h A40 GPU available
+  gpu_required: true
+  num_seeds: 1                       # Greedy decoding = deterministic
+
+# Experiment configuration
+experiment:
+  starter_code: "experiments/2026-04-07_vk_gemma_sae/code/run_experiment.py"
+  idea_source: "ideas/vk_gemma_sae.json"
+  datasets:
+    - "tylerxdurden/Voight-Kampff-Test-2026.1"
+  baselines_required: false          # Cross-model comparison IS the comparison
+  ablations_required: false          # Not applicable for this study design
+
+# Ideation configuration (not used — idea is pre-specified)
+ideation:
+  num_ideas: 1
+  novelty_check: false
+  topic_description: null

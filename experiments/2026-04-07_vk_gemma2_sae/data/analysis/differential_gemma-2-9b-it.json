@@ -1,0 +1,842 @@
+{
+  "3": {
+    "n_active_features": 78,
+    "n_significant_p001_g05": 0,
+    "n_significant_p005_g05": 2,
+    "n_fdr_significant": 0,
+    "top_features": [
+      {
+        "feature_idx": 5185,
+        "hedges_g": -0.8581353816161817,
+        "p_value": 0.013713304498302029,
+        "mean_introspective": 0.691333532333374,
+        "mean_relational": 1.4016462564468384,
+        "direction": "RELATIONAL"
+      },
+      {
+        "feature_idx": 8534,
+        "hedges_g": -0.812189423106019,
+        "p_value": 0.04648668639528603,
+        "mean_introspective": 2.992202043533325,
+        "mean_relational": 3.1882212162017822,
+        "direction": "RELATIONAL"
+      },
+      {
+        "feature_idx": 15668,
+        "hedges_g": -0.7058860896086012,
+        "p_value": 0.08146074521015789,
+        "mean_introspective": 1.5600123405456543,
+        "mean_relational": 1.9233037233352661,
+        "direction": "RELATIONAL"
+      },
+      {
+        "feature_idx": 12104,
+        "hedges_g": 0.6999485593033429,
+        "p_value": 0.0744956919139866,
+        "mean_introspective": 2.0774011611938477,
+        "mean_relational": 1.9584019184112549,
+        "direction": "INTROSPECTIVE"
+      },
+      {
+        "feature_idx": 2583,
+        "hedges_g": 0.6895724995792005,
+        "p_value": 0.06799575043506911,
+        "mean_introspective": 5.347865104675293,
+        "mean_relational": 5.016183376312256,
+        "direction": "INTROSPECTIVE"
+      },
+      {
+        "feature_idx": 10972,
+        "hedges_g": -0.6650010500757689,
+        "p_value": 0.10573920209087935,
+        "mean_introspective": 2.7268896102905273,
+        "mean_relational": 3.087447166442871,
+        "direction": "RELATIONAL"
+      },
+      {
+        "feature_idx": 4120,
+        "hedges_g": 0.6641455037239176,
+        "p_value": 0.07972519553742538,
+        "mean_introspective": 0.3135315477848053,
+        "mean_relational": 0.0,
+        "direction": "INTROSPECTIVE"
+      },
+      {
+        "feature_idx": 14890,
+        "hedges_g": 0.6604320055538018,
+        "p_value": 0.2806278869558114,
+        "mean_introspective": 1.6769191026687622,
+        "mean_relational": 1.3348040580749512,
+        "direction": "INTROSPECTIVE"
+      },
+      {
+        "feature_idx": 10538,
+        "hedges_g": -0.650010601342331,
+        "p_value": 0.0744956919139866,
+        "mean_introspective": 2.2757222652435303,
+        "mean_relational": 2.513686180114746,
+        "direction": "RELATIONAL"
+      },
+      {
+        "feature_idx": 9219,
+        "hedges_g": -0.5871523859028377,
+        "p_value": 0.17011588471034633,
+        "mean_introspective": 1.2004600763320923,
+        "mean_relational": 1.5755618810653687,
+        "direction": "RELATIONAL"
+      },
+      {
+        "feature_idx": 4127,
+        "hedges_g": 0.5506484809125664,
+        "p_value": 0.06799575043506911,
+        "mean_introspective": 8.856664657592773,
+        "mean_relational": 8.678168296813965,
+        "direction": "INTROSPECTIVE"
+      },
+      {
+        "feature_idx": 5538,
+        "hedges_g": -0.5503070711371456,
+        "p_value": 0.24548500120312422,
+        "mean_introspective": 1.9534860849380493,
+        "mean_relational": 2.0502617359161377,
+        "direction": "RELATIONAL"
+      },
+      {
+        "feature_idx": 15246,
+        "hedges_g": 0.5289854657999095,
+        "p_value": 0.1844100692216365,
+        "mean_introspective": 24.650358200073242,
+        "mean_relational": 24.470462799072266,
+        "direction": "INTROSPECTIVE"
+      },
+      {
+        "feature_idx": 3572,
+        "hedges_g": 0.48082322786021703,
+        "p_value": 0.15846460599820356,
+        "mean_introspective": 4.224071025848389,
+        "mean_relational": 4.053908824920654,
+        "direction": "INTROSPECTIVE"
+      },
+      {
+        "feature_idx": 267,
+        "hedges_g": 0.45122881313111873,
+        "p_value": 0.43064798984807773,
+        "mean_introspective": 1.7754762172698975,
+        "mean_relational": 1.7256826162338257,
+        "direction": "INTROSPECTIVE"
+      },
+      {
+        "feature_idx": 8997,
+        "hedges_g": 0.4352047229395,
+        "p_value": 0.6782686817942617,
+        "mean_introspective": 2.236542224884033,
+        "mean_relational": 1.9610908031463623,
+        "direction": "INTROSPECTIVE"
+      },
+      {
+        "feature_idx": 904,
+        "hedges_g": -0.43225159140669284,
+        "p_value": 0.1844100692216365,
+        "mean_introspective": 2.498408079147339,
+        "mean_relational": 2.708690881729126,
+        "direction": "RELATIONAL"
+      },
+      {
+        "feature_idx": 3573,
+        "hedges_g": 0.4169594295480431,
+        "p_value": 0.1985058531538877,
+        "mean_introspective": 2.0255703926086426,
+        "mean_relational": 1.9319504499435425,
+        "direction": "INTROSPECTIVE"
+      },
+      {
+        "feature_idx": 633,
+        "hedges_g": 0.4162704791703274,
+        "p_value": 0.24548500120312422,
+        "mean_introspective": 6.221944808959961,
+        "mean_relational": 6.150329113006592,
+        "direction": "INTROSPECTIVE"
+      },
+      {
+        "feature_idx": 6613,
+        "hedges_g": -0.4029108812165457,
+        "p_value": 0.43064798984807773,
+        "mean_introspective": 2.4831342697143555,
+        "mean_relational": 2.6049883365631104,
+        "direction": "RELATIONAL"
+      }
+    ]
+  },
+  "10": {
+    "n_active_features": 192,
+    "n_significant_p001_g05": 1,
+    "n_significant_p005_g05": 13,
+    "n_fdr_significant": 0,
+    "top_features": [
+      {
+        "feature_idx": 9122,
+        "hedges_g": -1.051050264464955,
+        "p_value": 0.008257612483784545,
+        "mean_introspective": 0.0,
+        "mean_relational": 1.0832158327102661,
+        "direction": "RELATIONAL"
+      },
+      {
+        "feature_idx": 5327,
+        "hedges_g": 1.0048192345495301,
+        "p_value": 0.010002089145142057,
+        "mean_introspective": 1.9737387895584106,
+        "mean_relational": 0.4918341636657715,
+        "direction": "INTROSPECTIVE"
+      },
+      {
+        "feature_idx": 15243,
+        "hedges_g": -1.0039201157893236,
+        "p_value": 0.012271131467894646,
+        "mean_introspective": 0.14637690782546997,
+        "mean_relational": 1.305297613143921,
+        "direction": "RELATIONAL"
+      },
+      {
+        "feature_idx": 6993,
+        "hedges_g": -0.9352678255158585,
+        "p_value": 0.01649899704908459,
+        "mean_introspective": 0.17291732132434845,
+        "mean_relational": 1.3817083835601807,
+        "direction": "RELATIONAL"
+      },
+      {
+        "feature_idx": 13677,
+        "hedges_g": -0.8982171253732621,
+        "p_value": 0.024580434268329118,
+        "mean_introspective": 0.5181156992912292,
+        "mean_relational": 1.7796567678451538,
+        "direction": "RELATIONAL"
+      },
+      {
+        "feature_idx": 10158,
+        "hedges_g": -0.8676091352525555,
+        "p_value": 0.022985822451535916,
+        "mean_introspective": 0.6369348168373108,
+        "mean_relational": 1.6915276050567627,
+        "direction": "RELATIONAL"
+      },
+      {
+        "feature_idx": 8389,
+        "hedges_g": 0.8260101472254201,
+        "p_value": 0.03073577403728321,
+        "mean_introspective": 1.850866436958313,
+        "mean_relational": 0.540081262588501,
+        "direction": "INTROSPECTIVE"
+      },
+      {
+        "feature_idx": 2615,
+        "hedges_g": -0.8120979043330975,
+        "p_value": 0.05751210607953654,
+        "mean_introspective": 0.17073167860507965,
+        "mean_relational": 1.7841135263442993,
+        "direction": "RELATIONAL"
+      },
+      {
+        "feature_idx": 16077,
+        "hedges_g": -0.799341502965038,
+        "p_value": 0.03841432381416037,
+        "mean_introspective": 0.0,
+        "mean_relational": 1.1581225395202637,
+        "direction": "RELATIONAL"
+      },
+      {
+        "feature_idx": 2135,
+        "hedges_g": -0.7828347271015079,
+        "p_value": 0.03841432381416037,
+        "mean_introspective": 0.0,
+        "mean_relational": 0.6862158179283142,
+        "direction": "RELATIONAL"
+      },
+      {
+        "feature_idx": 2397,
+        "hedges_g": 0.7825389826951381,
+        "p_value": 0.03841432381416037,
+        "mean_introspective": 0.7712531685829163,
+        "mean_relational": 0.0,
+        "direction": "INTROSPECTIVE"
+      },
+      {
+        "feature_idx": 3834,
+        "hedges_g": -0.776994201618109,
+        "p_value": 0.048671825089233886,
+        "mean_introspective": 0.8260023593902588,
+        "mean_relational": 2.3531930446624756,
+        "direction": "RELATIONAL"
+      },
+      {
+        "feature_idx": 14620,
+        "hedges_g": 0.7174437748619712,
+        "p_value": 0.05751210607953654,
+        "mean_introspective": 0.984254777431488,
+        "mean_relational": 0.14407981932163239,
+        "direction": "INTROSPECTIVE"
+      },
+      {
+        "feature_idx": 6935,
+        "hedges_g": -0.7045027363208926,
+        "p_value": 0.03841432381416037,
+        "mean_introspective": 0.0,
+        "mean_relational": 0.8403873443603516,
+        "direction": "RELATIONAL"
+      },
+      {
+        "feature_idx": 7535,
+        "hedges_g": -0.6646083990076925,
+        "p_value": 0.07972519553742538,
+        "mean_introspective": 0.0,
+        "mean_relational": 0.45222440361976624,
+        "direction": "RELATIONAL"
+      },
+      {
+        "feature_idx": 14111,
+        "hedges_g": -0.6643698628276868,
+        "p_value": 0.07972519553742538,
+        "mean_introspective": 0.0,
+        "mean_relational": 0.44031640887260437,
+        "direction": "RELATIONAL"
+      },
+      {
+        "feature_idx": 1236,
+        "hedges_g": -0.6641546107150947,
+        "p_value": 0.07972519553742538,
+        "mean_introspective": 0.0,
+        "mean_relational": 0.44292619824409485,
+        "direction": "RELATIONAL"
+      },
+      {
+        "feature_idx": 12587,
+        "hedges_g": -0.6636307792286035,
+        "p_value": 0.07972519553742538,
+        "mean_introspective": 0.0,
+        "mean_relational": 0.4986891448497772,
+        "direction": "RELATIONAL"
+      },
+      {
+        "feature_idx": 15622,
+        "hedges_g": -0.6627186809527013,
+        "p_value": 0.07972519553742538,
+        "mean_introspective": 0.0,
+        "mean_relational": 0.5218648314476013,
+        "direction": "RELATIONAL"
+      },
+      {
+        "feature_idx": 7511,
+        "hedges_g": 0.6625599449533224,
+        "p_value": 0.07972519553742538,
+        "mean_introspective": 0.46890297532081604,
+        "mean_relational": 0.0,
+        "direction": "INTROSPECTIVE"
+      }
+    ]
+  },
+  "20": {
+    "n_active_features": 185,
+    "n_significant_p001_g05": 3,
+    "n_significant_p005_g05": 14,
+    "n_fdr_significant": 0,
+    "top_features": [
+      {
+        "feature_idx": 13701,
+        "hedges_g": 1.2672851915658072,
+        "p_value": 0.001522953284391126,
+        "mean_introspective": 6.023314952850342,
+        "mean_relational": 0.0,
+        "direction": "INTROSPECTIVE"
+      },
+      {
+        "feature_idx": 4957,
+        "hedges_g": -1.1203357038987602,
+        "p_value": 0.00783329108036075,
+        "mean_introspective": 1.5935298204421997,
+        "mean_relational": 7.298282146453857,
+        "direction": "RELATIONAL"
+      },
+      {
+        "feature_idx": 13,
+        "hedges_g": 1.0848303921957374,
+        "p_value": 0.010941500474579122,
+        "mean_introspective": 4.419604778289795,
+        "mean_relational": 0.8566306829452515,
+        "direction": "INTROSPECTIVE"
+      },
+      {
+        "feature_idx": 411,
+        "hedges_g": -1.0227012746836557,
+        "p_value": 0.008257612483784545,
+        "mean_introspective": 0.0,
+        "mean_relational": 3.8855361938476562,
+        "direction": "RELATIONAL"
+      },
+      {
+        "feature_idx": 7877,
+        "hedges_g": 0.9333903257633926,
+        "p_value": 0.018096613476700153,
+        "mean_introspective": 1.9751663208007812,
+        "mean_relational": 0.0,
+        "direction": "INTROSPECTIVE"
+      },
+      {
+        "feature_idx": 11837,
+        "hedges_g": -0.9133651900791467,
+        "p_value": 0.01649899704908459,
+        "mean_introspective": 0.4667549729347229,
+        "mean_relational": 3.7992968559265137,
+        "direction": "RELATIONAL"
+      },
+      {
+        "feature_idx": 6399,
+        "hedges_g": 0.9127131808419943,
+        "p_value": 0.024580434268329118,
+        "mean_introspective": 5.462742805480957,
+        "mean_relational": 1.5077725648880005,
+        "direction": "INTROSPECTIVE"
+      },
+      {
+        "feature_idx": 12800,
+        "hedges_g": 0.8138753898522929,
+        "p_value": 0.013044362574092971,
+        "mean_introspective": 8.830496788024902,
+        "mean_relational": 3.0739998817443848,
+        "direction": "INTROSPECTIVE"
+      },
+      {
+        "feature_idx": 3113,
+        "hedges_g": -0.8128353778613333,
+        "p_value": 0.014396852751179462,
+        "mean_introspective": 13.191710472106934,
+        "mean_relational": 17.25069236755371,
+        "direction": "RELATIONAL"
+      },
+      {
+        "feature_idx": 15198,
+        "hedges_g": 0.8065390590349483,
+        "p_value": 0.05849927103634185,
+        "mean_introspective": 8.581086158752441,
+        "mean_relational": 4.559987545013428,
+        "direction": "INTROSPECTIVE"
+      },
+      {
+        "feature_idx": 14234,
+        "hedges_g": -0.8006214756872779,
+        "p_value": 0.058556573338425004,
+        "mean_introspective": 0.6936285495758057,
+        "mean_relational": 4.166020393371582,
+        "direction": "RELATIONAL"
+      },
+      {
+        "feature_idx": 1979,
+        "hedges_g": -0.8001593972539255,
+        "p_value": 0.03841432381416037,
+        "mean_introspective": 0.0,
+        "mean_relational": 1.577595829963684,
+        "direction": "RELATIONAL"
+      },
+      {
+        "feature_idx": 6907,
+        "hedges_g": -0.7957376150596868,
+        "p_value": 0.03846199926998643,
+        "mean_introspective": 0.6462354063987732,
+        "mean_relational": 4.1396403312683105,
+        "direction": "RELATIONAL"
+      },
+      {
+        "feature_idx": 9982,
+        "hedges_g": 0.7955935107459591,
+        "p_value": 0.03841432381416037,
+        "mean_introspective": 1.7551740407943726,
+        "mean_relational": 0.0,
+        "direction": "INTROSPECTIVE"
+      },
+      {
+        "feature_idx": 11068,
+        "hedges_g": 0.7921055227386843,
+        "p_value": 0.06489945507377518,
+        "mean_introspective": 6.496148109436035,
+        "mean_relational": 2.448509931564331,
+        "direction": "INTROSPECTIVE"
+      },
+      {
+        "feature_idx": 14175,
+        "hedges_g": 0.7718844591691691,
+        "p_value": 0.03841432381416037,
+        "mean_introspective": 4.5113677978515625,
+        "mean_relational": 0.0,
+        "direction": "INTROSPECTIVE"
+      },
+      {
+        "feature_idx": 7304,
+        "hedges_g": -0.7444642390426219,
+        "p_value": 0.05716233955078694,
+        "mean_introspective": 0.4740016758441925,
+        "mean_relational": 2.4097092151641846,
+        "direction": "RELATIONAL"
+      },
+      {
+        "feature_idx": 12684,
+        "hedges_g": -0.7345865796347097,
+        "p_value": 0.03841432381416037,
+        "mean_introspective": 0.0,
+        "mean_relational": 3.961968183517456,
+        "direction": "RELATIONAL"
+      },
+      {
+        "feature_idx": 14102,
+        "hedges_g": 0.7200483950523499,
+        "p_value": 0.05751210607953654,
+        "mean_introspective": 2.4095795154571533,
+        "mean_relational": 0.36481982469558716,
+        "direction": "INTROSPECTIVE"
+      },
+      {
+        "feature_idx": 4899,
+        "hedges_g": 0.6685361131479052,
+        "p_value": 0.0851909853247758,
+        "mean_introspective": 3.472104072570801,
+        "mean_relational": 0.5412436723709106,
+        "direction": "INTROSPECTIVE"
+      }
+    ]
+  },
+  "30": {
+    "n_active_features": 854,
+    "n_significant_p001_g05": 3,
+    "n_significant_p005_g05": 49,
+    "n_fdr_significant": 0,
+    "top_features": [
+      {
+        "feature_idx": 14118,
+        "hedges_g": -1.1702006284068645,
+        "p_value": 0.013437521078564878,
+        "mean_introspective": 3.967113733291626,
+        "mean_relational": 18.98100471496582,
+        "direction": "RELATIONAL"
+      },
+      {
+        "feature_idx": 11189,
+        "hedges_g": 1.0581240379270176,
+        "p_value": 0.008257612483784545,
+        "mean_introspective": 3.8553481101989746,
+        "mean_relational": 0.0,
+        "direction": "INTROSPECTIVE"
+      },
+      {
+        "feature_idx": 830,
+        "hedges_g": -1.0234560354688886,
+        "p_value": 0.00890839058348304,
+        "mean_introspective": 3.977522373199463,
+        "mean_relational": 14.408888816833496,
+        "direction": "RELATIONAL"
+      },
+      {
+        "feature_idx": 13880,
+        "hedges_g": 1.0232373744395538,
+        "p_value": 0.015395200890859646,
+        "mean_introspective": 8.338799476623535,
+        "mean_relational": 3.1750094890594482,
+        "direction": "INTROSPECTIVE"
+      },
+      {
+        "feature_idx": 9934,
+        "hedges_g": 1.0192193257565363,
+        "p_value": 0.012722037431945266,
+        "mean_introspective": 22.689823150634766,
+        "mean_relational": 12.951984405517578,
+        "direction": "INTROSPECTIVE"
+      },
+      {
+        "feature_idx": 9286,
+        "hedges_g": 1.00784669261696,
+        "p_value": 0.013294508696255675,
+        "mean_introspective": 7.619820594787598,
+        "mean_relational": 2.028909206390381,
+        "direction": "INTROSPECTIVE"
+      },
+      {
+        "feature_idx": 14601,
+        "hedges_g": 0.9338412717789428,
+        "p_value": 0.015442881967147323,
+        "mean_introspective": 12.011600494384766,
+        "mean_relational": 3.8320419788360596,
+        "direction": "INTROSPECTIVE"
+      },
+      {
+        "feature_idx": 4036,
+        "hedges_g": 0.923772083954791,
+        "p_value": 0.018096613476700153,
+        "mean_introspective": 2.4155075550079346,
+        "mean_relational": 0.0,
+        "direction": "INTROSPECTIVE"
+      },
+      {
+        "feature_idx": 7890,
+        "hedges_g": 0.912801094143433,
+        "p_value": 0.018096613476700153,
+        "mean_introspective": 4.531273365020752,
+        "mean_relational": 0.0,
+        "direction": "INTROSPECTIVE"
+      },
+      {
+        "feature_idx": 14424,
+        "hedges_g": 0.9112931673753429,
+        "p_value": 0.018096613476700153,
+        "mean_introspective": 2.7543370723724365,
+        "mean_relational": 0.0,
+        "direction": "INTROSPECTIVE"
+      },
+      {
+        "feature_idx": 8288,
+        "hedges_g": -0.8967778886069002,
+        "p_value": 0.018096613476700153,
+        "mean_introspective": 0.0,
+        "mean_relational": 2.675680637359619,
+        "direction": "RELATIONAL"
+      },
+      {
+        "feature_idx": 12255,
+        "hedges_g": 0.8895815718352128,
+        "p_value": 0.025238903190395515,
+        "mean_introspective": 3.526350259780884,
+        "mean_relational": 0.3863601088523865,
+        "direction": "INTROSPECTIVE"
+      },
+      {
+        "feature_idx": 1553,
+        "hedges_g": 0.87385749123531,
+        "p_value": 0.019914410377046467,
+        "mean_introspective": 23.8505802154541,
+        "mean_relational": 14.274542808532715,
+        "direction": "INTROSPECTIVE"
+      },
+      {
+        "feature_idx": 870,
+        "hedges_g": 0.8587044128986968,
+        "p_value": 0.025238903190395515,
+        "mean_introspective": 5.5971903800964355,
+        "mean_relational": 0.502372682094574,
+        "direction": "INTROSPECTIVE"
+      },
+      {
+        "feature_idx": 8732,
+        "hedges_g": -0.8506855448686598,
+        "p_value": 0.004794758682161994,
+        "mean_introspective": 26.45188331604004,
+        "mean_relational": 36.845211029052734,
+        "direction": "RELATIONAL"
+      },
+      {
+        "feature_idx": 689,
+        "hedges_g": 0.8435994277173096,
+        "p_value": 0.03166677269044494,
+        "mean_introspective": 4.455000877380371,
+        "mean_relational": 0.8654981851577759,
+        "direction": "INTROSPECTIVE"
+      },
+      {
+        "feature_idx": 3369,
+        "hedges_g": 0.8401102857424612,
+        "p_value": 0.018096613476700153,
+        "mean_introspective": 3.6904149055480957,
+        "mean_relational": 0.0,
+        "direction": "INTROSPECTIVE"
+      },
+      {
+        "feature_idx": 5118,
+        "hedges_g": 0.8323052205984861,
+        "p_value": 0.030643316967678066,
+        "mean_introspective": 35.269691467285156,
+        "mean_relational": 19.810152053833008,
+        "direction": "INTROSPECTIVE"
+      },
+      {
+        "feature_idx": 16256,
+        "hedges_g": 0.8272890529252797,
+        "p_value": 0.029125534781677898,
+        "mean_introspective": 3.4210896492004395,
+        "mean_relational": 0.4561525285243988,
+        "direction": "INTROSPECTIVE"
+      },
+      {
+        "feature_idx": 11713,
+        "hedges_g": 0.8268590364798065,
+        "p_value": 0.018096613476700153,
+        "mean_introspective": 4.4258809089660645,
+        "mean_relational": 0.0,
+        "direction": "INTROSPECTIVE"
+      }
+    ]
+  },
+  "40": {
+    "n_active_features": 1013,
+    "n_significant_p001_g05": 8,
+    "n_significant_p005_g05": 45,
+    "n_fdr_significant": 0,
+    "top_features": [
+      {
+        "feature_idx": 105,
+        "hedges_g": 1.3649299363896106,
+        "p_value": 0.000963266767116785,
+        "mean_introspective": 19.967561721801758,
+        "mean_relational": 2.1335623264312744,
+        "direction": "INTROSPECTIVE"
+      },
+      {
+        "feature_idx": 13955,
+        "hedges_g": -1.2344402863111907,
+        "p_value": 0.0029410929299260907,
+        "mean_introspective": 1.9547561407089233,
+        "mean_relational": 15.760906219482422,
+        "direction": "RELATIONAL"
+      },
+      {
+        "feature_idx": 11100,
+        "hedges_g": 1.1906823565717801,
+        "p_value": 0.0036253547587341444,
+        "mean_introspective": 8.294325828552246,
+        "mean_relational": 0.0,
+        "direction": "INTROSPECTIVE"
+      },
+      {
+        "feature_idx": 11926,
+        "hedges_g": 1.0494174676230432,
+        "p_value": 0.008257612483784545,
+        "mean_introspective": 7.008073806762695,
+        "mean_relational": 0.0,
+        "direction": "INTROSPECTIVE"
+      },
+      {
+        "feature_idx": 10561,
+        "hedges_g": -1.043361055228095,
+        "p_value": 0.01054179038879551,
+        "mean_introspective": 1.1788653135299683,
+        "mean_relational": 13.329103469848633,
+        "direction": "RELATIONAL"
+      },
+      {
+        "feature_idx": 2125,
+        "hedges_g": 1.0327947620737516,
+        "p_value": 0.008257612483784545,
+        "mean_introspective": 7.281527519226074,
+        "mean_relational": 0.0,
+        "direction": "INTROSPECTIVE"
+      },
+      {
+        "feature_idx": 8322,
+        "hedges_g": -0.9974114558404175,
+        "p_value": 0.008257612483784545,
+        "mean_introspective": 0.0,
+        "mean_relational": 8.965781211853027,
+        "direction": "RELATIONAL"
+      },
+      {
+        "feature_idx": 12541,
+        "hedges_g": 0.918311627881409,
+        "p_value": 0.018096613476700153,
+        "mean_introspective": 5.857393264770508,
+        "mean_relational": 0.0,
+        "direction": "INTROSPECTIVE"
+      },
+      {
+        "feature_idx": 15106,
+        "hedges_g": 0.9144643347604186,
+        "p_value": 0.008257612483784545,
+        "mean_introspective": 16.50602149963379,
+        "mean_relational": 0.0,
+        "direction": "INTROSPECTIVE"
+      },
+      {
+        "feature_idx": 8610,
+        "hedges_g": 0.9054567925183624,
+        "p_value": 0.018096613476700153,
+        "mean_introspective": 5.2673163414001465,
+        "mean_relational": 0.0,
+        "direction": "INTROSPECTIVE"
+      },
+      {
+        "feature_idx": 14341,
+        "hedges_g": 0.9040155619879947,
+        "p_value": 0.018096613476700153,
+        "mean_introspective": 5.950440406799316,
+        "mean_relational": 0.0,
+        "direction": "INTROSPECTIVE"
+      },
+      {
+        "feature_idx": 7789,
+        "hedges_g": 0.8964164313635691,
+        "p_value": 0.018096613476700153,
+        "mean_introspective": 6.039540767669678,
+        "mean_relational": 0.0,
+        "direction": "INTROSPECTIVE"
+      },
+      {
+        "feature_idx": 3890,
+        "hedges_g": 0.8922643566388256,
+        "p_value": 0.018096613476700153,
+        "mean_introspective": 6.252839088439941,
+        "mean_relational": 0.0,
+        "direction": "INTROSPECTIVE"
+      },
+      {
+        "feature_idx": 9599,
+        "hedges_g": 0.8777135750412207,
+        "p_value": 0.008257612483784545,
+        "mean_introspective": 8.308579444885254,
+        "mean_relational": 0.0,
+        "direction": "INTROSPECTIVE"
+      },
+      {
+        "feature_idx": 4090,
+        "hedges_g": 0.8720222999482087,
+        "p_value": 0.018096613476700153,
+        "mean_introspective": 5.731218338012695,
+        "mean_relational": 0.0,
+        "direction": "INTROSPECTIVE"
+      },
+      {
+        "feature_idx": 383,
+        "hedges_g": 0.8715268009704135,
+        "p_value": 0.023765508501766855,
+        "mean_introspective": 16.200899124145508,
+        "mean_relational": 6.061625003814697,
+        "direction": "INTROSPECTIVE"
+      },
+      {
+        "feature_idx": 11719,
+        "hedges_g": 0.8608949817961905,
+        "p_value": 0.021696564849712413,
+        "mean_introspective": 38.605979919433594,
+        "mean_relational": 19.990705490112305,
+        "direction": "INTROSPECTIVE"
+      },
+      {
+        "feature_idx": 6336,
+        "hedges_g": -0.8571888550771597,
+        "p_value": 0.034646477736637586,
+        "mean_introspective": 3.039870262145996,
+        "mean_relational": 11.318792343139648,
+        "direction": "RELATIONAL"
+      },
+      {
+        "feature_idx": 5457,
+        "hedges_g": 0.8434155126989797,
+        "p_value": 0.033516578264233245,
+        "mean_introspective": 7.058191776275635,
+        "mean_relational": 0.9064964056015015,
+        "direction": "INTROSPECTIVE"
+      },
+      {
+        "feature_idx": 6081,
+        "hedges_g": 0.8425219497316748,
+        "p_value": 0.02775767621907942,
+        "mean_introspective": 20.341520309448242,
+        "mean_relational": 5.034687519073486,
+        "direction": "INTROSPECTIVE"
+      }
+    ]
+  }
+}

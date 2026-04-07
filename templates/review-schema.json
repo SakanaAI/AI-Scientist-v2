@@ -1,0 +1,71 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Paper Review",
+  "description": "Schema for a structured peer review output",
+  "type": "object",
+  "required": ["summary", "strengths", "weaknesses", "questions", "limitations", "ethics", "soundness", "presentation", "contribution", "overall", "confidence", "decision"],
+  "properties": {
+    "summary": {
+      "type": "string",
+      "description": "Brief summary of the paper's contributions"
+    },
+    "strengths": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "List of paper strengths"
+    },
+    "weaknesses": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "List of paper weaknesses"
+    },
+    "questions": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "Questions for the authors"
+    },
+    "limitations": {
+      "type": "string",
+      "description": "Assessment of whether limitations are adequately addressed"
+    },
+    "ethics": {
+      "type": "string",
+      "description": "Ethics review flag and reasoning"
+    },
+    "soundness": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 4,
+      "description": "Technical soundness (1=poor, 4=excellent)"
+    },
+    "presentation": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 4,
+      "description": "Clarity and presentation quality (1=poor, 4=excellent)"
+    },
+    "contribution": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 4,
+      "description": "Significance of contribution (1=poor, 4=excellent)"
+    },
+    "overall": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 10,
+      "description": "Overall score (1=strong reject, 10=strong accept)"
+    },
+    "confidence": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 5,
+      "description": "Reviewer confidence (1=low, 5=expert)"
+    },
+    "decision": {
+      "type": "string",
+      "enum": ["Accept", "Weak Accept", "Borderline", "Weak Reject", "Reject"],
+      "description": "Overall recommendation"
+    }
+  }
+}

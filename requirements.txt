@@ -1,29 +1,27 @@
-# LLM APIs
-anthropic
-backoff
-openai
-# Viz
+# AI-Scientist-v3 Requirements
+# Minimal dependencies — Claude Code handles all LLM interaction natively.
+
+# Visualization
 matplotlib
-pypdf
-pymupdf4llm
 seaborn
-# Common Requirements
+Pillow
+
+# Data & Computation
 numpy
-transformers
-datasets
-tiktoken
-wandb
+scipy
+torch
+torchvision
+
+# Medical Imaging Datasets
+medmnist
+
+# LaTeX Processing
+pypdf
+
+# Utilities
 tqdm
-rich
-humanize
-dataclasses-json
-funcy
-black
-genson
-shutup
-python-igraph
-coolname
-jsonschema
-omegaconf
-botocore
-boto3
+pyyaml
+requests
+
+# ML
+scikit-learn

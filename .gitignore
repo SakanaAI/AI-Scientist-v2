@@ -14,7 +14,7 @@ dist/
 downloads/
 eggs/
 .eggs/
-lib/
+# lib/   # NOT ignored — AI-Scientist-v3 uses lib/ for Python utilities
 lib64/
 parts/
 sdist/
@@ -163,6 +163,7 @@ cython_debug/
 .idea/
 .aider*
 *.DS_Store
+.claude/settings.local.json
 
 # VS Code
 .vscode/

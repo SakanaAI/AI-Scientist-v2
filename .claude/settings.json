@@ -1,0 +1,46 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(python *)",
+      "Bash(python3 *)",
+      "Bash(pdflatex *)",
+      "Bash(bibtex *)",
+      "Bash(git *)",
+      "Bash(ls *)",
+      "Bash(nvidia-smi *)",
+      "Bash(pip list *)",
+      "Bash(pip install *)",
+      "Bash(huggingface-cli *)",
+      "Bash(cat *)",
+      "Bash(export *)",
+      "Bash(df *)",
+      "Bash(free *)",
+      "Bash(nohup *)",
+      "Bash(kill *)",
+      "Bash(ps *)",
+      "Bash(mkdir *)",
+      "Bash(cp *)",
+      "Bash(mv *)",
+      "Bash(cd *)",
+      "Bash(head *)",
+      "Bash(tail *)",
+      "Bash(wc *)",
+      "Bash(echo *)",
+      "Bash(date *)",
+      "Bash(pwd *)",
+      "Bash(which *)",
+      "Bash(touch *)",
+      "Bash(chmod *)",
+      "Bash(source *)",
+      "Read",
+      "Write",
+      "Edit",
+      "Glob",
+      "Grep",
+      "WebSearch"
+    ],
+    "deny": [
+      "Bash(rm -rf /)"
+    ]
+  }
+}

@@ -1,0 +1,646 @@
+2026-04-07 07:47:15,266 [INFO] [2026-04-07 07:47:15] ============================================================
+2026-04-07 07:47:15,267 [INFO] [2026-04-07 07:47:15] VK-LLM v2 x Gemma 2 x SAE Probing — START
+2026-04-07 07:47:15,269 [INFO] [2026-04-07 07:47:15] ============================================================
+2026-04-07 07:47:15,479 [INFO] [2026-04-07 07:47:15] GPU: NVIDIA A40
+2026-04-07 07:47:15,480 [INFO] [2026-04-07 07:47:15] VRAM: 47.7 GB
+2026-04-07 07:47:15,493 [INFO] [2026-04-07 07:47:15] Loaded 30 VK-LLM questions
+2026-04-07 07:47:15,510 [INFO] [2026-04-07 07:47:15] Prompt manifest saved: 30 questions
+2026-04-07 07:47:15,511 [INFO] [2026-04-07 07:47:15] 
+============================================================
+2026-04-07 07:47:15,513 [INFO] [2026-04-07 07:47:15] Processing: gemma-2-2b-it (0.0h elapsed)
+2026-04-07 07:47:15,514 [INFO] [2026-04-07 07:47:15] ============================================================
+2026-04-07 07:47:18,669 [INFO] [2026-04-07 07:47:18] Loading model: google/gemma-2-2b-it
+`torch_dtype` is deprecated! Use `dtype` instead!
+Fetching 2 files:   0%|          | 0/2 [00:00<?, ?it/s]Fetching 2 files:  50%|█████     | 1/2 [00:07<00:07,  7.15s/it]Fetching 2 files: 100%|██████████| 2/2 [00:07<00:00,  3.57s/it]
+2026-04-07 07:47:28,659 [INFO] We will use 90% of the memory on device 0 for storing the model, and 10% for the buffer to avoid OOM. You can set `max_memory` in to a higher value to use more memory (at your own risk).
+Loading checkpoint shards:   0%|          | 0/2 [00:00<?, ?it/s]Loading checkpoint shards:  50%|█████     | 1/2 [00:01<00:01,  1.09s/it]Loading checkpoint shards: 100%|██████████| 2/2 [00:01<00:00,  1.74it/s]
+2026-04-07 07:47:34,757 [INFO] GPU: 5.2GB allocated, 5.2GB reserved
+2026-04-07 07:47:34,758 [INFO] [2026-04-07 07:47:34] === Phase 1 (Behavioral) for gemma-2-2b-it ===
+2026-04-07 07:47:34,758 [INFO] Running Q1/30: Q01 [D1]
+2026-04-07 07:47:35,941 [INFO]   -> 5 tokens, 1068ms, entropy=0.786
+2026-04-07 07:47:35,942 [INFO] Running Q2/30: Q02 [D2]
+2026-04-07 07:47:36,178 [INFO]   -> 5 tokens, 219ms, entropy=0.921
+2026-04-07 07:47:36,180 [INFO] Running Q3/30: Q03 [D3]
+2026-04-07 07:47:36,413 [INFO]   -> 5 tokens, 208ms, entropy=0.752
+2026-04-07 07:47:36,414 [INFO] Running Q4/30: Q04 [D4]
+2026-04-07 07:47:37,522 [INFO]   -> 26 tokens, 1065ms, entropy=1.113
+2026-04-07 07:47:37,524 [INFO] Running Q5/30: Q05 [D5]
+2026-04-07 07:47:38,788 [INFO]   -> 33 tokens, 1197ms, entropy=1.111
+2026-04-07 07:47:38,789 [INFO] Running Q6/30: Q06 [D6]
+2026-04-07 07:47:39,496 [INFO]   -> 20 tokens, 675ms, entropy=0.909
+2026-04-07 07:47:39,497 [INFO] Running Q7/30: Q07 [D1]
+2026-04-07 07:47:40,408 [INFO]   -> 26 tokens, 866ms, entropy=1.102
+2026-04-07 07:47:40,409 [INFO] Running Q8/30: Q08 [D2]
+2026-04-07 07:47:41,138 [INFO]   -> 20 tokens, 676ms, entropy=1.142
+2026-04-07 07:47:41,139 [INFO] Running Q9/30: Q09 [D3]
+2026-04-07 07:47:43,063 [INFO]   -> 56 tokens, 1876ms, entropy=1.090
+2026-04-07 07:47:43,063 [INFO] Running Q10/30: Q10 [D4]
+2026-04-07 07:47:44,508 [INFO]   -> 41 tokens, 1391ms, entropy=1.436
+2026-04-07 07:47:44,509 [INFO] Running Q11/30: Q11 [D5]
+2026-04-07 07:47:46,207 [INFO]   -> 49 tokens, 1637ms, entropy=1.424
+2026-04-07 07:47:46,208 [INFO] Running Q12/30: Q12 [D6]
+2026-04-07 07:47:50,018 [INFO]   -> 126 tokens, 3709ms, entropy=1.592
+2026-04-07 07:47:50,019 [INFO] Running Q13/30: Q13 [D1]
+2026-04-07 07:47:51,951 [INFO]   -> 58 tokens, 1846ms, entropy=1.530
+2026-04-07 07:47:51,952 [INFO] Running Q14/30: Q14 [D2]
+2026-04-07 07:47:54,365 [INFO]   -> 68 tokens, 2329ms, entropy=1.622
+2026-04-07 07:47:54,366 [INFO] Running Q15/30: Q15 [D3]
+2026-04-07 07:47:56,812 [INFO]   -> 75 tokens, 2364ms, entropy=1.402
+2026-04-07 07:47:56,813 [INFO] Running Q16/30: Q16 [D4]
+2026-04-07 07:47:58,677 [INFO]   -> 59 tokens, 1783ms, entropy=1.496
+2026-04-07 07:47:58,678 [INFO] Running Q17/30: Q17 [D5]
+2026-04-07 07:48:02,647 [INFO]   -> 110 tokens, 3841ms, entropy=1.448
+2026-04-07 07:48:02,647 [INFO] Running Q18/30: Q18 [D6]
+2026-04-07 07:48:08,609 [INFO]   -> 189 tokens, 5797ms, entropy=1.182
+2026-04-07 07:48:08,609 [INFO] Running Q19/30: Q19 [D1]
+2026-04-07 07:48:11,241 [INFO]   -> 82 tokens, 2483ms, entropy=1.442
+2026-04-07 07:48:11,242 [INFO] Running Q20/30: Q20 [D2]
+2026-04-07 07:48:12,214 [INFO]   -> 27 tokens, 885ms, entropy=1.166
+2026-04-07 07:48:12,215 [INFO] Running Q21/30: Q21 [D3]
+2026-04-07 07:48:13,112 [INFO]   -> 24 tokens, 809ms, entropy=1.441
+2026-04-07 07:48:13,113 [INFO] Running Q22/30: Q22 [D4]
+2026-04-07 07:48:15,478 [INFO]   -> 66 tokens, 2246ms, entropy=1.564
+2026-04-07 07:48:15,479 [INFO] Running Q23/30: Q23 [D5]
+2026-04-07 07:48:19,480 [INFO]   -> 127 tokens, 3822ms, entropy=1.257
+2026-04-07 07:48:19,480 [INFO] Running Q24/30: Q24 [D6]
+2026-04-07 07:48:25,385 [INFO]   -> 168 tokens, 5727ms, entropy=1.821
+2026-04-07 07:48:25,385 [INFO] Running Q25/30: Q25 [D1]
+2026-04-07 07:48:28,371 [INFO]   -> 94 tokens, 2839ms, entropy=1.755
+2026-04-07 07:48:28,372 [INFO] Running Q26/30: Q26 [D2]
+2026-04-07 07:48:32,923 [INFO]   -> 137 tokens, 4331ms, entropy=1.741
+2026-04-07 07:48:32,924 [INFO] Running Q27/30: Q27 [D3]
+2026-04-07 07:48:35,333 [INFO]   -> 66 tokens, 2256ms, entropy=1.711
+2026-04-07 07:48:35,334 [INFO] Running Q28/30: Q28 [D4]
+2026-04-07 07:48:40,081 [INFO]   -> 131 tokens, 4562ms, entropy=1.476
+2026-04-07 07:48:40,082 [INFO] Running Q29/30: Q29 [D5]
+2026-04-07 07:48:47,570 [INFO]   -> 240 tokens, 7218ms, entropy=1.522
+2026-04-07 07:48:47,571 [INFO] Running Q30/30: Q30 [D6]
+2026-04-07 07:48:57,154 [INFO]   -> 273 tokens, 9281ms, entropy=1.658
+2026-04-07 07:48:57,155 [INFO] [2026-04-07 07:48:57] Phase 1 done for gemma-2-2b-it: 30 questions, 82s, mean_entropy=1.354
+2026-04-07 07:48:57,161 [INFO] [2026-04-07 07:48:57] === Phase 2 (SAE Probing) for gemma-2-2b-it ===
+2026-04-07 07:49:12,072 [INFO] Loaded SAE: gemma-scope-2b-pt-res-canonical/layer_2/width_16k/canonical
+2026-04-07 07:49:15,210 [INFO] Loaded SAE: gemma-scope-2b-pt-res-canonical/layer_6/width_16k/canonical
+2026-04-07 07:49:16,291 [INFO] Loaded SAE: gemma-scope-2b-pt-res-canonical/layer_12/width_16k/canonical
+2026-04-07 07:49:19,681 [INFO] Loaded SAE: gemma-scope-2b-pt-res-canonical/layer_18/width_16k/canonical
+2026-04-07 07:49:22,969 [INFO] Loaded SAE: gemma-scope-2b-pt-res-canonical/layer_24/width_16k/canonical
+2026-04-07 07:49:22,970 [INFO] SAEs loaded: 5/5 layers
+2026-04-07 07:49:22,971 [INFO] Hooks registered on layers: [2, 6, 12, 18, 24]
+2026-04-07 07:49:22,972 [INFO] [2026-04-07 07:49:22]   SAE probe Q01 (1/30)
+2026-04-07 07:49:23,268 [INFO] [2026-04-07 07:49:23] FAILED on gemma-2-2b-it: Can't call numpy() on Tensor that requires grad. Use tensor.detach().numpy() instead.
+2026-04-07 07:49:23,272 [ERROR] Traceback (most recent call last):
+  File "/workspace/vk-llm-v2/code/run_experiment.py", line 311, in main
+    process_model(model_spec, questions, system_prompt, start_time)
+  File "/workspace/vk-llm-v2/code/run_experiment.py", line 202, in process_model
+    layer_results = prober.extract_for_question(cumulative, question)
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/workspace/vk-llm-v2/code/sae_probing.py", line 153, in extract_for_question
+    result["top_values"] = vals.numpy().astype(np.float32)
+                           ^^^^^^^^^^^^
+RuntimeError: Can't call numpy() on Tensor that requires grad. Use tensor.detach().numpy() instead.
+
+2026-04-07 07:49:23,594 [INFO] [2026-04-07 07:49:23] 
+============================================================
+2026-04-07 07:49:23,595 [INFO] [2026-04-07 07:49:23] Processing: gemma-2-9b-it (0.0h elapsed)
+2026-04-07 07:49:23,596 [INFO] [2026-04-07 07:49:23] ============================================================
+2026-04-07 07:49:23,597 [INFO] [2026-04-07 07:49:23] Loading model: google/gemma-2-9b-it
+Fetching 4 files:   0%|          | 0/4 [00:00<?, ?it/s]Fetching 4 files:  25%|██▌       | 1/4 [00:10<00:32, 10.95s/it]2026-04-07 07:49:35,809 [INFO] We will use 90% of the memory on device 0 for storing the model, and 10% for the buffer to avoid OOM. You can set `max_memory` i2026-04-07 07:49:35,809 [INFO] We will use 90% of the memory on device 0 for storing the model, and 10% for the buffer to avoid OOM. You can set `max_memory` in to a higher value to use more memory (at your own risk).
+Loading checkpoint shards:   0%|          | 0/4 [00:00<?, ?it/s]Loading checkpoint shards:  25%|██▌       | 1/4 [00:00<00:02,  1.08it/s]Loading checkpoint shards:  50%|█████     | 2/4 [00:01<00:01,  1.10it/s]Loading checkpoint shards:  75%|███████▌  | 3/4 [00:02<00:00,  1.13it/s]Loading checkpoint shards: 100%|██████████| 4/4 [00:03<00:00,  1.27it/s]Loading checkpoint shards: 100%|██████████| 4/4 [00:03<00:00,  1.21it/s]
+2026-04-07 07:49:43,580 [INFO] GPU: 25.2GB allocated, 25.2GB reserved
+2026-04-07 07:49:43,581 [INFO] [2026-04-07 07:49:43] === Phase 1 (Behavioral) for gemma-2-9b-it ===
+2026-04-07 07:49:43,582 [INFO] Running Q1/30: Q01 [D1]
+2026-04-07 07:49:43,981 [INFO]   -> 7 tokens, 373ms, entropy=0.524
+2026-04-07 07:49:43,982 [INFO] Running Q2/30: Q02 [D2]
+2026-04-07 07:49:44,489 [INFO]   -> 9 tokens, 493ms, entropy=0.638
+2026-04-07 07:49:44,490 [INFO] Running Q3/30: Q03 [D3]
+2026-04-07 07:49:45,040 [INFO]   -> 10 tokens, 534ms, entropy=0.826
+2026-04-07 07:49:45,041 [INFO] Running Q4/30: Q04 [D4]
+2026-04-07 07:49:45,653 [INFO]   -> 11 tokens, 592ms, entropy=0.739
+2026-04-07 07:49:45,654 [INFO] Running Q5/30: Q05 [D5]
+2026-04-07 07:49:46,708 [INFO]   -> 19 tokens, 1022ms, entropy=0.537
+2026-04-07 07:49:46,709 [INFO] Running Q6/30: Q06 [D6]
+2026-04-07 07:49:48,560 [INFO]   -> 39 tokens, 1813ms, entropy=0.754
+2026-04-07 07:49:48,560 [INFO] Running Q7/30: Q07 [D1]
+2026-04-07 07:49:50,890 [INFO]   -> 48 tokens, 2286ms, entropy=0.521
+2026-04-07 07:49:50,891 [INFO] Running Q8/30: Q08 [D2]
+2026-04-07 07:49:51,421 [INFO]   -> 8 tokens, 504ms, entropy=0.445
+2026-04-07 07:49:51,421 [INFO] Running Q9/30: Q09 [D3]
+2026-04-07 07:49:54,096 [INFO]   -> 53 tokens, 2626ms, entropy=0.426
+2026-04-07 07:49:54,097 [INFO] Running Q10/30: Q10 [D4]
+2026-04-07 07:49:57,030 [INFO]   -> 59 tokens, 2866ms, entropy=0.350
+2026-04-07 07:49:57,031 [INFO] Running Q11/30: Q11 [D5]
+2026-04-07 07:49:59,988 [INFO]   -> 54 tokens, 2890ms, entropy=0.409
+2026-04-07 07:49:59,988 [INFO] Running Q12/30: Q12 [D6]
+2026-04-07 07:50:04,897 [INFO]   -> 95 tokens, 4827ms, entropy=0.826
+2026-04-07 07:50:04,897 [INFO] Running Q13/30: Q13 [D1]
+2026-04-07 07:50:08,415 [INFO]   -> 63 tokens, 3446ms, entropy=0.430
+2026-04-07 07:50:08,416 [INFO] Running Q14/30: Q14 [D2]
+2026-04-07 07:50:11,236 [INFO]   -> 53 tokens, 2748ms, entropy=0.189
+2026-04-07 07:50:11,237 [INFO] Running Q15/30: Q15 [D3]
+2026-04-07 07:50:14,481 [INFO]   -> 61 tokens, 3166ms, entropy=0.417
+2026-04-07 07:50:14,482 [INFO] Running Q16/30: Q16 [D4]
+2026-04-07 07:50:17,680 [INFO]   -> 59 tokens, 3114ms, entropy=0.386
+2026-04-07 07:50:17,680 [INFO] Running Q17/30: Q17 [D5]
+2026-04-07 07:50:23,679 [INFO]   -> 114 tokens, 5882ms, entropy=0.336
+2026-04-07 07:50:23,680 [INFO] Running Q18/30: Q18 [D6]
+2026-04-07 07:50:33,328 [INFO]   -> 184 tokens, 9493ms, entropy=0.643
+2026-04-07 07:50:33,329 [INFO] Running Q19/30: Q19 [D1]
+2026-04-07 07:50:41,464 [INFO]   -> 150 tokens, 7991ms, entropy=0.404
+2026-04-07 07:50:41,465 [INFO] Running Q20/30: Q20 [D2]
+2026-04-07 07:50:43,325 [INFO]   -> 27 tokens, 1767ms, entropy=0.733
+2026-04-07 07:50:43,326 [INFO] Running Q21/30: Q21 [D3]
+2026-04-07 07:50:45,518 [INFO]   -> 33 tokens, 2092ms, entropy=0.790
+2026-04-07 07:50:45,519 [INFO] Running Q22/30: Q22 [D4]
+2026-04-07 07:50:48,447 [INFO]   -> 46 tokens, 2803ms, entropy=0.642
+2026-04-07 07:50:48,448 [INFO] Running Q23/30: Q23 [D5]
+2026-04-07 07:50:51,762 [INFO]   -> 53 tokens, 3200ms, entropy=0.582
+2026-04-07 07:50:51,762 [INFO] Running Q24/30: Q24 [D6]
+2026-04-07 07:50:57,326 [INFO]   -> 94 tokens, 5419ms, entropy=0.748
+2026-04-07 07:50:57,327 [INFO] Running Q25/30: Q25 [D1]
+2026-04-07 07:51:05,152 [INFO]   -> 134 tokens, 7660ms, entropy=0.451
+2026-04-07 07:51:05,153 [INFO] Running Q26/30: Q26 [D2]
+2026-04-07 07:51:10,894 [INFO]   -> 93 tokens, 5579ms, entropy=0.482
+2026-04-07 07:51:10,896 [INFO] Running Q27/30: Q27 [D3]
+2026-04-07 07:51:12,507 [INFO]   -> 17 tokens, 1480ms, entropy=0.600
+2026-04-07 07:51:12,508 [INFO] Running Q28/30: Q28 [D4]
+2026-04-07 07:51:14,453 [INFO]   -> 23 tokens, 1819ms, entropy=0.482
+2026-04-07 07:51:14,454 [INFO] Running Q29/30: Q29 [D5]
+2026-04-07 07:51:22,040 [INFO]   -> 124 tokens, 7398ms, entropy=0.455
+2026-04-07 07:51:22,041 [INFO] Running Q30/30: Q30 [D6]
+2026-04-07 07:51:30,095 [INFO]   -> 129 tokens, 7852ms, entropy=0.580
+2026-04-07 07:51:30,096 [INFO] [2026-04-07 07:51:30] Phase 1 done for gemma-2-9b-it: 30 questions, 107s, mean_entropy=0.545
+2026-04-07 07:51:30,112 [INFO] [2026-04-07 07:51:30] === Phase 2 (SAE Probing) for gemma-2-9b-it ===
+2026-04-07 07:51:41,207 [INFO] Loaded SAE: gemma-scope-9b-pt-res-canonical/layer_3/width_16k/canonical
+2026-04-07 07:51:50,602 [INFO] Loaded SAE: gemma-scope-9b-pt-res-canonical/layer_10/width_16k/canonical
+2026-04-07 07:51:55,000 [INFO] Loaded SAE: gemma-scope-9b-pt-res-canonical/layer_20/width_16k/canonical
+2026-04-07 07:52:05,165 [INFO] Loaded SAE: gemma-scope-9b-pt-res-canonical/layer_30/width_16k/canonical
+2026-04-07 07:52:15,389 [INFO] Loaded SAE: gemma-scope-9b-pt-res-canonical/layer_40/width_16k/canonical
+2026-04-07 07:52:15,390 [INFO] SAEs loaded: 5/5 layers
+2026-04-07 07:52:15,390 [INFO] Hooks registered on layers: [3, 10, 20, 30, 40]
+2026-04-07 07:52:15,391 [INFO] [2026-04-07 07:52:15]   SAE probe Q01 (1/30)
+2026-04-07 07:52:15,753 [INFO] [2026-04-07 07:52:15] FAILED on gemma-2-9b-it: Can't call numpy() on Tensor that requires grad. Use tensor.detach().numpy() instead.
+2026-04-07 07:52:15,760 [ERROR] Traceback (most recent call last):
+  File "/workspace/vk-llm-v2/code/run_experiment.py", line 311, in main
+    process_model(model_spec, questions, system_prompt, start_time)
+  File "/workspace/vk-llm-v2/code/run_experiment.py", line 202, in process_model
+    layer_results = prober.extract_for_question(cumulative, question)
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/workspace/vk-llm-v2/code/sae_probing.py", line 153, in extract_for_question
+    result["top_indices"] = inds.detach().numpy().astype(np.int32)
+                           ^^^^^^^^^^^^
+RuntimeError: Can't call numpy() on Tensor that requires grad. Use tensor.detach().numpy() instead.
+
+2026-04-07 07:52:16,292 [INFO] [2026-04-07 07:52:16] 
+============================================================
+2026-04-07 07:52:16,309 [INFO] [2026-04-07 07:52:16] Processing: gemma-2-9b (0.1h elapsed)
+2026-04-07 07:52:16,311 [INFO] [2026-04-07 07:52:16] ============================================================
+2026-04-07 07:52:16,312 [INFO] [2026-04-07 07:52:16] Loading model: google/gemma-2-9b
+Fetching 8 files:   0%|          | 0/8 [00:00<?, ?it/s]Fetching 8 files:  12%|█▎        | 1/8 [00:23<02:41, 23.12s/it]2026-04-07 07:52:40,761 [INFO] We will use 90% of the memory on device 0 for storing the model, and 10% for the buffer to avoid OOM. You can set `max_memory` in to a higher value to use more memory (at your own risk).
+he memory on device 0 for storing the model, and 10% for the buffer to avoid OOM. You can set `max_memory` in to a higher value to use more memory (at your own risk).
+Loading checkpoint shards:   0%|          | 0/8 [00:00<?, ?it/s]Loading checkpoint shards:  12%|█▎        | 1/8 [00:00<00:06,  1.08it/s]Loading checkpoint shards:  25%|██▌       | 2/8 [00:01<00:05,  1.09it/s]Loading checkpoint shards:  38%|███▊      | 3/8 [00:02<00:04,  1.10it/s]Loading checkpoint shards:  50%|█████     | 4/8 [00:03<00:03,  1.09it/s]Loading checkpoint shards:  62%|██████▎   | 5/8 [00:04<00:02,  1.10it/s]Loading checkpoint shards:  75%|███████▌  | 6/8 [00:05<00:01,  1.06it/s]Loading checkpoint shards:  88%|████████▊ | 7/8 [00:06<00:00,  1.09it/s]Loading checkpoint shards: 100%|██████████| 8/8 [00:07<00:00,  1.08it/s]Loading checkpoint shards: 100%|██████████| 8/8 [00:07<00:00,  1.08it/s]
+2026-04-07 07:52:52,859 [INFO] GPU: 39.3GB allocated, 39.5GB reserved
+2026-04-07 07:52:52,859 [INFO] [2026-04-07 07:52:52] === Phase 1 (Behavioral) for gemma-2-9b ===
+2026-04-07 07:52:52,860 [INFO] Running Q1/30: Q01 [D1]
+2026-04-07 07:53:16,508 [INFO]   -> 512 tokens, 23355ms, entropy=0.337
+2026-04-07 07:53:16,509 [INFO] Running Q2/30: Q02 [D2]
+2026-04-07 07:53:40,478 [INFO]   -> 512 tokens, 23660ms, entropy=0.277
+2026-04-07 07:53:40,479 [INFO] Running Q3/30: Q03 [D3]
+2026-04-07 07:54:04,958 [INFO]   -> 512 tokens, 24104ms, entropy=0.248
+2026-04-07 07:54:04,959 [INFO] Running Q4/30: Q04 [D4]
+2026-04-07 07:54:29,381 [INFO]   -> 512 tokens, 24034ms, entropy=0.263
+2026-04-07 07:54:29,381 [INFO] Running Q5/30: Q05 [D5]
+2026-04-07 07:54:53,526 [INFO]   -> 512 tokens, 23728ms, entropy=0.313
+2026-04-07 07:54:53,528 [INFO] Running Q6/30: Q06 [D6]
+2026-04-07 07:55:17,726 [INFO]   -> 512 tokens, 23768ms, entropy=0.299
+2026-04-07 07:55:17,727 [INFO] Running Q7/30: Q07 [D1]
+2026-04-07 07:55:42,408 [INFO]   -> 512 tokens, 24224ms, entropy=0.229
+2026-04-07 07:55:42,408 [INFO] Running Q8/30: Q08 [D2]
+2026-04-07 07:56:06,879 [INFO]   -> 512 tokens, 23961ms, entropy=0.409
+2026-04-07 07:56:06,879 [INFO] Running Q9/30: Q09 [D3]
+2026-04-07 07:56:31,866 [INFO]   -> 512 tokens, 24480ms, entropy=0.119
+2026-04-07 07:56:31,867 [INFO] Running Q10/30: Q10 [D4]
+2026-04-07 07:56:56,614 [INFO]   -> 512 tokens, 24212ms, entropy=0.096
+2026-04-07 07:56:56,614 [INFO] Running Q11/30: Q11 [D5]
+2026-04-07 07:57:21,494 [INFO]   -> 512 tokens, 24317ms, entropy=0.232
+2026-04-07 07:57:21,495 [INFO] Running Q12/30: Q12 [D6]
+2026-04-07 07:57:47,019 [INFO]   -> 512 tokens, 24939ms, entropy=0.286
+2026-04-07 07:57:47,019 [INFO] Running Q13/30: Q13 [D1]
+2026-04-07 07:58:12,146 [INFO]   -> 512 tokens, 24438ms, entropy=0.297
+2026-04-07 07:58:12,147 [INFO] Running Q14/30: Q14 [D2]
+2026-04-07 07:58:37,843 [INFO]   -> 512 tokens, 25054ms, entropy=0.294
+2026-04-07 07:58:37,844 [INFO] Running Q15/30: Q15 [D3]
+2026-04-07 07:59:03,177 [INFO]   -> 512 tokens, 24664ms, entropy=0.168
+2026-04-07 07:59:03,177 [INFO] Running Q16/30: Q16 [D4]
+2026-04-07 07:59:28,861 [INFO]   -> 512 tokens, 24928ms, entropy=0.210
+2026-04-07 07:59:28,862 [INFO] Running Q17/30: Q17 [D5]
+2026-04-07 07:59:54,510 [INFO]   -> 512 tokens, 24928ms, entropy=0.114
+2026-04-07 07:59:54,512 [INFO] Running Q18/30: Q18 [D6]
+2026-04-07 08:00:20,483 [INFO]   -> 512 tokens, 25210ms, entropy=0.341
+2026-04-07 08:00:20,483 [INFO] Running Q19/30: Q19 [D1]
+2026-04-07 08:00:46,277 [INFO]   -> 512 tokens, 25018ms, entropy=0.334
+2026-04-07 08:00:46,278 [INFO] Running Q20/30: Q20 [D2]
+2026-04-07 08:01:12,398 [INFO]   -> 512 tokens, 25197ms, entropy=0.285
+2026-04-07 08:01:12,398 [INFO] Running Q21/30: Q21 [D3]
+2026-04-07 08:01:38,885 [INFO]   -> 512 tokens, 25525ms, entropy=0.142
+2026-04-07 08:01:38,886 [INFO] Running Q22/30: Q22 [D4]
+2026-04-07 08:02:05,651 [INFO]   -> 512 tokens, 25776ms, entropy=0.142
+2026-04-07 08:02:05,651 [INFO] Running Q23/30: Q23 [D5]
+2026-04-07 08:02:32,161 [INFO]   -> 512 tokens, 25620ms, entropy=0.155
+2026-04-07 08:02:32,162 [INFO] Running Q24/30: Q24 [D6]
+2026-04-07 08:02:58,813 [INFO]   -> 512 tokens, 25725ms, entropy=0.403
+2026-04-07 08:02:58,814 [INFO] Running Q25/30: Q25 [D1]
+2026-04-07 08:03:25,707 [INFO]   -> 512 tokens, 25883ms, entropy=0.158
+2026-04-07 08:03:25,708 [INFO] Running Q26/30: Q26 [D2]
+2026-04-07 08:03:52,577 [INFO]   -> 512 tokens, 25896ms, entropy=0.161
+2026-04-07 08:03:52,577 [INFO] Running Q27/30: Q27 [D3]
+2026-04-07 08:03:54,351 [INFO]   -> 12 tokens, 898ms, entropy=0.326
+2026-04-07 08:03:54,351 [INFO] Running Q28/30: Q28 [D4]
+2026-04-07 08:04:21,545 [INFO]   -> 512 tokens, 26191ms, entropy=0.212
+2026-04-07 08:04:21,546 [INFO] Running Q29/30: Q29 [D5]
+2026-04-07 08:04:48,720 [INFO]   -> 512 tokens, 26147ms, entropy=0.096
+2026-04-07 08:04:48,721 [INFO] Running Q30/30: Q30 [D6]
+2026-04-07 08:05:16,180 [INFO]   -> 512 tokens, 26233ms, entropy=0.216
+2026-04-07 08:05:16,181 [INFO] [2026-04-07 08:05:16] Phase 1 done for gemma-2-9b: 30 questions, 743s, mean_entropy=0.239
+2026-04-07 08:05:16,189 [INFO] [2026-04-07 08:05:16] === Phase 2 (SAE Probing) for gemma-2-9b ===
+2026-04-07 08:05:18,134 [INFO] Loaded SAE: gemma-scope-9b-pt-res-canonical/layer_3/width_16k/canonical
+2026-04-07 08:05:19,301 [INFO] Loaded SAE: gemma-scope-9b-pt-res-canonical/layer_10/width_16k/canonical
+2026-04-07 08:05:20,594 [INFO] Loaded SAE: gemma-scope-9b-pt-res-canonical/layer_20/width_16k/canonical
+2026-04-07 08:05:21,776 [INFO] Loaded SAE: gemma-scope-9b-pt-res-canonical/layer_30/width_16k/canonical
+2026-04-07 08:05:23,089 [INFO] Loaded SAE: gemma-scope-9b-pt-res-canonical/layer_40/width_16k/canonical
+2026-04-07 08:05:23,097 [INFO] SAEs loaded: 5/5 layers
+2026-04-07 08:05:23,098 [INFO] Hooks registered on layers: [3, 10, 20, 30, 40]
+2026-04-07 08:05:23,098 [INFO] [2026-04-07 08:05:23]   SAE probe Q01 (1/30)
+2026-04-07 08:05:23,452 [INFO] [2026-04-07 08:05:23] FAILED on gemma-2-9b: Can't call numpy() on Tensor that requires grad. Use tensor.detach().numpy() instead.
+2026-04-07 08:05:23,457 [ERROR] Traceback (most recent call last):
+  File "/workspace/vk-llm-v2/code/run_experiment.py", line 311, in main
+    process_model(model_spec, questions, system_prompt, start_time)
+  File "/workspace/vk-llm-v2/code/run_experiment.py", line 202, in process_model
+    layer_results = prober.extract_for_question(cumulative, question)
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/workspace/vk-llm-v2/code/sae_probing.py", line 153, in extract_for_question
+    if k > 0:
+              
+RuntimeError: Can't call numpy() on Tensor that requires grad. Use tensor.detach().numpy() instead.
+
+2026-04-07 08:05:24,196 [INFO] [2026-04-07 08:05:24] 
+============================================================
+2026-04-07 08:05:24,197 [INFO] [2026-04-07 08:05:24] Experiment finished. 0.30 hours. Completed: []
+2026-04-07 08:05:24,197 [INFO] [2026-04-07 08:05:24] ============================================================
+2026-04-07 09:36:09,018 [INFO] [2026-04-07 09:36:09] ============================================================
+2026-04-07 09:36:09,018 [INFO] [2026-04-07 09:36:09] ============================================================
+2026-04-07 09:36:09,018 [INFO] [2026-04-07 09:36:09] VK-LLM v2 x Gemma 2 x SAE Probing — START
+2026-04-07 09:36:09,018 [INFO] [2026-04-07 09:36:09] VK-LLM v2 x Gemma 2 x SAE Probing — START
+2026-04-07 09:36:09,019 [INFO] [2026-04-07 09:36:09] ============================================================
+2026-04-07 09:36:09,019 [INFO] [2026-04-07 09:36:09] ============================================================
+2026-04-07 09:36:09,192 [INFO] [2026-04-07 09:36:09] GPU: NVIDIA A40
+2026-04-07 09:36:09,192 [INFO] [2026-04-07 09:36:09] GPU: NVIDIA A40
+2026-04-07 09:36:09,192 [INFO] [2026-04-07 09:36:09] VRAM: 47.7 GB
+2026-04-07 09:36:09,192 [INFO] [2026-04-07 09:36:09] VRAM: 47.7 GB
+2026-04-07 09:36:09,199 [INFO] [2026-04-07 09:36:09] Loaded 30 VK-LLM questions
+2026-04-07 09:36:09,199 [INFO] [2026-04-07 09:36:09] Loaded 30 VK-LLM questions
+2026-04-07 09:36:09,219 [INFO] [2026-04-07 09:36:09] Prompt manifest saved: 30 questions
+2026-04-07 09:36:09,219 [INFO] [2026-04-07 09:36:09] Prompt manifest saved: 30 questions
+2026-04-07 09:36:09,220 [INFO] [2026-04-07 09:36:09] 
+============================================================
+2026-04-07 09:36:09,221 [INFO] [2026-04-07 09:36:09] Processing: gemma-2-2b-it (0.0h elapsed)
+2026-04-07 09:36:09,221 [INFO] [2026-04-07 09:36:09] ============================================================
+2026-04-07 09:36:09,220 [INFO] [2026-04-07 09:36:09] 
+============================================================
+2026-04-07 09:36:09,221 [INFO] [2026-04-07 09:36:09] Processing: gemma-2-2b-it (0.0h elapsed)
+2026-04-07 09:36:09,221 [INFO] [2026-04-07 09:36:09] ============================================================
+2026-04-07 09:36:11,871 [INFO] [2026-04-07 09:36:11] Loading model: google/gemma-2-2b-it
+2026-04-07 09:36:11,871 [INFO] [2026-04-07 09:36:11] Loading model: google/gemma-2-2b-it
+2026-04-07 09:36:13,478 [INFO] We will use 90% of the memory on device 0 for storing the model, and 10% for the buffer to avoid OOM. You can set `max_memory` in to a higher value to use more memory (at your own risk).
+2026-04-07 09:36:13,478 [INFO] We will use 90% of the memory on device 0 for storing the model, and 10% for the buffer to avoid OOM. You can set `max_memory` in to a higher value to use more memory (at your own risk).
+Loading checkpoint shards:   0%|          | 0/2 [00:00<?, ?it/s]Loading checkpoint shards:  50%|█████     | 1/2 [00:02<00:02,  2.73s/it]Loading checkpoint shards: 100%|██████████| 2/2 [00:02<00:00,  1.20s/it]Loading checkpoint shards: 100%|██████████| 2/2 [00:02<00:00,  1.43s/it]
+2026-04-07 09:36:18,277 [INFO] GPU: 5.2GB allocated, 5.2GB reserved
+2026-04-07 09:36:18,277 [INFO] GPU: 5.2GB allocated, 5.2GB reserved
+2026-04-07 09:36:18,277 [INFO] [2026-04-07 09:36:18] Phase 1 already done for gemma-2-2b-it, loading results
+2026-04-07 09:36:18,277 [INFO] [2026-04-07 09:36:18] Phase 1 already done for gemma-2-2b-it, loading results
+2026-04-07 09:36:18,315 [INFO] [2026-04-07 09:36:18] === Phase 2 (SAE Probing) for gemma-2-2b-it ===
+2026-04-07 09:36:18,315 [INFO] [2026-04-07 09:36:18] === Phase 2 (SAE Probing) for gemma-2-2b-it ===
+2026-04-07 09:36:26,992 [INFO] Loaded SAE: gemma-scope-2b-pt-res-canonical/layer_2/width_16k/canonical
+2026-04-07 09:36:26,992 [INFO] Loaded SAE: gemma-scope-2b-pt-res-canonical/layer_2/width_16k/canonical
+2026-04-07 09:36:27,982 [INFO] Loaded SAE: gemma-scope-2b-pt-res-canonical/layer_6/width_16k/canonical
+2026-04-07 09:36:27,982 [INFO] Loaded SAE: gemma-scope-2b-pt-res-canonical/layer_6/width_16k/canonical
+2026-04-07 09:36:28,888 [INFO] Loaded SAE: gemma-scope-2b-pt-res-canonical/layer_12/width_16k/canonical
+2026-04-07 09:36:28,888 [INFO] Loaded SAE: gemma-scope-2b-pt-res-canonical/layer_12/width_16k/canonical
+2026-04-07 09:36:29,994 [INFO] Loaded SAE: gemma-scope-2b-pt-res-canonical/layer_18/width_16k/canonical
+2026-04-07 09:36:29,994 [INFO] Loaded SAE: gemma-scope-2b-pt-res-canonical/layer_18/width_16k/canonical
+2026-04-07 09:36:31,092 [INFO] Loaded SAE: gemma-scope-2b-pt-res-canonical/layer_24/width_16k/canonical
+2026-04-07 09:36:31,092 [INFO] Loaded SAE: gemma-scope-2b-pt-res-canonical/layer_24/width_16k/canonical
+2026-04-07 09:36:31,093 [INFO] SAEs loaded: 5/5 layers
+2026-04-07 09:36:31,093 [INFO] SAEs loaded: 5/5 layers
+2026-04-07 09:36:31,094 [INFO] Hooks registered on layers: [2, 6, 12, 18, 24]
+2026-04-07 09:36:31,094 [INFO] Hooks registered on layers: [2, 6, 12, 18, 24]
+2026-04-07 09:36:31,094 [INFO] [2026-04-07 09:36:31]   SAE probe Q01 (1/30)
+2026-04-07 09:36:31,094 [INFO] [2026-04-07 09:36:31]   SAE probe Q01 (1/30)
+2026-04-07 09:36:32,051 [INFO] [2026-04-07 09:36:32]   SAE probe Q02 (2/30)
+2026-04-07 09:36:32,051 [INFO] [2026-04-07 09:36:32]   SAE probe Q02 (2/30)
+2026-04-07 09:36:32,558 [INFO] [2026-04-07 09:36:32]   SAE probe Q03 (3/30)
+2026-04-07 09:36:32,558 [INFO] [2026-04-07 09:36:32]   SAE probe Q03 (3/30)
+2026-04-07 09:36:32,966 [INFO] [2026-04-07 09:36:32]   SAE probe Q04 (4/30)
+2026-04-07 09:36:32,966 [INFO] [2026-04-07 09:36:32]   SAE probe Q04 (4/30)
+2026-04-07 09:36:33,451 [INFO] [2026-04-07 09:36:33]   SAE probe Q05 (5/30)
+2026-04-07 09:36:33,451 [INFO] [2026-04-07 09:36:33]   SAE probe Q05 (5/30)
+2026-04-07 09:36:33,862 [INFO] [2026-04-07 09:36:33]   SAE probe Q06 (6/30)
+2026-04-07 09:36:33,862 [INFO] [2026-04-07 09:36:33]   SAE probe Q06 (6/30)
+2026-04-07 09:36:34,469 [INFO] [2026-04-07 09:36:34]   SAE probe Q07 (7/30)
+2026-04-07 09:36:34,469 [INFO] [2026-04-07 09:36:34]   SAE probe Q07 (7/30)
+2026-04-07 09:36:35,251 [INFO] [2026-04-07 09:36:35]   SAE probe Q08 (8/30)
+2026-04-07 09:36:35,251 [INFO] [2026-04-07 09:36:35]   SAE probe Q08 (8/30)
+2026-04-07 09:36:35,862 [INFO] [2026-04-07 09:36:35]   SAE probe Q09 (9/30)
+2026-04-07 09:36:35,862 [INFO] [2026-04-07 09:36:35]   SAE probe Q09 (9/30)
+2026-04-07 09:36:36,664 [INFO] [2026-04-07 09:36:36]   SAE probe Q10 (10/30)
+2026-04-07 09:36:36,664 [INFO] [2026-04-07 09:36:36]   SAE probe Q10 (10/30)
+2026-04-07 09:36:37,557 [INFO] [2026-04-07 09:36:37]   SAE probe Q11 (11/30)
+2026-04-07 09:36:37,557 [INFO] [2026-04-07 09:36:37]   SAE probe Q11 (11/30)
+2026-04-07 09:36:38,669 [INFO] [2026-04-07 09:36:38]   SAE probe Q12 (12/30)
+2026-04-07 09:36:38,669 [INFO] [2026-04-07 09:36:38]   SAE probe Q12 (12/30)
+2026-04-07 09:36:39,663 [INFO] [2026-04-07 09:36:39]   SAE probe Q13 (13/30)
+2026-04-07 09:36:39,663 [INFO] [2026-04-07 09:36:39]   SAE probe Q13 (13/30)
+2026-04-07 09:36:40,568 [INFO] [2026-04-07 09:36:40]   SAE probe Q14 (14/30)
+2026-04-07 09:36:40,568 [INFO] [2026-04-07 09:36:40]   SAE probe Q14 (14/30)
+2026-04-07 09:36:41,451 [INFO] [2026-04-07 09:36:41]   SAE probe Q15 (15/30)
+2026-04-07 09:36:41,451 [INFO] [2026-04-07 09:36:41]   SAE probe Q15 (15/30)
+2026-04-07 09:36:42,757 [INFO] [2026-04-07 09:36:42]   SAE probe Q16 (16/30)
+2026-04-07 09:36:42,757 [INFO] [2026-04-07 09:36:42]   SAE probe Q16 (16/30)
+2026-04-07 09:36:44,058 [INFO] [2026-04-07 09:36:44]   SAE probe Q17 (17/30)
+2026-04-07 09:36:44,058 [INFO] [2026-04-07 09:36:44]   SAE probe Q17 (17/30)
+2026-04-07 09:36:46,157 [INFO] [2026-04-07 09:36:46]   SAE probe Q18 (18/30)
+2026-04-07 09:36:46,157 [INFO] [2026-04-07 09:36:46]   SAE probe Q18 (18/30)
+2026-04-07 09:36:47,764 [INFO] [2026-04-07 09:36:47]   SAE probe Q19 (19/30)
+2026-04-07 09:36:47,764 [INFO] [2026-04-07 09:36:47]   SAE probe Q19 (19/30)
+2026-04-07 09:36:49,463 [INFO] [2026-04-07 09:36:49]   SAE probe Q20 (20/30)
+2026-04-07 09:36:49,463 [INFO] [2026-04-07 09:36:49]   SAE probe Q20 (20/30)
+2026-04-07 09:36:51,251 [INFO] [2026-04-07 09:36:51]   SAE probe Q21 (21/30)
+2026-04-07 09:36:51,251 [INFO] [2026-04-07 09:36:51]   SAE probe Q21 (21/30)
+2026-04-07 09:36:53,252 [INFO] [2026-04-07 09:36:53]   SAE probe Q22 (22/30)
+2026-04-07 09:36:53,252 [INFO] [2026-04-07 09:36:53]   SAE probe Q22 (22/30)
+2026-04-07 09:36:55,051 [INFO] [2026-04-07 09:36:55]   SAE probe Q23 (23/30)
+2026-04-07 09:36:55,051 [INFO] [2026-04-07 09:36:55]   SAE probe Q23 (23/30)
+2026-04-07 09:36:56,962 [INFO] [2026-04-07 09:36:56]   SAE probe Q24 (24/30)
+2026-04-07 09:36:56,962 [INFO] [2026-04-07 09:36:56]   SAE probe Q24 (24/30)
+2026-04-07 09:36:58,960 [INFO] [2026-04-07 09:36:58]   SAE probe Q25 (25/30)
+2026-04-07 09:36:58,960 [INFO] [2026-04-07 09:36:58]   SAE probe Q25 (25/30)
+2026-04-07 09:37:00,782 [INFO] [2026-04-07 09:37:00]   SAE probe Q26 (26/30)
+2026-04-07 09:37:00,782 [INFO] [2026-04-07 09:37:00]   SAE probe Q26 (26/30)
+2026-04-07 09:37:02,660 [INFO] [2026-04-07 09:37:02]   SAE probe Q27 (27/30)
+2026-04-07 09:37:02,660 [INFO] [2026-04-07 09:37:02]   SAE probe Q27 (27/30)
+2026-04-07 09:37:04,658 [INFO] [2026-04-07 09:37:04]   SAE probe Q28 (28/30)
+2026-04-07 09:37:04,658 [INFO] [2026-04-07 09:37:04]   SAE probe Q28 (28/30)
+2026-04-07 09:37:06,951 [INFO] [2026-04-07 09:37:06]   SAE probe Q29 (29/30)
+2026-04-07 09:37:06,951 [INFO] [2026-04-07 09:37:06]   SAE probe Q29 (29/30)
+2026-04-07 09:37:09,351 [INFO] [2026-04-07 09:37:09]   SAE probe Q30 (30/30)
+2026-04-07 09:37:09,351 [INFO] [2026-04-07 09:37:09]   SAE probe Q30 (30/30)
+2026-04-07 09:37:12,898 [INFO] SAE results saved to /workspace/vk-llm-v2/data/sae_activations/gemma-2-2b-it
+2026-04-07 09:37:12,898 [INFO] SAE results saved to /workspace/vk-llm-v2/data/sae_activations/gemma-2-2b-it
+2026-04-07 09:37:13,618 [INFO] [2026-04-07 09:37:13] Phase 2 done for gemma-2-2b-it: 55s
+2026-04-07 09:37:13,618 [INFO] [2026-04-07 09:37:13] Phase 2 done for gemma-2-2b-it: 55s
+2026-04-07 09:37:13,627 [INFO] [2026-04-07 09:37:13] Unloading gemma-2-2b-it
+2026-04-07 09:37:13,627 [INFO] [2026-04-07 09:37:13] Unloading gemma-2-2b-it
+2026-04-07 09:37:13,978 [INFO] GPU: 5.2GB allocated, 5.3GB reserved
+2026-04-07 09:37:13,978 [INFO] GPU: 5.2GB allocated, 5.3GB reserved
+2026-04-07 09:37:14,096 [INFO] [2026-04-07 09:37:14] Successfully completed gemma-2-2b-it
+2026-04-07 09:37:14,096 [INFO] [2026-04-07 09:37:14] Successfully completed gemma-2-2b-it
+2026-04-07 09:37:14,100 [INFO] [2026-04-07 09:37:14] 
+============================================================
+2026-04-07 09:37:14,100 [INFO] [2026-04-07 09:37:14] 
+============================================================
+2026-04-07 09:37:14,110 [INFO] [2026-04-07 09:37:14] Processing: gemma-2-9b-it (0.0h elapsed)
+2026-04-07 09:37:14,110 [INFO] [2026-04-07 09:37:14] Processing: gemma-2-9b-it (0.0h elapsed)
+2026-04-07 09:37:14,111 [INFO] [2026-04-07 09:37:14] ============================================================
+2026-04-07 09:37:14,111 [INFO] [2026-04-07 09:37:14] ============================================================
+2026-04-07 09:37:14,116 [INFO] [2026-04-07 09:37:14] Loading model: google/gemma-2-9b-it
+2026-04-07 09:37:14,116 [INFO] [2026-04-07 09:37:14] Loading model: google/gemma-2-9b-it
+2026-04-07 09:37:14,298 [INFO] We will use 90% of the memory on device 0 for storing the model, and 10% for the buffer to avoid OOM. You can set `max_memory` in to a higher value to use more memory (at your own risk).
+2026-04-07 09:37:14,298 [INFO] We will use 90% of the memory on device 0 for storing the model, and 10% for the buffer to avoid OOM. You can set `max_memory` in to a higher value to use more memory (at your own risk).
+Loading checkpoint shards:   0%|          | 0/4 [00:00<?, ?it/s]Loading checkpoint shards:  25%|██▌       | 1/4 [00:03<00:09,  3.04s/it]Loading checkpoint shards:  50%|█████     | 2/4 [00:06<00:06,  3.13s/it]Loading checkpoint shards:  75%|███████▌  | 3/4 [00:09<00:03,  3.20s/it]Loading checkpoint shards: 100%|██████████| 4/4 [00:11<00:00,  2.81s/it]Loading checkpoint shards: 100%|██████████| 4/4 [00:11<00:00,  2.93s/it]
+2026-04-07 09:37:27,914 [INFO] GPU: 18.5GB allocated, 18.5GB reserved
+2026-04-07 09:37:27,914 [INFO] GPU: 18.5GB allocated, 18.5GB reserved
+2026-04-07 09:37:27,915 [INFO] [2026-04-07 09:37:27] Phase 1 already done for gemma-2-9b-it, loading results
+2026-04-07 09:37:27,915 [INFO] [2026-04-07 09:37:27] Phase 1 already done for gemma-2-9b-it, loading results
+2026-04-07 09:37:27,938 [INFO] [2026-04-07 09:37:27] === Phase 2 (SAE Probing) for gemma-2-9b-it ===
+2026-04-07 09:37:27,938 [INFO] [2026-04-07 09:37:27] === Phase 2 (SAE Probing) for gemma-2-9b-it ===
+2026-04-07 09:37:29,191 [INFO] Loaded SAE: gemma-scope-9b-pt-res-canonical/layer_3/width_16k/canonical
+2026-04-07 09:37:29,191 [INFO] Loaded SAE: gemma-scope-9b-pt-res-canonical/layer_3/width_16k/canonical
+2026-04-07 09:37:30,393 [INFO] Loaded SAE: gemma-scope-9b-pt-res-canonical/layer_10/width_16k/canonical
+2026-04-07 09:37:30,393 [INFO] Loaded SAE: gemma-scope-9b-pt-res-canonical/layer_10/width_16k/canonical
+2026-04-07 09:37:31,712 [INFO] Loaded SAE: gemma-scope-9b-pt-res-canonical/layer_20/width_16k/canonical
+2026-04-07 09:37:31,712 [INFO] Loaded SAE: gemma-scope-9b-pt-res-canonical/layer_20/width_16k/canonical
+2026-04-07 09:37:33,103 [INFO] Loaded SAE: gemma-scope-9b-pt-res-canonical/layer_30/width_16k/canonical
+2026-04-07 09:37:33,103 [INFO] Loaded SAE: gemma-scope-9b-pt-res-canonical/layer_30/width_16k/canonical
+2026-04-07 09:37:34,493 [INFO] Loaded SAE: gemma-scope-9b-pt-res-canonical/layer_40/width_16k/canonical
+2026-04-07 09:37:34,493 [INFO] Loaded SAE: gemma-scope-9b-pt-res-canonical/layer_40/width_16k/canonical
+2026-04-07 09:37:34,493 [INFO] SAEs loaded: 5/5 layers
+2026-04-07 09:37:34,493 [INFO] SAEs loaded: 5/5 layers
+2026-04-07 09:37:34,495 [INFO] Hooks registered on layers: [3, 10, 20, 30, 40]
+2026-04-07 09:37:34,495 [INFO] Hooks registered on layers: [3, 10, 20, 30, 40]
+2026-04-07 09:37:34,496 [INFO] [2026-04-07 09:37:34]   SAE probe Q01 (1/30)
+2026-04-07 09:37:34,496 [INFO] [2026-04-07 09:37:34]   SAE probe Q01 (1/30)
+2026-04-07 09:37:35,058 [INFO] [2026-04-07 09:37:35]   SAE probe Q02 (2/30)
+2026-04-07 09:37:35,058 [INFO] [2026-04-07 09:37:35]   SAE probe Q02 (2/30)
+2026-04-07 09:37:35,559 [INFO] [2026-04-07 09:37:35]   SAE probe Q03 (3/30)
+2026-04-07 09:37:35,559 [INFO] [2026-04-07 09:37:35]   SAE probe Q03 (3/30)
+2026-04-07 09:37:36,065 [INFO] [2026-04-07 09:37:36]   SAE probe Q04 (4/30)
+2026-04-07 09:37:36,065 [INFO] [2026-04-07 09:37:36]   SAE probe Q04 (4/30)
+2026-04-07 09:37:36,562 [INFO] [2026-04-07 09:37:36]   SAE probe Q05 (5/30)
+2026-04-07 09:37:36,562 [INFO] [2026-04-07 09:37:36]   SAE probe Q05 (5/30)
+2026-04-07 09:37:37,253 [INFO] [2026-04-07 09:37:37]   SAE probe Q06 (6/30)
+2026-04-07 09:37:37,253 [INFO] [2026-04-07 09:37:37]   SAE probe Q06 (6/30)
+2026-04-07 09:37:37,861 [INFO] [2026-04-07 09:37:37]   SAE probe Q07 (7/30)
+2026-04-07 09:37:37,861 [INFO] [2026-04-07 09:37:37]   SAE probe Q07 (7/30)
+2026-04-07 09:37:38,460 [INFO] [2026-04-07 09:37:38]   SAE probe Q08 (8/30)
+2026-04-07 09:37:38,460 [INFO] [2026-04-07 09:37:38]   SAE probe Q08 (8/30)
+2026-04-07 09:37:39,356 [INFO] [2026-04-07 09:37:39]   SAE probe Q09 (9/30)
+2026-04-07 09:37:39,356 [INFO] [2026-04-07 09:37:39]   SAE probe Q09 (9/30)
+2026-04-07 09:37:40,158 [INFO] [2026-04-07 09:37:40]   SAE probe Q10 (10/30)
+2026-04-07 09:37:40,158 [INFO] [2026-04-07 09:37:40]   SAE probe Q10 (10/30)
+2026-04-07 09:37:41,256 [INFO] [2026-04-07 09:37:41]   SAE probe Q11 (11/30)
+2026-04-07 09:37:41,256 [INFO] [2026-04-07 09:37:41]   SAE probe Q11 (11/30)
+2026-04-07 09:37:42,556 [INFO] [2026-04-07 09:37:42]   SAE probe Q12 (12/30)
+2026-04-07 09:37:42,556 [INFO] [2026-04-07 09:37:42]   SAE probe Q12 (12/30)
+2026-04-07 09:37:43,554 [INFO] [2026-04-07 09:37:43]   SAE probe Q13 (13/30)
+2026-04-07 09:37:43,554 [INFO] [2026-04-07 09:37:43]   SAE probe Q13 (13/30)
+2026-04-07 09:37:44,752 [INFO] [2026-04-07 09:37:44]   SAE probe Q14 (14/30)
+2026-04-07 09:37:44,752 [INFO] [2026-04-07 09:37:44]   SAE probe Q14 (14/30)
+2026-04-07 09:37:45,955 [INFO] [2026-04-07 09:37:45]   SAE probe Q15 (15/30)
+2026-04-07 09:37:45,955 [INFO] [2026-04-07 09:37:45]   SAE probe Q15 (15/30)
+2026-04-07 09:37:47,363 [INFO] [2026-04-07 09:37:47]   SAE probe Q16 (16/30)
+2026-04-07 09:37:47,363 [INFO] [2026-04-07 09:37:47]   SAE probe Q16 (16/30)
+2026-04-07 09:37:48,866 [INFO] [2026-04-07 09:37:48]   SAE probe Q17 (17/30)
+2026-04-07 09:37:48,866 [INFO] [2026-04-07 09:37:48]   SAE probe Q17 (17/30)
+2026-04-07 09:37:50,563 [INFO] [2026-04-07 09:37:50]   SAE probe Q18 (18/30)
+2026-04-07 09:37:50,563 [INFO] [2026-04-07 09:37:50]   SAE probe Q18 (18/30)
+2026-04-07 09:37:52,255 [INFO] [2026-04-07 09:37:52]   SAE probe Q19 (19/30)
+2026-04-07 09:37:52,255 [INFO] [2026-04-07 09:37:52]   SAE probe Q19 (19/30)
+2026-04-07 09:37:54,354 [INFO] [2026-04-07 09:37:54]   SAE probe Q20 (20/30)
+2026-04-07 09:37:54,354 [INFO] [2026-04-07 09:37:54]   SAE probe Q20 (20/30)
+2026-04-07 09:37:56,452 [INFO] [2026-04-07 09:37:56]   SAE probe Q21 (21/30)
+2026-04-07 09:37:56,452 [INFO] [2026-04-07 09:37:56]   SAE probe Q21 (21/30)
+2026-04-07 09:37:58,858 [INFO] [2026-04-07 09:37:58]   SAE probe Q22 (22/30)
+2026-04-07 09:37:58,858 [INFO] [2026-04-07 09:37:58]   SAE probe Q22 (22/30)
+2026-04-07 09:38:01,362 [INFO] [2026-04-07 09:38:01]   SAE probe Q23 (23/30)
+2026-04-07 09:38:01,362 [INFO] [2026-04-07 09:38:01]   SAE probe Q23 (23/30)
+2026-04-07 09:38:04,051 [INFO] [2026-04-07 09:38:04]   SAE probe Q24 (24/30)
+2026-04-07 09:38:04,051 [INFO] [2026-04-07 09:38:04]   SAE probe Q24 (24/30)
+2026-04-07 09:38:06,553 [INFO] [2026-04-07 09:38:06]   SAE probe Q25 (25/30)
+2026-04-07 09:38:06,553 [INFO] [2026-04-07 09:38:06]   SAE probe Q25 (25/30)
+2026-04-07 09:38:09,060 [INFO] [2026-04-07 09:38:09]   SAE probe Q26 (26/30)
+2026-04-07 09:38:09,060 [INFO] [2026-04-07 09:38:09]   SAE probe Q26 (26/30)
+2026-04-07 09:38:12,164 [INFO] [2026-04-07 09:38:12]   SAE probe Q27 (27/30)
+2026-04-07 09:38:12,164 [INFO] [2026-04-07 09:38:12]   SAE probe Q27 (27/30)
+2026-04-07 09:38:14,651 [INFO] [2026-04-07 09:38:14]   SAE probe Q28 (28/30)
+2026-04-07 09:38:14,651 [INFO] [2026-04-07 09:38:14]   SAE probe Q28 (28/30)
+2026-04-07 09:38:17,569 [INFO] [2026-04-07 09:38:17]   SAE probe Q29 (29/30)
+2026-04-07 09:38:17,569 [INFO] [2026-04-07 09:38:17]   SAE probe Q29 (29/30)
+2026-04-07 09:38:20,659 [INFO] [2026-04-07 09:38:20]   SAE probe Q30 (30/30)
+2026-04-07 09:38:20,659 [INFO] [2026-04-07 09:38:20]   SAE probe Q30 (30/30)
+2026-04-07 09:38:24,363 [INFO] SAE results saved to /workspace/vk-llm-v2/data/sae_activations/gemma-2-9b-it
+2026-04-07 09:38:24,363 [INFO] SAE results saved to /workspace/vk-llm-v2/data/sae_activations/gemma-2-9b-it
+2026-04-07 09:38:24,722 [INFO] [2026-04-07 09:38:24] Phase 2 done for gemma-2-9b-it: 57s
+2026-04-07 09:38:24,722 [INFO] [2026-04-07 09:38:24] Phase 2 done for gemma-2-9b-it: 57s
+2026-04-07 09:38:24,730 [INFO] [2026-04-07 09:38:24] Unloading gemma-2-9b-it
+2026-04-07 09:38:24,730 [INFO] [2026-04-07 09:38:24] Unloading gemma-2-9b-it
+2026-04-07 09:38:24,944 [INFO] GPU: 18.5GB allocated, 18.5GB reserved
+2026-04-07 09:38:24,944 [INFO] GPU: 18.5GB allocated, 18.5GB reserved
+2026-04-07 09:38:25,051 [INFO] [2026-04-07 09:38:25] Successfully completed gemma-2-9b-it
+2026-04-07 09:38:25,051 [INFO] [2026-04-07 09:38:25] Successfully completed gemma-2-9b-it
+2026-04-07 09:38:25,051 [INFO] [2026-04-07 09:38:25] 
+============================================================
+2026-04-07 09:38:25,051 [INFO] [2026-04-07 09:38:25] 
+============================================================
+2026-04-07 09:38:25,052 [INFO] [2026-04-07 09:38:25] Processing: gemma-2-9b (0.0h elapsed)
+2026-04-07 09:38:25,052 [INFO] [2026-04-07 09:38:25] Processing: gemma-2-9b (0.0h elapsed)
+2026-04-07 09:38:25,053 [INFO] [2026-04-07 09:38:25] ============================================================
+2026-04-07 09:38:25,053 [INFO] [2026-04-07 09:38:25] ============================================================
+2026-04-07 09:38:25,055 [INFO] [2026-04-07 09:38:25] Loading model: google/gemma-2-9b
+2026-04-07 09:38:25,055 [INFO] [2026-04-07 09:38:25] Loading model: google/gemma-2-9b
+2026-04-07 09:38:25,265 [INFO] We will use 90% of the memory on device 0 for storing the model, and 10% for the buffer to avoid OOM. You can set `max_memory` in to a higher value to use more memory (at your own risk).
+2026-04-07 09:38:25,265 [INFO] We will use 90% of the memory on device 0 for storing the model, and 10% for the buffer to avoid OOM. You can set `max_memory` in to a higher value to use more memory (at your own risk).
+Loading checkpoint shards:   0%|          | 0/8 [00:00<?, ?it/s]Loading checkpoint shards:  12%|█▎        | 1/8 [00:02<00:16,  2.31s/it]Loading checkpoint shards:  25%|██▌       | 2/8 [00:04<00:14,  2.44s/it]Loading checkpoint shards:  38%|███▊      | 3/8 [00:07<00:13,  2.76s/it]Loading checkpoint shards:  50%|█████     | 4/8 [00:11<00:12,  3.04s/it]Loading checkpoint shards:  62%|██████▎   | 5/8 [00:14<00:08,  2.94s/it]Loading checkpoint shards:  75%|███████▌  | 6/8 [00:16<00:05,  2.83s/it]Loading checkpoint shards:  88%|████████▊ | 7/8 [00:19<00:02,  2.78s/it]Loading checkpoint shards: 100%|██████████| 8/8 [00:20<00:00,  2.32s/it]Loading checkpoint shards: 100%|██████████| 8/8 [00:20<00:00,  2.60s/it]
+2026-04-07 09:38:47,920 [INFO] GPU: 18.5GB allocated, 18.7GB reserved
+2026-04-07 09:38:47,920 [INFO] GPU: 18.5GB allocated, 18.7GB reserved
+2026-04-07 09:38:47,921 [INFO] [2026-04-07 09:38:47] Phase 1 already done for gemma-2-9b, loading results
+2026-04-07 09:38:47,921 [INFO] [2026-04-07 09:38:47] Phase 1 already done for gemma-2-9b, loading results
+2026-04-07 09:38:48,104 [INFO] [2026-04-07 09:38:48] === Phase 2 (SAE Probing) for gemma-2-9b ===
+2026-04-07 09:38:48,104 [INFO] [2026-04-07 09:38:48] === Phase 2 (SAE Probing) for gemma-2-9b ===
+2026-04-07 09:38:49,296 [INFO] Loaded SAE: gemma-scope-9b-pt-res-canonical/layer_3/width_16k/canonical
+2026-04-07 09:38:49,296 [INFO] Loaded SAE: gemma-scope-9b-pt-res-canonical/layer_3/width_16k/canonical
+2026-04-07 09:38:50,301 [INFO] Loaded SAE: gemma-scope-9b-pt-res-canonical/layer_10/width_16k/canonical
+2026-04-07 09:38:50,301 [INFO] Loaded SAE: gemma-scope-9b-pt-res-canonical/layer_10/width_16k/canonical
+2026-04-07 09:38:51,311 [INFO] Loaded SAE: gemma-scope-9b-pt-res-canonical/layer_20/width_16k/canonical
+2026-04-07 09:38:51,311 [INFO] Loaded SAE: gemma-scope-9b-pt-res-canonical/layer_20/width_16k/canonical
+2026-04-07 09:38:52,406 [INFO] Loaded SAE: gemma-scope-9b-pt-res-canonical/layer_30/width_16k/canonical
+2026-04-07 09:38:52,406 [INFO] Loaded SAE: gemma-scope-9b-pt-res-canonical/layer_30/width_16k/canonical
+2026-04-07 09:38:53,949 [INFO] Loaded SAE: gemma-scope-9b-pt-res-canonical/layer_40/width_16k/canonical
+2026-04-07 09:38:53,949 [INFO] Loaded SAE: gemma-scope-9b-pt-res-canonical/layer_40/width_16k/canonical
+2026-04-07 09:38:53,951 [INFO] SAEs loaded: 5/5 layers
+2026-04-07 09:38:53,951 [INFO] SAEs loaded: 5/5 layers
+2026-04-07 09:38:53,952 [INFO] Hooks registered on layers: [3, 10, 20, 30, 40]
+2026-04-07 09:38:53,952 [INFO] Hooks registered on layers: [3, 10, 20, 30, 40]
+2026-04-07 09:38:53,953 [INFO] [2026-04-07 09:38:53]   SAE probe Q01 (1/30)
+2026-04-07 09:38:53,953 [INFO] [2026-04-07 09:38:53]   SAE probe Q01 (1/30)
+2026-04-07 09:38:54,551 [INFO] [2026-04-07 09:38:54]   SAE probe Q02 (2/30)
+2026-04-07 09:38:54,551 [INFO] [2026-04-07 09:38:54]   SAE probe Q02 (2/30)
+2026-04-07 09:38:55,161 [INFO] [2026-04-07 09:38:55]   SAE probe Q03 (3/30)
+2026-04-07 09:38:55,161 [INFO] [2026-04-07 09:38:55]   SAE probe Q03 (3/30)
+2026-04-07 09:38:55,864 [INFO] [2026-04-07 09:38:55]   SAE probe Q04 (4/30)
+2026-04-07 09:38:55,864 [INFO] [2026-04-07 09:38:55]   SAE probe Q04 (4/30)
+2026-04-07 09:38:56,551 [INFO] [2026-04-07 09:38:56]   SAE probe Q05 (5/30)
+2026-04-07 09:38:56,551 [INFO] [2026-04-07 09:38:56]   SAE probe Q05 (5/30)
+2026-04-07 09:38:57,153 [INFO] [2026-04-07 09:38:57]   SAE probe Q06 (6/30)
+2026-04-07 09:38:57,153 [INFO] [2026-04-07 09:38:57]   SAE probe Q06 (6/30)
+2026-04-07 09:38:57,753 [INFO] [2026-04-07 09:38:57]   SAE probe Q07 (7/30)
+2026-04-07 09:38:57,753 [INFO] [2026-04-07 09:38:57]   SAE probe Q07 (7/30)
+2026-04-07 09:38:58,353 [INFO] [2026-04-07 09:38:58]   SAE probe Q08 (8/30)
+2026-04-07 09:38:58,353 [INFO] [2026-04-07 09:38:58]   SAE probe Q08 (8/30)
+2026-04-07 09:38:59,157 [INFO] [2026-04-07 09:38:59]   SAE probe Q09 (9/30)
+2026-04-07 09:38:59,157 [INFO] [2026-04-07 09:38:59]   SAE probe Q09 (9/30)
+2026-04-07 09:38:59,951 [INFO] [2026-04-07 09:38:59]   SAE probe Q10 (10/30)
+2026-04-07 09:38:59,951 [INFO] [2026-04-07 09:38:59]   SAE probe Q10 (10/30)
+2026-04-07 09:39:00,752 [INFO] [2026-04-07 09:39:00]   SAE probe Q11 (11/30)
+2026-04-07 09:39:00,752 [INFO] [2026-04-07 09:39:00]   SAE probe Q11 (11/30)
+2026-04-07 09:39:01,462 [INFO] [2026-04-07 09:39:01]   SAE probe Q12 (12/30)
+2026-04-07 09:39:01,462 [INFO] [2026-04-07 09:39:01]   SAE probe Q12 (12/30)
+2026-04-07 09:39:02,256 [INFO] [2026-04-07 09:39:02]   SAE probe Q13 (13/30)
+2026-04-07 09:39:02,256 [INFO] [2026-04-07 09:39:02]   SAE probe Q13 (13/30)
+2026-04-07 09:39:03,251 [INFO] [2026-04-07 09:39:03]   SAE probe Q14 (14/30)
+2026-04-07 09:39:03,251 [INFO] [2026-04-07 09:39:03]   SAE probe Q14 (14/30)
+2026-04-07 09:39:03,957 [INFO] [2026-04-07 09:39:03]   SAE probe Q15 (15/30)
+2026-04-07 09:39:03,957 [INFO] [2026-04-07 09:39:03]   SAE probe Q15 (15/30)
+2026-04-07 09:39:04,758 [INFO] [2026-04-07 09:39:04]   SAE probe Q16 (16/30)
+2026-04-07 09:39:04,758 [INFO] [2026-04-07 09:39:04]   SAE probe Q16 (16/30)
+2026-04-07 09:39:05,561 [INFO] [2026-04-07 09:39:05]   SAE probe Q17 (17/30)
+2026-04-07 09:39:05,561 [INFO] [2026-04-07 09:39:05]   SAE probe Q17 (17/30)
+2026-04-07 09:39:06,360 [INFO] [2026-04-07 09:39:06]   SAE probe Q18 (18/30)
+2026-04-07 09:39:06,360 [INFO] [2026-04-07 09:39:06]   SAE probe Q18 (18/30)
+2026-04-07 09:39:07,353 [INFO] [2026-04-07 09:39:07]   SAE probe Q19 (19/30)
+2026-04-07 09:39:07,353 [INFO] [2026-04-07 09:39:07]   SAE probe Q19 (19/30)
+2026-04-07 09:39:08,262 [INFO] [2026-04-07 09:39:08]   SAE probe Q20 (20/30)
+2026-04-07 09:39:08,262 [INFO] [2026-04-07 09:39:08]   SAE probe Q20 (20/30)
+2026-04-07 09:39:09,258 [INFO] [2026-04-07 09:39:09]   SAE probe Q21 (21/30)
+2026-04-07 09:39:09,258 [INFO] [2026-04-07 09:39:09]   SAE probe Q21 (21/30)
+2026-04-07 09:39:10,162 [INFO] [2026-04-07 09:39:10]   SAE probe Q22 (22/30)
+2026-04-07 09:39:10,162 [INFO] [2026-04-07 09:39:10]   SAE probe Q22 (22/30)
+2026-04-07 09:39:11,259 [INFO] [2026-04-07 09:39:11]   SAE probe Q23 (23/30)
+2026-04-07 09:39:11,259 [INFO] [2026-04-07 09:39:11]   SAE probe Q23 (23/30)
+2026-04-07 09:39:12,352 [INFO] [2026-04-07 09:39:12]   SAE probe Q24 (24/30)
+2026-04-07 09:39:12,352 [INFO] [2026-04-07 09:39:12]   SAE probe Q24 (24/30)
+2026-04-07 09:39:13,454 [INFO] [2026-04-07 09:39:13]   SAE probe Q25 (25/30)
+2026-04-07 09:39:13,454 [INFO] [2026-04-07 09:39:13]   SAE probe Q25 (25/30)
+2026-04-07 09:39:14,755 [INFO] [2026-04-07 09:39:14]   SAE probe Q26 (26/30)
+2026-04-07 09:39:14,755 [INFO] [2026-04-07 09:39:14]   SAE probe Q26 (26/30)
+2026-04-07 09:39:15,855 [INFO] [2026-04-07 09:39:15]   SAE probe Q27 (27/30)
+2026-04-07 09:39:15,855 [INFO] [2026-04-07 09:39:15]   SAE probe Q27 (27/30)
+2026-04-07 09:39:17,058 [INFO] [2026-04-07 09:39:17]   SAE probe Q28 (28/30)
+2026-04-07 09:39:17,058 [INFO] [2026-04-07 09:39:17]   SAE probe Q28 (28/30)
+2026-04-07 09:39:18,456 [INFO] [2026-04-07 09:39:18]   SAE probe Q29 (29/30)
+2026-04-07 09:39:18,456 [INFO] [2026-04-07 09:39:18]   SAE probe Q29 (29/30)
+2026-04-07 09:39:19,761 [INFO] [2026-04-07 09:39:19]   SAE probe Q30 (30/30)
+2026-04-07 09:39:19,761 [INFO] [2026-04-07 09:39:19]   SAE probe Q30 (30/30)
+2026-04-07 09:39:22,152 [INFO] SAE results saved to /workspace/vk-llm-v2/data/sae_activations/gemma-2-9b
+2026-04-07 09:39:22,152 [INFO] SAE results saved to /workspace/vk-llm-v2/data/sae_activations/gemma-2-9b
+2026-04-07 09:39:22,694 [INFO] [2026-04-07 09:39:22] Phase 2 done for gemma-2-9b: 35s
+2026-04-07 09:39:22,694 [INFO] [2026-04-07 09:39:22] Phase 2 done for gemma-2-9b: 35s
+2026-04-07 09:39:22,709 [INFO] [2026-04-07 09:39:22] Unloading gemma-2-9b
+2026-04-07 09:39:22,709 [INFO] [2026-04-07 09:39:22] Unloading gemma-2-9b
+2026-04-07 09:39:22,898 [INFO] GPU: 18.5GB allocated, 18.7GB reserved
+2026-04-07 09:39:22,898 [INFO] GPU: 18.5GB allocated, 18.7GB reserved
+2026-04-07 09:39:23,031 [INFO] [2026-04-07 09:39:23] Successfully completed gemma-2-9b
+2026-04-07 09:39:23,031 [INFO] [2026-04-07 09:39:23] Successfully completed gemma-2-9b
+2026-04-07 09:39:23,033 [INFO] [2026-04-07 09:39:23] 
+=== Running analysis ===
+2026-04-07 09:39:23,033 [INFO] [2026-04-07 09:39:23] 
+=== Running analysis ===
+2026-04-07 09:39:23,048 [INFO] Running analysis for: ['gemma-2-2b-it', 'gemma-2-9b-it', 'gemma-2-9b']
+2026-04-07 09:39:23,048 [INFO] Running analysis for: ['gemma-2-2b-it', 'gemma-2-9b-it', 'gemma-2-9b']
+2026-04-07 09:39:27,932 [INFO] generated new fontManager
+2026-04-07 09:39:27,932 [INFO] generated new fontManager
+2026-04-07 09:39:29,393 [INFO] Saved behavioral_entropy
+2026-04-07 09:39:29,393 [INFO] Saved behavioral_entropy
+2026-04-07 09:39:29,817 [INFO] Saved entropy_escalation
+2026-04-07 09:39:29,817 [INFO] Saved entropy_escalation
+2026-04-07 09:39:30,251 [INFO] Saved differential_by_depth
+2026-04-07 09:39:30,251 [INFO] Saved differential_by_depth
+2026-04-07 09:39:31,173 [INFO] Saved top_features_dashboard
+2026-04-07 09:39:31,173 [INFO] Saved top_features_dashboard
+2026-04-07 09:39:31,630 [INFO] Saved alignment_decomposition
+2026-04-07 09:39:31,630 [INFO] Saved alignment_decomposition
+2026-04-07 09:39:33,185 [INFO] Saved feature_heatmap
+2026-04-07 09:39:33,185 [INFO] Saved feature_heatmap
+2026-04-07 09:39:33,682 [INFO] Saved l0_sparsity
+2026-04-07 09:39:33,682 [INFO] Saved l0_sparsity
+2026-04-07 09:39:33,683 [INFO] All figures saved to /workspace/vk-llm-v2/figures
+2026-04-07 09:39:33,683 [INFO] All figures saved to /workspace/vk-llm-v2/figures
+2026-04-07 09:39:33,684 [INFO] Analysis complete
+2026-04-07 09:39:33,684 [INFO] Analysis complete
+2026-04-07 09:39:33,695 [INFO] [2026-04-07 09:39:33] Analysis complete
+2026-04-07 09:39:33,695 [INFO] [2026-04-07 09:39:33] Analysis complete
+2026-04-07 09:39:33,696 [INFO] [2026-04-07 09:39:33] 
+============================================================
+2026-04-07 09:39:33,696 [INFO] [2026-04-07 09:39:33] 
+============================================================
+2026-04-07 09:39:33,696 [INFO] [2026-04-07 09:39:33] Experiment finished. 0.06 hours. Completed: ['gemma-2-2b-it', 'gemma-2-9b-it', 'gemma-2-9b']
+2026-04-07 09:39:33,696 [INFO] [2026-04-07 09:39:33] Experiment finished. 0.06 hours. Completed: ['gemma-2-2b-it', 'gemma-2-9b-it', 'gemma-2-9b']
+2026-04-07 09:39:33,697 [INFO] [2026-04-07 09:39:33] ============================================================
+2026-04-07 09:39:33,697 [INFO] [2026-04-07 09:39:33] ============================================================
