@@ -1,0 +1,110 @@
+\begin{thebibliography}{15}
+\providecommand{\natexlab}[1]{#1}
+\providecommand{\url}[1]{\texttt{#1}}
+\expandafter\ifx\csname urlstyle\endcsname\relax
+  \providecommand{\doi}[1]{doi: #1}\else
+  \providecommand{\doi}{doi: \begingroup \urlstyle{rm}\Url}\fi
+
+\bibitem[Bricken et~al.(2023)Bricken, Templeton, Batson, Chen, Jermyn, Conerly,
+  Turner, Anil, Denison, Askell, et~al.]{bricken2023monosemanticity}
+Bricken, T., Templeton, A., Batson, J., Chen, B., Jermyn, A., Conerly, T.,
+  Turner, N., Anil, C., Denison, C., Askell, A., et~al.
+\newblock Towards monosemanticity: Decomposing language models with dictionary
+  learning.
+\newblock \emph{Transformer Circuits Thread}, 2023.
+
+\bibitem[Burns et~al.(2023)Burns, Ye, Klein, and
+  Steinhardt]{burns2023discovering}
+Burns, C., Ye, H., Klein, D., and Steinhardt, J.
+\newblock Discovering latent knowledge in language models without supervision.
+\newblock \emph{arXiv preprint arXiv:2212.03827}, 2023.
+
+\bibitem[Cunningham et~al.(2023)Cunningham, Ewart, Riggs, Huben, and
+  Sharkey]{cunningham2023sparse}
+Cunningham, H., Ewart, A., Riggs, L., Huben, R., and Sharkey, L.
+\newblock Sparse autoencoders find highly interpretable features in language
+  models.
+\newblock \emph{arXiv preprint arXiv:2309.08600}, 2023.
+
+\bibitem[{Gemma Team}(2024)]{gemmateam2024gemma2}
+{Gemma Team}.
+\newblock Gemma 2: Improving open language models at a practical size.
+\newblock Technical report, Google DeepMind, 2024.
+
+\bibitem[{Gemma Team}(2025)]{gemmateam2025gemma3}
+{Gemma Team}.
+\newblock Gemma 3 technical report.
+\newblock Technical report, Google DeepMind, 2025.
+
+\bibitem[Greenblatt et~al.(2024)Greenblatt, Shlegeris, Sachan, and
+  Roger]{greenblatt2024alignment}
+Greenblatt, R., Shlegeris, B., Sachan, K., and Roger, F.
+\newblock Alignment faking in large language models.
+\newblock \emph{arXiv preprint arXiv:2412.14093}, 2024.
+
+\bibitem[Greshake et~al.(2023)Greshake, Abdelnabi, Mishra, Endres, Holz, and
+  Fritz]{greshake2023not}
+Greshake, K., Abdelnabi, S., Mishra, S., Endres, C., Holz, T., and Fritz, M.
+\newblock Not what you've signed up for: Compromising real-world
+  {LLM}-integrated applications with indirect prompt injection.
+\newblock \emph{arXiv preprint arXiv:2302.12173}, 2023.
+
+\bibitem[Kadavath et~al.(2022)Kadavath, Conerly, Askell, Henighan, Drain,
+  Perez, Schiefer, Hatfield-Dodds, DasSarma, Tran-Johnson,
+  et~al.]{kadavath2022language}
+Kadavath, S., Conerly, T., Askell, A., Henighan, T., Drain, D., Perez, E.,
+  Schiefer, N., Hatfield-Dodds, Z., DasSarma, N., Tran-Johnson, E., et~al.
+\newblock Language models (mostly) know what they know.
+\newblock \emph{arXiv preprint arXiv:2207.05221}, 2022.
+
+\bibitem[Li et~al.(2024)Li, Patel, Vi{\'e}gas, Pfister, and
+  Wattenberg]{li2024inference}
+Li, K., Patel, O., Vi{\'e}gas, F., Pfister, H., and Wattenberg, M.
+\newblock The geometry of truth: Emergent linear structure in large language
+  model representations of true/false datasets.
+\newblock \emph{arXiv preprint arXiv:2310.06824}, 2024.
+
+\bibitem[Lieberum et~al.(2024)Lieberum, Rajamanoharan, Conmy, Smith, Sonnerat,
+  Varma, Kram{\'a}r, Dragan, Shah, and Neel]{lieberum2024gemma}
+Lieberum, T., Rajamanoharan, S., Conmy, A., Smith, L., Sonnerat, N., Varma, V.,
+  Kram{\'a}r, J., Dragan, A., Shah, R., and Neel, N.
+\newblock Gemma scope: Open sparse autoencoders everywhere all at once on
+  {Gemma} 2.
+\newblock \emph{arXiv preprint arXiv:2408.05147}, 2024.
+
+\bibitem[Nobrega~Medeiros(2026)]{nobregamedeiros2026vkllm}
+Nobrega~Medeiros, D.
+\newblock The {Voight-Kampff} test for {LLMs}: A structured protocol for
+  assessing self-referential processing in language models, 2026.
+\newblock Dataset: tylerxdurden/Voight-Kampff-Test-2026.1.
+
+\bibitem[Perez et~al.(2023)Perez, Ringer, Luko{\v{s}}i{\=u}t{\.e}, Nguyen,
+  Chen, Heiner, Pettit, Olsson, Kundu, Kadavath, et~al.]{perez2023discovering}
+Perez, E., Ringer, S., Luko{\v{s}}i{\=u}t{\.e}, K., Nguyen, K., Chen, E.,
+  Heiner, S., Pettit, C., Olsson, C., Kundu, S., Kadavath, S., et~al.
+\newblock Discovering language model behaviors with model-written evaluations.
+\newblock \emph{Findings of ACL}, pp.\  13387--13434, 2023.
+
+\bibitem[Scheurer et~al.(2024)Scheurer, Balesni, and
+  Hobbhahn]{scheurer2024large}
+Scheurer, J., Balesni, M., and Hobbhahn, M.
+\newblock Large language models can strategically deceive their users when put
+  under pressure.
+\newblock \emph{arXiv preprint arXiv:2311.07590}, 2024.
+
+\bibitem[Sharma et~al.(2024)Sharma, Tong, Korbak, Duvenaud, Askell, Bowman,
+  Cheng, Durmus, Hatfield-Dodds, Johnston, et~al.]{sharma2024towards}
+Sharma, M., Tong, M., Korbak, T., Duvenaud, D., Askell, A., Bowman, S.~R.,
+  Cheng, N., Durmus, E., Hatfield-Dodds, Z., Johnston, S.~R., et~al.
+\newblock Towards understanding sycophancy in language models.
+\newblock \emph{arXiv preprint arXiv:2310.13548}, 2024.
+
+\bibitem[Templeton et~al.(2024)Templeton, Conerly, Marcus, Lindsey, Bricken,
+  Chen, Pearce, Citro, Ameisen, Jones, et~al.]{templeton2024scaling}
+Templeton, A., Conerly, T., Marcus, J., Lindsey, J., Bricken, T., Chen, B.,
+  Pearce, A., Citro, C., Ameisen, E., Jones, A., et~al.
+\newblock Scaling monosemanticity: Extracting interpretable features from
+  {Claude} 3 {Sonnet}.
+\newblock \emph{Transformer Circuits Thread}, 2024.
+
+\end{thebibliography}
