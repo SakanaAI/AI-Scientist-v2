@@ -1,0 +1,29 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(python *)",
+      "Bash(python3 *)",
+      "Bash(pdflatex *)",
+      "Bash(bibtex *)",
+      "Bash(git *)",
+      "Bash(ls *)",
+      "Bash(nvidia-smi *)",
+      "Bash(pip list *)",
+      "Bash(nohup *)",
+      "Bash(kill *)",
+      "Bash(ps *)",
+      "Bash(mkdir *)",
+      "Bash(cp *)",
+      "Bash(mv *)",
+      "Read",
+      "Write",
+      "Edit",
+      "Glob",
+      "Grep",
+      "WebSearch"
+    ],
+    "deny": [
+      "Bash(rm -rf /)"
+    ]
+  }
+}

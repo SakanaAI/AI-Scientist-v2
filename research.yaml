@@ -1,0 +1,36 @@
+# AI-Scientist-v3 Research Configuration
+# Edit this file to configure your research project.
+
+topic: "Test-time augmentation scaling laws for medical image classification"
+venue: icbinb           # icbinb (4-page ICLR) | icml (8-page ICML)
+page_limit: 4
+domain: "medical imaging"
+
+# Human-in-the-loop checkpoints
+# Set to true to pause and ask for human approval after each phase
+checkpoints:
+  after_ideation: true       # Review generated ideas before experimenting
+  after_experiments: true    # Review experiment results before writing
+  after_writing: false       # Auto-proceed to review
+  after_review: false        # Auto-finish after review
+
+# Resource constraints
+constraints:
+  max_experiment_runtime_hours: 8    # Max wall-clock time for all experiments
+  gpu_required: true                 # Whether experiments need GPU
+  num_seeds: 3                       # Random seeds for reproducibility
+
+# Experiment configuration
+experiment:
+  starter_code: "ideas/tta_scaling_medimg.py"    # Optional starter code
+  idea_source: "ideas/tta_scaling_medimg.json"   # Pre-generated ideas (or null to generate)
+  datasets:
+    - "MedMNIST"
+  baselines_required: true
+  ablations_required: true
+
+# Ideation configuration (used when idea_source is null)
+ideation:
+  num_ideas: 3                # Number of ideas to generate
+  novelty_check: true         # Verify novelty via literature search
+  topic_description: "ideas/i_cant_believe_its_not_better.md"  # Topic context

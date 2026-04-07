@@ -1,36 +1,27 @@
-# AI-Scientist v3 Requirements
-# In v3, the coding agent (claude CLI) replaces all LLM SDK calls.
-# No API keys or LLM SDK packages are needed for default operation.
+# AI-Scientist-v3 Requirements
+# Minimal dependencies — Claude Code handles all LLM interaction natively.
 
-# Viz
+# Visualization
 matplotlib
-pypdf
-pymupdf4llm
 seaborn
 Pillow
 
-# Common Requirements
+# Data & Computation
 numpy
-tqdm
-rich
-humanize
-dataclasses-json
-funcy
-black
-genson
-shutup
-python-igraph
-coolname
-jsonschema
-omegaconf
+scipy
+torch
+torchvision
 
-# Optional: only needed for legacy mode (AI_SCIENTIST_BACKEND=legacy)
-# anthropic
-# openai
-# backoff
-# botocore
-# boto3
-# tiktoken
-# wandb
-# transformers
-# datasets
+# Medical Imaging Datasets
+medmnist
+
+# LaTeX Processing
+pypdf
+
+# Utilities
+tqdm
+pyyaml
+requests
+
+# ML
+scikit-learn
