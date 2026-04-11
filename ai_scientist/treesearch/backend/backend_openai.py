@@ -3,6 +3,11 @@ import logging
 import time
 
 from .utils import FunctionSpec, OutputType, opt_messages_to_list, backoff_create
+from ai_scientist.openai_client_utils import (
+    OpenAICompatibleServerError,
+    create_openai_client,
+)
+from ai_scientist.openai_model_utils import normalize_openai_model_name
 from funcy import notnone, once, select_values
 import openai
 from rich import print
@@ -15,6 +20,7 @@ OPENAI_TIMEOUT_EXCEPTIONS = (
     openai.APIConnectionError,
     openai.APITimeoutError,
     openai.InternalServerError,
+    OpenAICompatibleServerError,
 )
 
 def get_ai_client(model: str, max_retries=2) -> openai.OpenAI:
@@ -24,7 +30,7 @@ def get_ai_client(model: str, max_retries=2) -> openai.OpenAI:
             max_retries=max_retries
         )
     else:
-        client = openai.OpenAI(max_retries=max_retries)
+        client = create_openai_client(max_retries=max_retries)
     return client
 
 
@@ -38,6 +44,11 @@ def query(
     filtered_kwargs: dict = select_values(notnone, model_kwargs)  # type: ignore
 
     messages = opt_messages_to_list(system_message, user_message)
+    if not messages:
+        messages = [{"role": "user", "content": "Please continue."}]
+    elif not any(message["role"] == "user" for message in messages):
+        # Some OpenAI-compatible gateways reject system-only chat requests.
+        messages = [{"role": "user", "content": messages[0]["content"]}]
 
     if func_spec is not None:
         filtered_kwargs["tools"] = [func_spec.as_openai_tool_dict]
@@ -45,7 +56,9 @@ def query(
         filtered_kwargs["tool_choice"] = func_spec.openai_tool_choice_dict
 
     if filtered_kwargs.get("model", "").startswith("ollama/"):
-       filtered_kwargs["model"] = filtered_kwargs["model"].replace("ollama/", "")
+        filtered_kwargs["model"] = filtered_kwargs["model"].replace("ollama/", "")
+    else:
+        filtered_kwargs["model"] = normalize_openai_model_name(filtered_kwargs["model"])
 
     t0 = time.time()
     completion = backoff_create(
