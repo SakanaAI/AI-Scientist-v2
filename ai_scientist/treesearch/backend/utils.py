@@ -1,4 +1,6 @@
 from dataclasses import dataclass
+import os
+import time
 
 import jsonschema
 from dataclasses_json import DataClassJsonMixin
@@ -14,20 +16,26 @@ from typing import Callable
 
 logger = logging.getLogger("ai-scientist")
 
-
-@backoff.on_predicate(
-    wait_gen=backoff.expo,
-    max_value=60,
-    factor=1.5,
-)
 def backoff_create(
     create_fn: Callable, retry_exceptions: list[Exception], *args, **kwargs
 ):
-    try:
-        return create_fn(*args, **kwargs)
-    except retry_exceptions as e:
-        logger.info(f"Backoff exception: {e}")
-        return False
+    max_tries = int(os.environ.get("AI_SCIENTIST_BACKOFF_MAX_TRIES", "4"))
+    delay_seconds = 1.5
+
+    for attempt in range(1, max_tries + 1):
+        try:
+            return create_fn(*args, **kwargs)
+        except retry_exceptions as e:
+            logger.warning(
+                "Backoff exception on attempt %s/%s: %s",
+                attempt,
+                max_tries,
+                e,
+            )
+            if attempt >= max_tries:
+                raise
+            time.sleep(min(delay_seconds, 60.0))
+            delay_seconds *= 2
 
 
 def opt_messages_to_list(

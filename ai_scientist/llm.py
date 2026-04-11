@@ -2,6 +2,11 @@ import json
 import os
 import re
 from typing import Any
+from ai_scientist.openai_client_utils import create_openai_client, describe_openai_endpoint
+from ai_scientist.openai_model_utils import (
+    build_openai_chat_completion_kwargs,
+    normalize_openai_model_name,
+)
 from ai_scientist.utils.token_tracker import track_token_usage
 
 import anthropic
@@ -19,6 +24,36 @@ AVAILABLE_LLMS = [
     "gpt-4o",
     "gpt-4o-2024-05-13",
     "gpt-4o-2024-08-06",
+    "gpt-5",
+    "gpt-5-codex",
+    "gpt-5-codex-mini",
+    "gpt-5.1",
+    "gpt-5.1-codex",
+    "gpt-5.1-codex-max",
+    "gpt-5.1-codex-mini",
+    "gpt-5.2",
+    "gpt-5.2-low",
+    "gpt-5.2-medium",
+    "gpt-5.2-high",
+    "gpt-5.2-xhigh",
+    "gpt-5.3-codex",
+    "gpt-5.3-codex-low",
+    "gpt-5.3-codex-medium",
+    "gpt-5.3-codex-high",
+    "gpt-5.3-codex-xhigh",
+    "gpt-5.4",
+    "gpt-5.4-mini",
+    "gpt-5.4-none",
+    "gpt-5.4-low",
+    "gpt-5.4-medium",
+    "gpt-5.4-high",
+    "gpt-5.4-xhigh",
+    "gpt-5.4-2026-03-05",
+    "gpt-5.4-2026-03-05-none",
+    "gpt-5.4-2026-03-05-low",
+    "gpt-5.4-2026-03-05-medium",
+    "gpt-5.4-2026-03-05-high",
+    "gpt-5.4-2026-03-05-xhigh",
     "gpt-4.1",
     "gpt-4.1-2025-04-14",
     "gpt-4.1-mini",
@@ -118,16 +153,18 @@ def get_batch_responses_from_llm(
     elif "gpt" in model:
         new_msg_history = msg_history + [{"role": "user", "content": msg}]
         response = client.chat.completions.create(
-            model=model,
             messages=[
                 {"role": "system", "content": system_message},
                 *new_msg_history,
             ],
-            temperature=temperature,
-            max_tokens=MAX_NUM_TOKENS,
-            n=n_responses,
-            stop=None,
-            seed=0,
+            **build_openai_chat_completion_kwargs(
+                model,
+                temperature=temperature,
+                max_tokens=MAX_NUM_TOKENS,
+                n=n_responses,
+                stop=None,
+                seed=0,
+            ),
         )
         content = [r.message.content for r in response.choices]
         new_msg_history = [
@@ -228,27 +265,31 @@ def make_llm_call(client, model, temperature, system_message, prompt):
         )
     elif "gpt" in model:
         return client.chat.completions.create(
-            model=model,
             messages=[
                 {"role": "system", "content": system_message},
                 *prompt,
             ],
-            temperature=temperature,
-            max_tokens=MAX_NUM_TOKENS,
-            n=1,
-            stop=None,
-            seed=0,
+            **build_openai_chat_completion_kwargs(
+                model,
+                temperature=temperature,
+                max_tokens=MAX_NUM_TOKENS,
+                n=1,
+                stop=None,
+                seed=0,
+            ),
         )
     elif "o1" in model or "o3" in model:
         return client.chat.completions.create(
-            model=model,
             messages=[
                 {"role": "user", "content": system_message},
                 *prompt,
             ],
-            temperature=1,
-            n=1,
-            seed=0,
+            **build_openai_chat_completion_kwargs(
+                model,
+                max_tokens=MAX_NUM_TOKENS,
+                n=1,
+                seed=0,
+            ),
         )
     
     else:
@@ -496,11 +537,13 @@ def create_client(model) -> tuple[Any, str]:
             base_url="http://localhost:11434/v1",
         ), model
     elif "gpt" in model:
-        print(f"Using OpenAI API with model {model}.")
-        return openai.OpenAI(), model
+        print(
+            f"Using {describe_openai_endpoint()} with model {normalize_openai_model_name(model)}."
+        )
+        return create_openai_client(), model
     elif "o1" in model or "o3" in model:
-        print(f"Using OpenAI API with model {model}.")
-        return openai.OpenAI(), model
+        print(f"Using {describe_openai_endpoint()} with model {model}.")
+        return create_openai_client(), model
     elif model == "deepseek-coder-v2-0724":
         print(f"Using OpenAI API with {model}.")
         return (
