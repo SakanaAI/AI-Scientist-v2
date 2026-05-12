@@ -85,3 +85,23 @@ agent:
   # select_node:
   #   model: gpt-4o
   #   temp: 0.3
+
+# GSR (Generate-Select-Refine) settings for open-ended idea optimization
+# Used by launch_scientist_gsr.py; ignored by launch_scientist_bfts.py
+# Reference: "Open-Ended Task Discovery via Bayesian Optimization" (Adachi et al., 2026)
+# gsr:
+#   budget: 20                      # total evaluation rounds (T)
+#   initial_mutation_ratio: 0.8     # starting mutation ratio rho_0
+#   generation_batch_size: 3        # children per generation step (J)
+#   confidence_gate: 0.5            # threshold multiplier c_g for refinement trigger
+#   lipschitz_bound: 1.0            # initial Lipschitz constant estimate L_bar
+#   committee_size: 5               # number of LLM committee voters (K)
+#   max_refinement_levels: 5        # upper bound on coarse-to-fine levels
+#   evaluation_depth: 1             # BFTS stages per evaluation step
+#   model_mutator: deepseek-v3.2
+#   model_evaluator: deepseek-v3.2
+#   temperature_mutator: 0.9
+#   temperature_evaluator: 0.3
+#   epsilon_u_0: 1.0                # initial utility resolution
+#   noise_std: 0.1                  # assumed sub-Gaussian noise std
+#   min_evaluations_before_refine: 2

@@ -156,6 +156,39 @@ Once the initial experimental stage is complete, you will find a timestamped log
 After all experiment stages are complete, the writeup stage begins. The writeup stage typically takes about 20 to 30 minutes in total. Once it finishes, you should see `timestamp_ideaname.pdf` in the `timestamp_ideaname` folder.
 For this example run, all stages typically finish within several hours.
 
+## Run AI Scientist-v2 with GSR (Open-Ended Idea Optimization)
+
+GSR (Generate-Select-Refine) adds an outer optimization loop around the BFTS pipeline. Instead of running a single idea, GSR manages a **pool of ideas** and uses Bayesian optimization to decide which idea to invest experimental budget in, while also generating refined ideas via coarse-to-fine mutation.
+
+This implements the framework from ["Open-Ended Task Discovery via Bayesian Optimization" (Adachi et al., 2026)](https://arxiv.org/abs/2605.07572).
+
+**How it works:**
+1. **Generate**: Start from seed ideas, produce mutated variants at decreasing granularity
+2. **Select**: Use UCB (Upper Confidence Bound) to pick the most promising idea to evaluate next
+3. **Refine**: Once confidence about the best idea is sufficient, mutate it to generate better variants
+
+```bash
+python launch_scientist_gsr.py \
+  --load_ideas "ai_scientist/ideas/my_research_topic.json" \
+  --budget 20 \
+  --generation_batch_size 3 \
+  --committee_size 5 \
+  --model_mutator gpt-4o-2024-11-20 \
+  --model_evaluator gpt-4o-2024-11-20 \
+  --model_writeup o1-preview-2024-09-12 \
+  --model_review gpt-4o-2024-11-20
+```
+
+Key GSR parameters:
+- `--budget`: Total evaluation rounds (each runs a BFTS experiment on one idea)
+- `--generation_batch_size`: Number of child ideas generated per refinement step (J in the paper)
+- `--committee_size`: Number of LLM committee voters for utility evaluation (K)
+- `--initial_mutation_ratio`: Starting mutation ratio ρ₀ (0.8 = change ~80% of idea fields at level 0)
+- `--confidence_gate`: Threshold c_g for triggering refinement (lower = more aggressive refinement)
+- `--max_refinement_levels`: Maximum coarse-to-fine levels
+
+Results are saved in `experiments/gsr_<timestamp>/` with checkpoints, mutation logs, and a final summary.
+
 ## Citing The AI Scientist-v2
 
 If you use **The AI Scientist-v2** in your research, please cite our work as follows:
