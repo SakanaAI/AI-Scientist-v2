@@ -1438,6 +1438,10 @@ class ParallelAgent:
         print(f"Process {process_id} using workspace: {workspace}")
         # Create process-specific working directory
         working_dir = os.path.join(workspace, "working")
+        # Prevents stale artifact leakage across ProcessPoolExecutor worker reuse
+        if os.path.exists(working_dir):
+            import shutil
+            shutil.rmtree(working_dir, ignore_errors=True)
         os.makedirs(working_dir, exist_ok=True)
 
         if gpu_id is not None:
