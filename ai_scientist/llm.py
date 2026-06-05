@@ -10,6 +10,23 @@ import openai
 
 MAX_NUM_TOKENS = 4096
 
+
+def _is_minimax_model(model: str) -> bool:
+    """Check if the model is a MiniMax model."""
+    return model.startswith("MiniMax-")
+
+
+def _clamp_temperature_minimax(temperature: float) -> float:
+    """Clamp temperature for MiniMax API which requires (0.0, 1.0]."""
+    return max(0.01, min(1.0, temperature))
+
+
+def _strip_think_tags(content: str) -> str:
+    """Strip <think>...</think> tags from MiniMax responses."""
+    if content and "<think>" in content:
+        return re.sub(r"<think>.*?</think>\s*", "", content, flags=re.DOTALL).strip()
+    return content
+
 AVAILABLE_LLMS = [
     "claude-3-5-sonnet-20240620",
     "claude-3-5-sonnet-20241022",
@@ -70,6 +87,10 @@ AVAILABLE_LLMS = [
     "ollama/deepseek-r1:32b",
     "ollama/deepseek-r1:70b",
     "ollama/deepseek-r1:671b",
+    # MiniMax models
+    "MiniMax-M3",
+    "MiniMax-M2.7",
+    "MiniMax-M2.7-highspeed",
 ]
 
 
@@ -98,7 +119,22 @@ def get_batch_responses_from_llm(
     if msg_history is None:
         msg_history = []
 
-    if model.startswith("ollama/"):
+    if _is_minimax_model(model):
+        new_msg_history = msg_history + [{"role": "user", "content": msg}]
+        content, new_msg_history = [], []
+        for _ in range(n_responses):
+            c, hist = get_response_from_llm(
+                msg,
+                client,
+                model,
+                system_message,
+                print_debug=False,
+                msg_history=None,
+                temperature=temperature,
+            )
+            content.append(c)
+            new_msg_history.append(hist)
+    elif model.startswith("ollama/"):
         new_msg_history = msg_history + [{"role": "user", "content": msg}]
         response = client.chat.completions.create(
             model=model.replace("ollama/", ""),
@@ -214,7 +250,19 @@ def get_batch_responses_from_llm(
 
 @track_token_usage
 def make_llm_call(client, model, temperature, system_message, prompt):
-    if model.startswith("ollama/"):
+    if _is_minimax_model(model):
+        return client.chat.completions.create(
+            model=model,
+            messages=[
+                {"role": "system", "content": system_message},
+                *prompt,
+            ],
+            temperature=_clamp_temperature_minimax(temperature),
+            max_tokens=MAX_NUM_TOKENS,
+            n=1,
+            stop=None,
+        )
+    elif model.startswith("ollama/"):
         return client.chat.completions.create(
             model=model.replace("ollama/", ""),
             messages=[
@@ -277,7 +325,22 @@ def get_response_from_llm(
     if msg_history is None:
         msg_history = []
 
-    if "claude" in model:
+    if _is_minimax_model(model):
+        new_msg_history = msg_history + [{"role": "user", "content": msg}]
+        response = client.chat.completions.create(
+            model=model,
+            messages=[
+                {"role": "system", "content": system_message},
+                *new_msg_history,
+            ],
+            temperature=_clamp_temperature_minimax(temperature),
+            max_tokens=MAX_NUM_TOKENS,
+            n=1,
+            stop=None,
+        )
+        content = _strip_think_tags(response.choices[0].message.content)
+        new_msg_history = new_msg_history + [{"role": "assistant", "content": content}]
+    elif "claude" in model:
         new_msg_history = msg_history + [
             {
                 "role": "user",
@@ -478,7 +541,16 @@ def extract_json_between_markers(llm_output: str) -> dict | None:
 
 
 def create_client(model) -> tuple[Any, str]:
-    if model.startswith("claude-"):
+    if _is_minimax_model(model):
+        print(f"Using MiniMax API with model {model}.")
+        return (
+            openai.OpenAI(
+                api_key=os.environ["MINIMAX_API_KEY"],
+                base_url="https://api.minimax.io/v1",
+            ),
+            model,
+        )
+    elif model.startswith("claude-"):
         print(f"Using Anthropic API with model {model}.")
         return anthropic.Anthropic(), model
     elif model.startswith("bedrock") and "claude" in model:

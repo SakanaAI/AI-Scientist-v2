@@ -2,6 +2,8 @@ import json
 import logging
 import time
 
+import os
+
 from .utils import FunctionSpec, OutputType, opt_messages_to_list, backoff_create
 from funcy import notnone, once, select_values
 import openai
@@ -18,9 +20,15 @@ OPENAI_TIMEOUT_EXCEPTIONS = (
 )
 
 def get_ai_client(model: str, max_retries=2) -> openai.OpenAI:
-    if model.startswith("ollama/"):
+    if model.startswith("MiniMax-"):
         client = openai.OpenAI(
-            base_url="http://localhost:11434/v1", 
+            api_key=os.environ["MINIMAX_API_KEY"],
+            base_url="https://api.minimax.io/v1",
+            max_retries=max_retries,
+        )
+    elif model.startswith("ollama/"):
+        client = openai.OpenAI(
+            base_url="http://localhost:11434/v1",
             max_retries=max_retries
         )
     else:

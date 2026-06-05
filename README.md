@@ -78,6 +78,14 @@ pip install anthropic[bedrock]
 ```
 Next, configure valid [AWS Credentials](https://docs.aws.amazon.com/cli/v1/userguide/cli-configure-envvars.html) and the target [AWS Region](https://docs.aws.amazon.com/bedrock/latest/userguide/bedrock-regions.html) by setting the following environment variables: `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`, `AWS_REGION_NAME`.
 
+#### MiniMax Models
+
+The system supports [MiniMax](https://www.minimax.io/) models (`MiniMax-M3` (default), `MiniMax-M2.7`, `MiniMax-M2.7-highspeed`) via the OpenAI-compatible API. Set the `MINIMAX_API_KEY` environment variable:
+```bash
+export MINIMAX_API_KEY="YOUR_MINIMAX_KEY_HERE"
+```
+MiniMax M3 offers a 512K context window with up to 128K max output and image input support. Temperature is automatically clamped to the supported range (0.0, 1.0].
+
 #### Semantic Scholar API (Literature Search)
 
 Our code can optionally use a Semantic Scholar API Key (`S2_API_KEY`) for higher throughput during literature search [if you have one](https://www.semanticscholar.org/product/api). This is used during both the ideation and paper writing stages. The system should work without it, though you might encounter rate limits or reduced novelty checking during ideation. If you experience issues with Semantic Scholar, you can skip the citation phase during paper generation.
@@ -88,6 +96,7 @@ Ensure you provide the necessary API keys as environment variables for the model
 ```bash
 export OPENAI_API_KEY="YOUR_OPENAI_KEY_HERE"
 export S2_API_KEY="YOUR_S2_KEY_HERE"
+export MINIMAX_API_KEY="YOUR_MINIMAX_KEY_HERE"
 # Set AWS credentials if using Bedrock
 # export AWS_ACCESS_KEY_ID="YOUR_AWS_ACCESS_KEY_ID"
 # export AWS_SECRET_ACCESS_KEY="YOUR_AWS_SECRET_KEY"

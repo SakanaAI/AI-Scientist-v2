@@ -1,5 +1,20 @@
 from . import backend_anthropic, backend_openai
 from .utils import FunctionSpec, OutputType, PromptType, compile_prompt_to_md
+import re
+
+def _is_minimax_model(model: str) -> bool:
+    """Check if the model is a MiniMax model."""
+    return model.startswith("MiniMax-")
+
+def _clamp_temperature_minimax(temperature: float) -> float:
+    """Clamp temperature for MiniMax API which requires (0.0, 1.0]."""
+    return max(0.01, min(1.0, temperature))
+
+def _strip_think_tags(content: str) -> str:
+    """Strip <think>...</think> tags from MiniMax responses."""
+    if content and "<think>" in content:
+        return re.sub(r"<think>.*?</think>\s*", "", content, flags=re.DOTALL).strip()
+    return content
 
 def get_ai_client(model: str, **model_kwargs):
     """
@@ -46,6 +61,10 @@ def query(
         "temperature": temperature,
     }
 
+    # Clamp temperature for MiniMax models
+    if _is_minimax_model(model) and temperature is not None:
+        model_kwargs["temperature"] = _clamp_temperature_minimax(temperature)
+
     # Handle models with beta limitations
     # ref: https://platform.openai.com/docs/guides/reasoning/beta-limitations
     if model.startswith("o1"):
@@ -73,5 +92,9 @@ def query(
         func_spec=func_spec,
         **model_kwargs,
     )
+
+    # Strip think tags from MiniMax responses
+    if _is_minimax_model(model) and isinstance(output, str):
+        output = _strip_think_tags(output)
 
     return output
