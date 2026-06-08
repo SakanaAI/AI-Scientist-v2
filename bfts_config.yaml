@@ -57,6 +57,10 @@ agent:
     model: anthropic.claude-3-5-sonnet-20241022-v2:0
     temp: 1.0
     max_tokens: 12000
+    # Emit strict-patch edits (only changed lines) instead of full-file rewrites in
+    # the improve step. Cuts output tokens ~10x on large files; falls back to a full
+    # rewrite if a patch can't be applied. Opt-in (default off => stock behavior).
+    patch_mode: False
 
   # LLM settings for evaluating program output / tracebacks
   feedback:

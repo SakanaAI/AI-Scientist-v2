@@ -39,6 +39,9 @@ class StageConfig:
     thinking: ThinkingConfig
     betas: str
     max_tokens: Optional[int] = None
+    # Emit strict-patch edits instead of full rewrites in the improve step
+    # (only meaningful for the `code` stage). Opt-in; default keeps stock behavior.
+    patch_mode: bool = False
 
 
 @dataclass

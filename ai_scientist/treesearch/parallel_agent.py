@@ -532,14 +532,23 @@ class MinimalAgent:
             "Feedback about execution time": parent_node.exec_time_feedback,
             "Instructions": {},
         }
-        prompt["Previous solution"] = {
-            "Code": wrap_code(parent_node.code),
-        }
+        # strict-patch editing (opt-in): show the numbered current file and ask for a
+        # line-precise patch instead of a full rewrite. Falls back to full code if the
+        # model doesn't produce an applicable patch, so output can't get worse.
+        if self._patch_mode_enabled() and parent_node.code:
+            from ai_scientist.dialects.patch_improve import patch_prompt_block
 
-        prompt["Instructions"] |= self._prompt_resp_fmt
-        prompt["Instructions"] |= self._prompt_impl_guideline
+            prompt["Instructions"] |= patch_prompt_block(parent_node.code)
+            prompt["Instructions"] |= self._prompt_impl_guideline
+            plan, code = self.plan_and_code_query_patch(prompt, parent_node.code)
+        else:
+            prompt["Previous solution"] = {
+                "Code": wrap_code(parent_node.code),
+            }
+            prompt["Instructions"] |= self._prompt_resp_fmt
+            prompt["Instructions"] |= self._prompt_impl_guideline
+            plan, code = self.plan_and_code_query(prompt)
 
-        plan, code = self.plan_and_code_query(prompt)
         return Node(
             plan=plan,
             code=code,
@@ -678,6 +687,45 @@ class MinimalAgent:
                 "The code extraction failed. Make sure to use the format ```python ... ``` for the code blocks."
             )
         print("Final plan + code extraction attempt failed, giving up...")
+        return "", completion_text  # type: ignore
+
+    def _patch_mode_enabled(self) -> bool:
+        """strict-patch editing for the improve step (opt-in, default off)."""
+        try:
+            return bool(self.cfg.agent.code.get("patch_mode", False))
+        except Exception:
+            return False
+
+    def plan_and_code_query_patch(self, prompt, parent_code, retries=3) -> tuple[str, str]:
+        """Patch-mode variant of plan_and_code_query: ask the model for a strict-patch
+        over ``parent_code`` and apply it deterministically. Falls back to ordinary
+        full-code extraction (or the parent code) if no valid patch is produced, so
+        this can never produce worse output than the stock path."""
+        from ai_scientist.dialects.patch_improve import resolve_completion
+
+        completion_text = None
+        for _ in range(retries):
+            completion_text = query(
+                system_message=prompt,
+                user_message=None,
+                model=self.cfg.agent.code.model,
+                temperature=self.cfg.agent.code.temp,
+            )
+            nl_text = extract_text_up_to_code(completion_text) or ""
+            fallback = extract_code(completion_text) or parent_code
+            code, used_patch = resolve_completion(
+                parent_code, completion_text, fallback_code=fallback
+            )
+            if code:
+                if used_patch:
+                    print("[patch-mode] applied strict-patch to parent code")
+                return (nl_text or "patch-mode edit"), code
+            print("Patch-mode extraction failed, retrying...")
+            prompt["Parsing Feedback"] = (
+                "Could not apply your edit. Re-emit a valid STRICT-PATCH over the numbered "
+                "file, or provide the full code in ```python ... ``` fences."
+            )
+        print("Final patch-mode attempt failed, giving up...")
         return "", completion_text  # type: ignore
 
     def parse_exec_result(
