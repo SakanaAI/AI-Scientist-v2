@@ -1,5 +1,29 @@
+from collections import defaultdict
+
 from . import backend_anthropic, backend_openai
 from .utils import FunctionSpec, OutputType, PromptType, compile_prompt_to_md
+
+# Token accounting: the per-backend `query` returns exact prompt/completion token
+# counts, but they were discarded here — so the bulk of a run's LLM usage (code gen,
+# feedback, metric parsing, node selection) went unmeasured. Accumulate them so
+# save_run can emit a real per-model $/tokens summary.
+_TOKEN_USAGE: dict = defaultdict(lambda: {"prompt": 0, "completion": 0, "calls": 0})
+
+
+def _record_usage(model: str, in_tokens, out_tokens) -> None:
+    u = _TOKEN_USAGE[model]
+    u["prompt"] += int(in_tokens or 0)
+    u["completion"] += int(out_tokens or 0)
+    u["calls"] += 1
+
+
+def get_token_usage() -> dict:
+    """Exact per-model token usage accumulated this run."""
+    return {m: dict(v) for m, v in _TOKEN_USAGE.items()}
+
+
+def reset_token_usage() -> None:
+    _TOKEN_USAGE.clear()
 
 def get_ai_client(model: str, **model_kwargs):
     """
@@ -73,5 +97,10 @@ def query(
         func_spec=func_spec,
         **model_kwargs,
     )
+
+    try:
+        _record_usage(model, in_tok_count, out_tok_count)
+    except Exception:
+        pass
 
     return output
