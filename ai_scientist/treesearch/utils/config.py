@@ -5,6 +5,7 @@ from pathlib import Path
 from typing import Hashable, cast, Literal, Optional
 
 import coolname
+import json
 import rich
 from omegaconf import OmegaConf
 from rich.syntax import Syntax
@@ -257,3 +258,36 @@ def save_run(cfg: Config, journal, stage_name: str = None):
             print("No best node found yet")
     except Exception as e:
         print(f"Error saving best solution: {e}")
+
+    # Per-model token usage (+ cost where prices are known) so a run's $/tokens are
+    # measurable. Combines the treesearch backend (the bulk: code gen, feedback, metric
+    # parsing, node selection — exact counts) with the ai_scientist token_tracker (VLM
+    # plot review + writeup/review). Tokens are exact; cost is only computed for models
+    # with a known price table.
+    try:
+        summary = {}
+        try:
+            from ..backend import get_token_usage
+
+            for model, u in get_token_usage().items():
+                summary.setdefault(model, {"tokens": {"prompt": 0, "completion": 0}, "cost (USD)": 0.0})
+                summary[model]["tokens"]["prompt"] += u.get("prompt", 0)
+                summary[model]["tokens"]["completion"] += u.get("completion", 0)
+                summary[model]["calls"] = u.get("calls", 0)
+        except Exception as e:
+            print(f"treesearch token usage unavailable: {e}")
+        try:
+            from ai_scientist.utils.token_tracker import token_tracker
+
+            for model, data in token_tracker.get_summary().items():
+                toks = data.get("tokens", {})
+                summary.setdefault(model, {"tokens": {"prompt": 0, "completion": 0}, "cost (USD)": 0.0})
+                summary[model]["tokens"]["prompt"] += toks.get("prompt", 0)
+                summary[model]["tokens"]["completion"] += toks.get("completion", 0)
+                summary[model]["cost (USD)"] += data.get("cost (USD)", 0.0) or 0.0
+        except Exception as e:
+            print(f"token_tracker unavailable: {e}")
+        with open(save_dir / "token_summary.json", "w") as f:
+            json.dump(summary, f, indent=2, default=str)
+    except Exception as e:
+        print(f"token summary dump failed (non-fatal): {e}")
