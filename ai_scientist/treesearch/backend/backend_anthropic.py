@@ -5,7 +5,6 @@ from .utils import FunctionSpec, OutputType, opt_messages_to_list, backoff_creat
 from funcy import notnone, once, select_values
 import anthropic
 
-
 ANTHROPIC_TIMEOUT_EXCEPTIONS = (
     anthropic.RateLimitError,
     anthropic.APIConnectionError,
@@ -14,9 +13,18 @@ ANTHROPIC_TIMEOUT_EXCEPTIONS = (
     anthropic.APIStatusError,
 )
 
-def get_ai_client(model : str, max_retries=2) -> anthropic.AnthropicBedrock:
-    client = anthropic.AnthropicBedrock(max_retries=max_retries)
-    return client
+
+def get_ai_client(model: str, max_retries=2):
+    # Select the Anthropic client by model prefix (mirrors llm.py:create_client()):
+    #   bedrock/...   -> AWS Bedrock
+    #   vertex_ai/... -> GCP Vertex
+    #   else          -> direct Anthropic API (uses ANTHROPIC_API_KEY)
+    if model and model.startswith("bedrock/"):
+        return anthropic.AnthropicBedrock(max_retries=max_retries)
+    if model and model.startswith("vertex_ai/"):
+        return anthropic.AnthropicVertex(max_retries=max_retries)
+    return anthropic.Anthropic(max_retries=max_retries)
+
 
 def query(
     system_message: str | None,
@@ -31,9 +39,9 @@ def query(
         filtered_kwargs["max_tokens"] = 8192  # default for Claude models
 
     if func_spec is not None:
-        raise NotImplementedError(
-            "Anthropic does not support function calling for now."
-        )
+        filtered_kwargs["tools"] = [func_spec.as_anthropic_tool_dict]
+        # force the model to call our function
+        filtered_kwargs["tool_choice"] = func_spec.anthropic_tool_choice_dict
 
     # Anthropic doesn't allow not having a user messages
     # if we only have system msg -> use it as user msg
@@ -46,6 +54,13 @@ def query(
 
     messages = opt_messages_to_list(None, user_message)
 
+    # get_ai_client picked the client from the prefix; strip it for the actual call.
+    model_name = filtered_kwargs.get("model", "")
+    for _prefix in ("bedrock/", "vertex_ai/"):
+        if model_name.startswith(_prefix):
+            filtered_kwargs["model"] = model_name[len(_prefix) :]
+            break
+
     t0 = time.time()
     message = backoff_create(
         client.messages.create,
@@ -56,7 +71,13 @@ def query(
     req_time = time.time() - t0
     print(filtered_kwargs)
 
-    if "thinking" in filtered_kwargs:
+    if func_spec is not None:
+        tool_blocks = [b for b in message.content if b.type == "tool_use"]
+        assert (
+            tool_blocks and tool_blocks[0].name == func_spec.name
+        ), f"expected tool_use '{func_spec.name}', got: {message.content}"
+        output: OutputType = tool_blocks[0].input
+    elif "thinking" in filtered_kwargs:
         assert (
             len(message.content) == 2
             and message.content[0].type == "thinking"

@@ -129,3 +129,15 @@ class FunctionSpec(DataClassJsonMixin):
             "type": "function",
             "function": {"name": self.name},
         }
+
+    @property
+    def as_anthropic_tool_dict(self):
+        return {
+            "name": self.name,
+            "description": self.description,
+            "input_schema": self.json_schema,
+        }
+
+    @property
+    def anthropic_tool_choice_dict(self):
+        return {"type": "tool", "name": self.name}
