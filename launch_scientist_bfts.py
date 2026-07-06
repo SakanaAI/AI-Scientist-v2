@@ -140,6 +140,7 @@ def get_available_gpus(gpu_ids=None):
 def find_pdf_path_for_review(idea_dir):
     pdf_files = [f for f in os.listdir(idea_dir) if f.endswith(".pdf")]
     reflection_pdfs = [f for f in pdf_files if "reflection" in f]
+    pdf_path = None
     if reflection_pdfs:
         # First check if there's a final version
         final_pdfs = [f for f in reflection_pdfs if "final" in f.lower()]
@@ -304,7 +305,7 @@ if __name__ == "__main__":
     if not args.skip_review and not args.skip_writeup:
         # Perform paper review if the paper exists
         pdf_path = find_pdf_path_for_review(idea_dir)
-        if os.path.exists(pdf_path):
+        if pdf_path and os.path.exists(pdf_path):
             print("Paper found at: ", pdf_path)
             paper_content = load_paper(pdf_path)
             client, client_model = create_client(args.model_review)
