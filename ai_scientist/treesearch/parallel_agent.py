@@ -1,4 +1,5 @@
 from concurrent.futures import ProcessPoolExecutor
+from concurrent.futures.process import BrokenProcessPool
 from typing import List, Optional, Set, Any, Callable, cast, Dict, Tuple
 import random
 import subprocess
@@ -2149,7 +2150,24 @@ class ParallelAgent:
         for i, future in enumerate(futures):
             try:
                 print("About to get result from future")
-                result_data = future.result(timeout=self.timeout)
+                # Tolerate per-worker failures so one bad node cannot abort the run.
+                # BrokenProcessPool is fatal: remaining futures will also fail.
+                try:
+                    result_data = future.result(timeout=self.timeout)
+                except TimeoutError:
+                    print("Worker process timed out, couldn't get the result")
+                    logger.error("Worker process timed out, couldn't get the result")
+                    continue
+                except BrokenProcessPool:
+                    raise
+                except Exception as e:
+                    print(f"Error processing node: {str(e)}")
+                    logger.error(f"Error processing node: {str(e)}")
+                    import traceback
+
+                    traceback.print_exc()
+                    continue
+
                 if "metric" in result_data:
                     print(f"metric type: {type(result_data['metric'])}")
                     print(f"metric contents: {result_data['metric']}")
@@ -2157,6 +2175,7 @@ class ParallelAgent:
                 # Create node and restore relationships using journal.
                 # Journal acts as a database to look up a parent node,
                 # and add the result node as a child.
+                # Keep this outside the tolerant guard so framework/state bugs surface.
                 result_node = Node.from_dict(result_data, self.journal)
                 print("[red]Investigating if result node has metric[/red]", flush=True)
                 print(result_node.metric)
@@ -2169,16 +2188,6 @@ class ParallelAgent:
                 self.journal.append(result_node)
                 print("Added result node to journal")
 
-            except TimeoutError:
-                print("Worker process timed out, couldn't get the result")
-                logger.error(f"Worker process timed out, couldn't get the result")
-            except Exception as e:
-                print(f"Error processing node: {str(e)}")
-                logger.error(f"Error processing node: {str(e)}")
-                import traceback
-
-                traceback.print_exc()
-                raise
             finally:
                 # Release GPU for this process if it was using one
                 process_id = f"worker_{i}"
