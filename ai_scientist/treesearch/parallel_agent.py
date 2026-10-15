@@ -1325,6 +1325,9 @@ class ParallelAgent:
                 self.journal.append(result_node)
                 seed_nodes.append(self.journal.get_node_by_id(result_node.id))
                 print("Added result node to journal")
+            except BrokenProcessPool:
+                # An unusable executor must not yield a partial-success result.
+                raise
             except Exception as e:
                 logger.error(f"Error in multi-seed evaluation: {str(e)}")
 
