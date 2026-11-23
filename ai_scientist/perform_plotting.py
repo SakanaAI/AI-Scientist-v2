@@ -10,6 +10,7 @@ from rich import print
 
 from ai_scientist.llm import create_client, get_response_from_llm
 from ai_scientist.utils.token_tracker import token_tracker
+from ai_scientist.utils.npy_manifest import build_numpy_data_manifest
 from ai_scientist.perform_icbinb_writeup import (
     load_idea_text,
     load_exp_summaries,
@@ -49,7 +50,7 @@ Your output should be the entire Python aggregator script in triple backticks.
 """
 
 
-def build_aggregator_prompt(combined_summaries_str, idea_text):
+def build_aggregator_prompt(combined_summaries_str, idea_text, data_manifest):
     return f"""
 We have three JSON summaries of scientific experiments: baseline, research, ablation.
 They may contain lists of figure descriptions, code to generate the figures, and paths to the .npy files containing the numerical results.
@@ -60,8 +61,14 @@ Our goal is to produce final, publishable figures.
 {idea_text}
 ```
 
+--- EXPERIMENT DATA MANIFEST ---
+```json
+{data_manifest}
+```
+
 IMPORTANT:
 - The aggregator script must load existing .npy experiment data from the "exp_results_npy_files" fields (ONLY using full and exact file paths in the summary JSONs) for thorough plotting.
+- Use the manifest to discover the actual keys and value shapes in each .npy file. Prefer iterating over keys discovered at runtime instead of hardcoding guessed key names.
 - It should call os.makedirs("figures", exist_ok=True) before saving any plots.
 - Aim for a balance of empirical results, ablations, and diverse, informative visuals in 'figures/' that comprehensively showcase the finalized research outcomes.
 - If you need .npy paths from the summary, only copy those paths directly (rather than copying and parsing the entire summary).
@@ -96,8 +103,24 @@ def extract_code_snippet(text: str) -> str:
     return matches[0].strip() if matches else text.strip()
 
 
+def count_generated_figures(figures_dir):
+    if not os.path.exists(figures_dir):
+        return 0
+    return len(
+        [
+            filename
+            for filename in os.listdir(figures_dir)
+            if os.path.isfile(os.path.join(figures_dir, filename))
+        ]
+    )
+
+
 def run_aggregator_script(
-    aggregator_code, aggregator_script_path, base_folder, script_name
+    aggregator_code,
+    aggregator_script_path,
+    base_folder,
+    script_name,
+    figures_dir,
 ):
     if not aggregator_code.strip():
         print("No aggregator code was provided. Skipping aggregator script run.")
@@ -120,7 +143,13 @@ def run_aggregator_script(
             text=True,
         )
         aggregator_out = result.stdout + "\n" + result.stderr
-        print("Aggregator script ran successfully.")
+        figure_count = count_generated_figures(figures_dir)
+        if figure_count:
+            print(
+                f"Aggregator script ran successfully and produced {figure_count} figure(s)."
+            )
+        else:
+            print("Aggregator script completed without producing any figures.")
     except subprocess.CalledProcessError as e:
         aggregator_out = (e.stdout or "") + "\n" + (e.stderr or "")
         print("Error: aggregator script returned a non-zero exit code.")
@@ -152,11 +181,17 @@ def aggregate_plots(
     filtered_summaries_for_plot_agg = filter_experiment_summaries(
         exp_summaries, step_name="plot_aggregation"
     )
+    data_manifest = build_numpy_data_manifest(
+        base_folder, filtered_summaries_for_plot_agg
+    )
     # Convert them to one big JSON string for context
     combined_summaries_str = json.dumps(filtered_summaries_for_plot_agg, indent=2)
+    data_manifest_str = json.dumps(data_manifest, indent=2, sort_keys=True)
 
     # Build aggregator prompt
-    aggregator_prompt = build_aggregator_prompt(combined_summaries_str, idea_text)
+    aggregator_prompt = build_aggregator_prompt(
+        combined_summaries_str, idea_text, data_manifest_str
+    )
 
     # Call LLM
     client, model_name = create_client(model)
@@ -184,21 +219,13 @@ def aggregate_plots(
 
     # First run of aggregator script
     aggregator_out = run_aggregator_script(
-        aggregator_code, aggregator_script_path, base_folder, filename
+        aggregator_code, aggregator_script_path, base_folder, filename, figures_dir
     )
 
     # Multiple reflection loops
     for i in range(n_reflections):
         # Check number of figures
-        figure_count = 0
-        if os.path.exists(figures_dir):
-            figure_count = len(
-                [
-                    f
-                    for f in os.listdir(figures_dir)
-                    if os.path.isfile(os.path.join(figures_dir, f))
-                ]
-            )
+        figure_count = count_generated_figures(figures_dir)
         print(f"[{i + 1} / {n_reflections}]: Number of figures: {figure_count}")
         # Reflection prompt with reminder for common checks and early exit
         reflection_prompt = f"""We have run your aggregator script and it produced {figure_count} figure(s). The script's output is:
@@ -206,9 +233,15 @@ def aggregate_plots(
 {aggregator_out}
 ```
 
+The schema of the experiment data is:
+```json
+{data_manifest_str}
+```
+
 Please criticize the current script for any flaws including but not limited to:
 - Are these enough plots for a final paper submission? Don't create more than {MAX_FIGURES} plots.
 - Have you made sure to both use key numbers and generate more detailed plots from .npy files?
+- Does the script use the actual keys and shapes shown in the data manifest rather than guessed keys?
 - Does the figure title and legend have informative and descriptive names? These plots are the final versions, ensure there are no comments or other notes.
 - Can you aggregate multiple plots into one figure if suitable?
 - Do the labels have underscores? If so, replace them with spaces.
@@ -246,7 +279,11 @@ If you believe you are done, simply say: "I am done". Otherwise, please provide 
         ):
             aggregator_code = aggregator_new_code
             aggregator_out = run_aggregator_script(
-                aggregator_code, aggregator_script_path, base_folder, filename
+                aggregator_code,
+                aggregator_script_path,
+                base_folder,
+                filename,
+                figures_dir,
             )
         else:
             print(
