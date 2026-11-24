@@ -153,6 +153,7 @@ python launch_scientist_bfts.py \
 ```
 
 Once the initial experimental stage is complete, you will find a timestamped log folder inside the `experiments/` directory. Navigate to `experiments/"timestamp_ideaname"/logs/0-run/` within that folder to find the tree visualization file `unified_tree_viz.html`.
+Each main experimental stage writes its corresponding `*_summary.json` file as soon as that stage completes, so summaries from finished stages remain available if a later stage is interrupted.
 After all experiment stages are complete, the writeup stage begins. The writeup stage typically takes about 20 to 30 minutes in total. Once it finishes, you should see `timestamp_ideaname.pdf` in the `timestamp_ideaname` folder.
 For this example run, all stages typically finish within several hours.
 

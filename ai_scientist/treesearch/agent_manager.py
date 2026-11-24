@@ -14,7 +14,6 @@ from rich import print
 from .utils.serialize import parse_markdown_to_dict
 from .utils.metric import WorstMetricValue
 
-
 logger = logging.getLogger(__name__)
 
 
@@ -689,9 +688,10 @@ Your research idea:\n\n
             stage_number=stage_number,
         )
 
-    def run(self, exec_callback, step_callback=None):
+    def run(self, exec_callback, step_callback=None, main_stage_callback=None):
         """Run the experiment through generated stages"""
         while self.current_stage:  # Main stage loop
+            main_stage_completed = False
             main_stage = self.parse_stage_names(self.current_stage.name)[0]
             print(f"[green]Starting main stage: {main_stage}[/green]")
             print(f"[cyan]Goals: {self.current_stage.goals}[/cyan]")
@@ -765,6 +765,7 @@ Your research idea:\n\n
                                     current_substage = None
                                     break
 
+                            main_stage_completed = True
                             # Exit the loop to move to next main stage
                             current_substage = None
                             break
@@ -803,6 +804,13 @@ Your research idea:\n\n
                                 current_substage = None
                             break
             self._save_checkpoint()
+            if main_stage_callback and main_stage_completed:
+                completed_stage = self.stages[-1]
+                main_stage_callback(
+                    main_stage,
+                    completed_stage.name,
+                    self.journals[completed_stage.name],
+                )
             # Main stage complete - create next main stage
             if self.current_stage:
                 next_main_stage = self._create_next_main_stage(
