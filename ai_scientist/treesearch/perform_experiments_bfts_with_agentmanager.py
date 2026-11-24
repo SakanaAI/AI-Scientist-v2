@@ -2,6 +2,7 @@ import atexit
 import logging
 import shutil
 import json
+import os
 import pickle
 from . import backend
 from .journal import Journal, Node
@@ -25,10 +26,48 @@ from .utils.config import load_task_desc, prep_agent_workspace, save_run, load_c
 from .agent_manager import AgentManager
 from pathlib import Path
 from .agent_manager import Stage
-from .log_summarization import overall_summarize
-
+from .log_summarization import summarize_stage
 
 logger = logging.getLogger("ai-scientist")
+
+STAGE_SUMMARY_FILENAMES = {
+    1: "draft_summary.json",
+    2: "baseline_summary.json",
+    3: "research_summary.json",
+    4: "ablation_summary.json",
+}
+
+
+def write_stage_summary(cfg, main_stage_number, stage_name, journal, summarizer=None):
+    """Summarize and atomically persist one completed main stage."""
+    try:
+        filename = STAGE_SUMMARY_FILENAMES[main_stage_number]
+    except KeyError as error:
+        raise ValueError(
+            f"Unsupported main stage number: {main_stage_number}"
+        ) from error
+
+    summarize = summarizer or summarize_stage
+    summary = summarize(
+        journal,
+        stage_name,
+        main_stage_number - 1,
+        cfg,
+    )
+
+    summary_path = cfg.log_dir / filename
+    summary_path.parent.mkdir(parents=True, exist_ok=True)
+    temporary_path = summary_path.with_name(f".{summary_path.name}.tmp")
+    try:
+        with open(temporary_path, "w", encoding="utf-8") as summary_file:
+            json.dump(summary, summary_file, indent=2)
+            summary_file.flush()
+            os.fsync(summary_file.fileno())
+        os.replace(temporary_path, summary_path)
+    finally:
+        if temporary_path.exists():
+            temporary_path.unlink()
+    return summary_path
 
 
 def journal_to_rich_tree(journal: Journal, cfg):
@@ -117,14 +156,13 @@ def perform_experiments_bfts(config_path: str):
                     ) as f:
                         json.dump(summary, f, indent=2)
 
-
             if cfg.agent.get("summary", None) is not None:
                 current_findings = journal.generate_summary(
-                    include_code=False, 
+                    include_code=False,
                     **{
-                        "model": cfg.agent.summary.model, 
-                        "temp": cfg.agent.summary.temp
-                    }
+                        "model": cfg.agent.summary.model,
+                        "temp": cfg.agent.summary.temp,
+                    },
                 )
             else:
                 current_findings = journal.generate_summary(include_code=False)
@@ -137,11 +175,7 @@ def perform_experiments_bfts(config_path: str):
                 "total_nodes": len(journal.nodes),
                 "buggy_nodes": len(journal.buggy_nodes),
                 "good_nodes": len(journal.good_nodes),
-                "best_metric": (
-                    str(best_metric.metric)
-                    if best_metric
-                    else "None"
-                ),
+                "best_metric": (str(best_metric.metric) if best_metric else "None"),
                 "current_findings": current_findings,
             }
 
@@ -208,52 +242,44 @@ def perform_experiments_bfts(config_path: str):
         screen=True,
     )
 
-    manager.run(exec_callback=create_exec_callback(status), step_callback=step_callback)
+    def main_stage_callback(main_stage_number, stage_name, journal):
+        if not cfg.generate_report:
+            return
+        summary_path = write_stage_summary(
+            cfg=cfg,
+            main_stage_number=main_stage_number,
+            stage_name=stage_name,
+            journal=journal,
+        )
+        print(f"Stage {main_stage_number} summary written to {summary_path}")
 
-    manager_pickle_path = cfg.log_dir / "manager.pkl"
     try:
-        with open(manager_pickle_path, "wb") as f:
-            pickle.dump(manager, f)
-        logger.info(f"Saved manager state to: {manager_pickle_path}")
-    except Exception as e:
-        logger.warning(f"Failed to save full manager state: {e}")
+        manager.run(
+            exec_callback=create_exec_callback(status),
+            step_callback=step_callback,
+            main_stage_callback=main_stage_callback,
+        )
+    finally:
+        manager_pickle_path = cfg.log_dir / "manager.pkl"
         try:
             with open(manager_pickle_path, "wb") as f:
-                pickle.dump(manager.journals.items(), f)
-            logger.info(f"Saved manager journals to: {manager_pickle_path}")
+                pickle.dump(manager, f)
+            logger.info(f"Saved manager state to: {manager_pickle_path}")
         except Exception as e:
-            logger.error(f"Failed to save manager journals: {e}")
+            logger.warning(f"Failed to save full manager state: {e}")
+            try:
+                with open(manager_pickle_path, "wb") as f:
+                    pickle.dump(manager.journals.items(), f)
+                logger.info(f"Saved manager journals to: {manager_pickle_path}")
+            except Exception as e:
+                logger.error(f"Failed to save manager journals: {e}")
 
     if cfg.generate_report:
-        print("Generating final report from all stages...")
-        (
-            draft_summary,
-            baseline_summary,
-            research_summary,
-            ablation_summary,
-        ) = overall_summarize(manager.journals.items(), cfg)
-        draft_summary_path = cfg.log_dir / "draft_summary.json"
-        baseline_summary_path = cfg.log_dir / "baseline_summary.json"
-        research_summary_path = cfg.log_dir / "research_summary.json"
-        ablation_summary_path = cfg.log_dir / "ablation_summary.json"
-
-        with open(draft_summary_path, "w") as draft_file:
-            json.dump(draft_summary, draft_file, indent=2)
-
-        with open(baseline_summary_path, "w") as baseline_file:
-            json.dump(baseline_summary, baseline_file, indent=2)
-
-        with open(research_summary_path, "w") as research_file:
-            json.dump(research_summary, research_file, indent=2)
-
-        with open(ablation_summary_path, "w") as ablation_file:
-            json.dump(ablation_summary, ablation_file, indent=2)
-
-        print(f"Summary reports written to files:")
-        print(f"- Draft summary: {draft_summary_path}")
-        print(f"- Baseline summary: {baseline_summary_path}")
-        print(f"- Research summary: {research_summary_path}")
-        print(f"- Ablation summary: {ablation_summary_path}")
+        print("Summary reports written to files:")
+        for main_stage_number, filename in STAGE_SUMMARY_FILENAMES.items():
+            summary_path = cfg.log_dir / filename
+            if summary_path.exists():
+                print(f"- Stage {main_stage_number}: {summary_path}")
 
 
 if __name__ == "__main__":

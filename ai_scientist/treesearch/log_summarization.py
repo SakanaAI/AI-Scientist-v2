@@ -9,7 +9,6 @@ sys.path.insert(0, parent_dir)
 from ai_scientist.llm import get_response_from_llm, extract_json_between_markers
 from ai_scientist.treesearch.backend import get_ai_client
 
-
 report_summarizer_sys_msg = """You are an expert machine learning researcher.
 You are given multiple experiment logs, each representing a node in a stage of exploring scientific ideas and implementations.
 Your task is to aggregate these logs and provide scientifically insightful information.
@@ -296,55 +295,61 @@ def annotate_history(journal, cfg=None):
             node.overall_plan = node.plan
 
 
+def summarize_stage(journal, stage_name, stage_index, cfg=None):
+    """Summarize one completed main stage using the existing report schema."""
+    annotate_history(journal, cfg=cfg)
+    if stage_index in [1, 2]:
+        best_node = journal.get_best_node(cfg=cfg)
+        # get multi-seed results and aggregater node
+        child_nodes = best_node.children
+        multi_seed_nodes = [
+            n for n in child_nodes if n.is_seed_node and not n.is_seed_agg_node
+        ]
+        agg_node = None
+        for n in child_nodes:
+            if n.is_seed_node and n.is_seed_agg_node:
+                agg_node = n
+                break
+        if agg_node is None:
+            # skip agg node
+            return {
+                "best node": get_node_log(best_node),
+                "best node with different seeds": [
+                    get_node_log(n) for n in multi_seed_nodes
+                ],
+            }
+        else:
+            return {
+                "best node": get_node_log(best_node),
+                "best node with different seeds": [
+                    get_node_log(n) for n in multi_seed_nodes
+                ],
+                "aggregated results of nodes with different seeds": get_node_log(
+                    agg_node
+                ),
+            }
+    elif stage_index == 3:
+        good_leaf_nodes = [
+            n for n in journal.good_nodes if n.is_leaf and n.ablation_name
+        ]
+        return [get_node_log(n) for n in good_leaf_nodes]
+    elif stage_index == 0:
+        if cfg.agent.get("summary", None) is not None:
+            model = cfg.agent.summary.get("model", "")
+        else:
+            model = "gpt-4o-2024-08-06"
+        client = get_ai_client(model)
+        summary_json = get_stage_summary(journal, stage_name, model, client)
+        return summary_json
+    raise ValueError(f"Unsupported main stage index: {stage_index}")
+
+
 def overall_summarize(journals, cfg=None):
     from concurrent.futures import ThreadPoolExecutor
 
     def process_stage(idx, stage_tuple):
         stage_name, journal = stage_tuple
-        annotate_history(journal, cfg=cfg)
-        if idx in [1, 2]:
-            best_node = journal.get_best_node(cfg=cfg)
-            # get multi-seed results and aggregater node
-            child_nodes = best_node.children
-            multi_seed_nodes = [
-                n for n in child_nodes if n.is_seed_node and not n.is_seed_agg_node
-            ]
-            agg_node = None
-            for n in child_nodes:
-                if n.is_seed_node and n.is_seed_agg_node:
-                    agg_node = n
-                    break
-            if agg_node is None:
-                # skip agg node
-                return {
-                    "best node": get_node_log(best_node),
-                    "best node with different seeds": [
-                        get_node_log(n) for n in multi_seed_nodes
-                    ],
-                }
-            else:
-                return {
-                    "best node": get_node_log(best_node),
-                    "best node with different seeds": [
-                        get_node_log(n) for n in multi_seed_nodes
-                    ],
-                    "aggregated results of nodes with different seeds": get_node_log(
-                        agg_node
-                    ),
-                }
-        elif idx == 3:
-            good_leaf_nodes = [
-                n for n in journal.good_nodes if n.is_leaf and n.ablation_name
-            ]
-            return [get_node_log(n) for n in good_leaf_nodes]
-        elif idx == 0:
-            if cfg.agent.get("summary", None) is not None:
-                model = cfg.agent.summary.get("model", "")
-            else:
-                model = "gpt-4o-2024-08-06"
-            client = get_ai_client(model)
-            summary_json = get_stage_summary(journal, stage_name, model, client)
-            return summary_json
+        return summarize_stage(journal, stage_name, idx, cfg)
 
     from tqdm import tqdm
 
