@@ -42,10 +42,13 @@ def _make_manager(stages, fail_on_stage=None):
     manager = object.__new__(AgentManager)
     manager.current_stage = stages[0]
     manager.stages = [stages[0]]
-    manager.journals = {stage.name: object() for stage in stages}
+    manager.journals = {
+        stage.name: SimpleNamespace(append=lambda node: None) for stage in stages
+    }
     manager.stage_history = []
     manager.completed_stages = []
     manager._save_checkpoint = lambda: None
+    manager._get_best_implementation = lambda stage_name: SimpleNamespace(step=None)
     manager._create_agent_for_stage = lambda stage: _FakeAgent(
         stage.name, fail_on_stage
     )
@@ -53,9 +56,7 @@ def _make_manager(stages, fail_on_stage=None):
     manager._check_substage_completion = lambda stage, journal: (False, "")
 
     next_stages = dict(zip((stage.name for stage in stages), stages[1:]))
-    manager._create_next_main_stage = lambda stage, journal: next_stages.get(
-        stage.name
-    )
+    manager._create_next_main_stage = lambda stage, journal: next_stages.get(stage.name)
     return manager
 
 
